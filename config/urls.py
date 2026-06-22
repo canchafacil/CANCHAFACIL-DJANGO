@@ -11,5 +11,4 @@ urlpatterns = [
     path('canchas/', include('canchas.urls')),
     path('administracion/', include('administracion.urls')),
     path('pagos/', include('pagos.urls')),
-
 ]
