@@ -1,0 +1,91 @@
+<div class="tab-pane fade" id="sec-canchas" role="tabpanel">
+    <div class="container py-4 p-0">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-white fw-bold">Administración de Canchas</h2>
+            <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalCancha"
+                style="background-color:#62ff00;border-color:#62ff00;color:black;">
+                + Agregar Cancha
+            </button>
+        </div>
+
+        <div class="row g-4">
+            {% for cancha in canchas %}
+            <div class="col-md-4">
+                <div class="card shadow h-100" style="background-color:#1a1a1a;color:white;border:1px solid #333;">
+                    {% if cancha.imagen %}
+                    <img src="{{ cancha.imagen.url }}" class="card-img-top" alt="Cancha" style="height:220px;object-fit:cover;">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold">{{ cancha.nombre }}</h5>
+                        <p class="card-text text-white-50">
+                            <strong class="text-white">Tipo:</strong> {{ cancha.tipo }}<br>
+                            <strong class="text-white">Precio:</strong> ${{ cancha.precio }}/hora
+                        </p>
+                        {% if cancha.disponible %}
+                            <span class="badge rounded-pill px-3 py-2" style="background:#62ff00;color:#000;">Disponible</span>
+                        {% else %}
+                            <span class="badge bg-secondary rounded-pill px-3 py-2">Mantenimiento</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer border-0 d-flex justify-content-between" style="background:transparent;">
+                        <a href="{% url 'editar_cancha' cancha.id %}" class="btn btn-sm fw-bold"
+                            style="background-color:#62ff00;border-color:#62ff00;color:black;">Editar</a>
+                        <a href="{% url 'eliminar_cancha' cancha.id %}" class="btn btn-danger btn-sm fw-bold"
+                            onclick="return confirm('¿Seguro que deseas eliminar esta cancha?');">Eliminar</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert text-center text-white-50" style="background:#1a1a1a;border:1px solid #333;">
+                    No hay canchas registradas aún.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Modal agregar cancha -->
+    <div class="modal fade" id="modalCancha" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="background:#1a1a1a;color:white;border:1px solid #333;">
+                <div class="modal-header" style="border-color:#333;">
+                    <h5 class="modal-title fw-bold">Agregar Cancha</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'agregar_cancha' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nombre de la Cancha</label>
+                            <input type="text" name="nombre" class="form-control custom-input bg-dark text-white" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Tipo de Cancha</label>
+                            <select name="tipo" class="form-select custom-input bg-dark text-white" required>
+                                <option value="Fútbol 5">Fútbol 5</option>
+                                <option value="Fútbol 7">Fútbol 7</option>
+                                <option value="Fútbol 11">Fútbol 11</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Precio por Hora</label>
+                            <input type="number" name="precio" class="form-control custom-input bg-dark text-white" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Imagen</label>
+                            <input type="file" name="imagen" class="form-control custom-input bg-dark text-white" accept="image/*">
+                        </div>
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" name="disponible" checked>
+                            <label class="form-check-label">Disponible</label>
+                        </div>
+                        <button type="submit" class="btn w-100 fw-bold rounded-pill py-2"
+                            style="background:#62ff00;color:#000;">Guardar Cancha</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

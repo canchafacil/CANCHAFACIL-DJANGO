@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - CanchaFácil</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/admi.css' %}">
+    <link rel="stylesheet" href="{% static 'css/AdminReser.css' %}">
+</head>
+<body class="adm-body bg-dark text-white">
+
+    <nav class="navbar navbar-expand-lg navbar-dark shadow cancha-nav">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <img src="{% static 'img/logo-green.png' %}" style="height:90px;object-fit:contain;" alt="Logo CanchaFácil">
+                <a class="navbar-brand fw-bold ms-2 m-0 logo-text" href="#" style="font-size:2rem;color:#fff;">
+                    Cancha<span style="color:#62ff00;">Fácil</span>
+                </a>
+            </div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="menuNav">
+                <ul class="nav navbar-nav ms-auto mt-3 mt-lg-0 align-items-center gap-2" id="admTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="btn btn-custom rounded-pill active" id="mes-tab" data-bs-toggle="tab" data-bs-target="#sec-ingreso-mes" type="button" role="tab">Ingreso Mes</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="btn btn-custom rounded-pill" id="panel-reservas-tab" data-bs-toggle="tab" data-bs-target="#sec-panel-reservas" type="button" role="tab">Panel Reservas</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="btn btn-custom rounded-pill" id="ingresos-tab" data-bs-toggle="tab" data-bs-target="#sec-ingresos" type="button" role="tab">Ingresos</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="btn btn-custom rounded-pill" id="resenas-tab" data-bs-toggle="tab" data-bs-target="#sec-resenas" type="button" role="tab">Ver Reseñas</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="btn btn-custom rounded-pill" id="canchas-tab" data-bs-toggle="tab" data-bs-target="#sec-canchas" type="button" role="tab">Administrar Canchas</button>
+                    </li>
+                    <li class="nav-item ms-lg-3">
+                        <a href="{% url 'login' %}" class="btn btn-salir rounded-pill fw-bold py-2 px-4">Salir</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-fluid px-3 px-md-5 py-5">
+        <div class="tab-content" id="admTabsContent">
+
+            {% include 'panel/includes/ingreso_mes.html' %}
+            {% include 'panel/includes/panel_reservas.html' %}
+            {% include 'panel/includes/ingresos.html' %}
+            {% include 'panel/includes/reseñas.html' %}
+            {% include 'panel/includes/canchas.html' %}
+
+        </div><!-- fin tab-content -->
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% include 'panel/includes/scripts_ingresos.html' %}
+    {% include 'panel/includes/scripts_resenas.html' %}
+    {% include 'panel/includes/scripts_reservas.html' %}
+</body>
+</html>

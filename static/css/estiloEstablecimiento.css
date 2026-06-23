@@ -1,0 +1,147 @@
+/* ===== RESET ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ===== BODY ===== */
+body {
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #0d0d0d;
+  color: white;
+}
+
+/* ===== TITULO ===== */
+h2 {
+  color: #62FF00;
+  font-weight: bold;
+}
+
+/* ===== BOTON AGREGAR ===== */
+.btn-agregar {
+  background-color: #62FF00;
+  color: black;
+  border: none;
+  font-weight: bold;
+  transition: .3s;
+}
+
+.btn-agregar:hover {
+  background-color: white;
+  color: black;
+  transform: translateY(-2px);
+}
+
+/* ===== TARJETAS ===== */
+.card {
+  background-color: #1a1a1a !important;
+  border: 1px solid #2d2d2d !important;
+  border-radius: 15px;
+  overflow: hidden;
+  transition: .3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  border-color: #62FF00 !important;
+  box-shadow: 0 0 15px rgba(98,255,0,.2);
+}
+
+.card img {
+  height: 220px;
+  object-fit: cover;
+}
+
+.card-title {
+  color: #62FF00;
+  font-weight: bold;
+}
+
+.card-text {
+  color: #dcdcdc;
+}
+
+.card-footer {
+  background-color: #1a1a1a !important;
+  border-top: 1px solid #2d2d2d;
+}
+
+/* ===== BOTON EDITAR ===== */
+.btn-editar {
+  background-color: #62FF00;
+  color: black;
+  border: none;
+  font-weight: bold;
+}
+
+.btn-editar:hover {
+  background-color: white;
+}
+
+/* ===== MODAL ===== */
+.modal-content {
+  background-color: #1a1a1a;
+  color: white;
+  border: 1px solid #2d2d2d;
+}
+
+.modal-header {
+  border-bottom: 1px solid #2d2d2d;
+}
+
+.modal-title {
+  color: #62FF00;
+}
+
+.form-control,
+.form-select {
+  background-color: #111;
+  color: white;
+  border: 1px solid #333;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: #111;
+  color: white;
+  border-color: #62FF00;
+  box-shadow: none;
+}   
+
+/* ===== NAVBAR ===== */
+
+.navbar-admin {
+    background-color: #0d0d0d;
+    border-bottom: 2px solid #3a3a3a;
+    padding: 12px 0;
+}
+
+.navbar-brand {
+    color: white !important;
+    font-size: 2rem;
+}
+
+.text-verde {
+    color: #62FF00;
+}
+
+/* ===== BOTÓN INICIO ===== */
+
+.btn-inicio {
+    background-color: #62FF00;
+    color: black;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    transition: all .3s ease;
+}
+
+.btn-inicio:hover {
+    background-color: white;
+    color: black;
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(98,255,0,.4);
+}

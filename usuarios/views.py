@@ -7,4 +7,4 @@ def registro(request):
     return render(request, 'usuarios/registro.html')
 
 def inicioadmi(request):
-    return render(request, 'usuarios/inicioadmi.html')
+    return render(request, 'auth_admin/login_admin.html')

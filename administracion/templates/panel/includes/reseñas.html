@@ -1,0 +1,137 @@
+<div class="tab-pane fade" id="sec-resenas" role="tabpanel">
+    <section class="container-fluid p-0">
+
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-4 mb-4">
+            <div>
+                <h2 class="adm-titulo m-0">PANEL DE RESEÑAS</h2>
+                <p class="adm-sub m-0">Gestión de comentarios — Cancha Fácil</p>
+            </div>
+            <div class="d-flex flex-wrap gap-3">
+                <div class="adm-stat-box"><span class="adm-stat-n" id="adm-total">{{ resenas_activas.count }}</span><span class="adm-stat-l">Activas</span></div>
+                <div class="adm-stat-box"><span class="adm-stat-n" id="adm-arch">{{ resenas_archivadas.count }}</span><span class="adm-stat-l">Archivadas</span></div>
+            </div>
+        </div>
+
+        <div class="adm-toolbar p-3 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-3">
+            <div class="d-flex flex-column flex-sm-row gap-2 flex-grow-1">
+                <select class="adm-select form-select" id="filtro-cancha" onchange="aplicarFiltros()">
+                    <option value="">Todas las canchas</option>
+                    <option>Fútbol 5</option>
+                    <option>Fútbol 8</option>
+                    <option>Cancha múltiple</option>
+                </select>
+                <select class="adm-select form-select" id="filtro-estrellas" onchange="aplicarFiltros()">
+                    <option value="">Todas las estrellas</option>
+                    <option value="5">★★★★★ (5)</option>
+                    <option value="4">★★★★☆ (4)</option>
+                    <option value="3">★★★☆☆ (3)</option>
+                    <option value="2">★★☆☆☆ (2)</option>
+                    <option value="1">★☆☆☆☆ (1)</option>
+                </select>
+                <input class="adm-input form-control" id="filtro-buscar" type="text" placeholder="Buscar por nombre o comentario..." oninput="aplicarFiltros()">
+            </div>
+            <button id="btn-toggle-arch" class="adm-btn" onclick="toggleVista()">Ver archivados</button>
+        </div>
+
+        <div id="container-activas">
+            <div class="adm-tabla-wrap custom-scrollbar">
+                <table class="adm-tabla" id="tabla-activas">
+                    <thead><tr><th>Usuario</th><th>Tipo jugador</th><th>Cancha</th><th>Calificación</th><th>Comentario</th><th>Fecha</th><th>Acciones</th></tr></thead>
+                    <tbody id="tbody-activas">
+                        {% for r in resenas_activas %}
+                        <tr id="fila-{{ r.id }}" data-cancha="{{ r.cancha }}" data-estrellas="{{ r.estrellas }}" data-nombre="{{ r.nombre|lower }}" data-texto="{{ r.texto|lower }}">
+                            <td>
+                                <div class="adm-user d-flex align-items-center gap-2">
+                                    <div class="adm-avatar">{{ r.nombre|slice:":2"|upper }}</div>
+                                    <span class="text-white fw-bold">{{ r.nombre }}</span>
+                                </div>
+                            </td>
+                            <td><span class="adm-tag">{{ r.jugador }}</span></td>
+                            <td><span class="adm-tag cancha">{{ r.cancha }}</span></td>
+                            <td class="adm-stars">
+                                {% for i in "12345" %}
+                                    <span style="color:{% if forloop.counter <= r.estrellas %}#62FF00{% else %}#525151{% endif %}">★</span>
+                                {% endfor %}
+                            </td>
+                            <td class="adm-comentario">{{ r.texto }}</td>
+                            <td class="adm-fecha">{{ r.fecha|date:"d M - H:i" }}</td>
+                            <td>
+                                <div class="adm-acciones d-flex gap-2">
+                                    <button class="adm-btn editar" onclick="editarResena({{ r.id }}, this)">✏ Editar</button>
+                                    <button class="adm-btn archivar" onclick="archivar({{ r.id }})">📦 Archivar</button>
+                                    <button class="adm-btn eliminar" onclick="pedirEliminar({{ r.id }})">🗑 Eliminar</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" class="text-center text-white-50 py-5">No hay reseñas activas.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <p class="py-5 text-center text-white-50" id="empty-activas" style="display:none;">No hay reseñas que coincidan con los filtros.</p>
+            </div>
+        </div>
+
+        <div id="container-archivadas" style="display:none;">
+            <div class="adm-tabla-wrap custom-scrollbar">
+                <table class="adm-tabla">
+                    <thead><tr><th>Usuario</th><th>Tipo jugador</th><th>Cancha</th><th>Calificación</th><th>Comentario</th><th>Fecha</th><th>Acciones</th></tr></thead>
+                    <tbody id="tbody-archivadas">
+                        {% for r in resenas_archivadas %}
+                        <tr id="fila-arch-{{ r.id }}">
+                            <td>
+                                <div class="adm-user d-flex align-items-center gap-2">
+                                    <div class="adm-avatar">{{ r.nombre|slice:":2"|upper }}</div>
+                                    <span class="text-white fw-bold">{{ r.nombre }}</span>
+                                </div>
+                            </td>
+                            <td><span class="adm-tag">{{ r.jugador }}</span></td>
+                            <td><span class="adm-tag cancha">{{ r.cancha }}</span></td>
+                            <td class="adm-stars">
+                                {% for i in "12345" %}
+                                    <span style="color:{% if forloop.counter <= r.estrellas %}#62FF00{% else %}#525151{% endif %}">★</span>
+                                {% endfor %}
+                            </td>
+                            <td class="adm-comentario">{{ r.texto }}</td>
+                            <td class="adm-fecha">{{ r.fecha|date:"d M - H:i" }}</td>
+                            <td>
+                                <div class="adm-acciones d-flex gap-2">
+                                    <button class="adm-btn restaurar" onclick="restaurar({{ r.id }})">↩ Restaurar</button>
+                                    <button class="adm-btn eliminar" onclick="pedirEliminar({{ r.id }})">🗑 Eliminar</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" class="text-center text-white-50 py-5">No hay reseñas archivadas.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Modal editar reseña -->
+        <div id="modal-editar-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:2000;justify-content:center;align-items:center;">
+            <div class="p-4 rounded-4" style="background:#191919;max-width:480px;width:90%;border:1px solid #2a2a2a;">
+                <h3 class="mb-3 fw-bold text-white">Editar comentario</h3>
+                <textarea id="editar-texto-input" rows="4" style="width:100%;background:#111;color:#fff;border:1.5px solid #333;border-radius:8px;padding:10px;font-family:'Nunito',sans-serif;resize:vertical;"></textarea>
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                    <button class="px-4 py-2 rounded-pill border-0 fw-bold" onclick="cerrarModalEditar()" style="background:#2b2b2b;color:#fff;min-width:110px;">Cancelar</button>
+                    <button class="px-4 py-2 rounded-pill border-0 fw-bold text-dark" id="btn-confirmar-editar" style="background:#62ff00;min-width:110px;">Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal eliminar reseña -->
+        <div id="modal-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:2000;justify-content:center;align-items:center;">
+            <div class="p-4 text-center rounded-4" style="background:#191919;max-width:420px;width:90%;border:1px solid #2a2a2a;">
+                <h3 class="mb-2 fw-bold text-white">¿Eliminar reseña?</h3>
+                <p class="mb-4 text-white-50">Esta acción es permanente y no se puede deshacer.</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button class="px-4 py-2 rounded-pill border-0 fw-bold" onclick="cerrarModal()" style="background:#2b2b2b;color:#fff;min-width:110px;">Cancelar</button>
+                    <button class="px-4 py-2 rounded-pill border-0 fw-bold text-white" id="btn-confirmar-eliminar" style="background:#e63946;min-width:110px;">Eliminar</button>
+                </div>
+            </div>
+        </div>
+
+    </section>
+</div>

@@ -1,0 +1,57 @@
+<div class="tab-pane fade" id="sec-panel-reservas" role="tabpanel">
+    <div class="container p-0">
+        <h3 class="mb-4 text-white fw-bold">Panel de Reservas</h3>
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card p-3 shadow text-dark bg-light rounded-4">
+                    <h6>Total reservas</h6><h3 id="stat-total-res" class="fw-bold m-0">0</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3 shadow text-dark bg-light rounded-4">
+                    <h6>Confirmadas</h6><h3 id="stat-conf-res" class="fw-bold text-success m-0">0</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3 shadow text-dark bg-light rounded-4">
+                    <h6>Pendientes</h6><h3 id="stat-pend-res" class="fw-bold text-warning m-0">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="card shadow p-4 rounded-4 text-dark bg-light">
+            <h5 class="mb-3 fw-bold">Lista de Reservas</h5>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle m-0">
+                    <thead class="table-dark">
+                        <tr><th>NOMBRE</th><th>CANCHA</th><th>FECHA</th><th>HORA</th><th>ESTADO</th><th>ACCIONES</th></tr>
+                    </thead>
+                    <tbody id="tablaReservas"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal eliminar reserva -->
+    <div id="modal-reserva-eliminar-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:2000;justify-content:center;align-items:center;">
+        <div class="p-4 text-center rounded-4" style="background:#191919;max-width:420px;width:90%;border:1px solid #2a2a2a;">
+            <h3 class="mb-2 fw-bold text-white" style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;">¿ELIMINAR RESERVA?</h3>
+            <p class="mb-4 text-white-50">Esta acción es permanente y no se puede deshacer.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <button class="px-4 py-2 rounded-pill border-0 fw-bold" onclick="cerrarModalEliminarReserva()" style="background:#2b2b2b;color:#fff;min-width:110px;">Cancelar</button>
+                <button class="px-4 py-2 rounded-pill border-0 fw-bold text-white" id="btn-confirmar-eliminar-reserva" style="background:#e63946;min-width:110px;">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal aprobar reserva -->
+    <div id="modal-reserva-aprobar-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:2000;justify-content:center;align-items:center;">
+        <div class="p-4 text-center rounded-4" style="background:#191919;max-width:420px;width:90%;border:1px solid #2a2a2a;">
+            <h3 class="mb-2 fw-bold" style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:#62ff00;">¿APROBAR RESERVA?</h3>
+            <p class="mb-4 text-white-50">La reserva cambiará a estado aprobado de forma inmediata.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <button class="px-4 py-2 rounded-pill border-0 fw-bold" onclick="cerrarModalAprobarReserva()" style="background:#2b2b2b;color:#fff;min-width:110px;">Cancelar</button>
+                <button class="px-4 py-2 rounded-pill border-0 fw-bold text-dark" id="btn-confirmar-aprobar-reserva" style="background:#62ff00;min-width:110px;">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>

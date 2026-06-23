@@ -3,7 +3,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-
     path('', include('paginas.urls')),
     path('usuarios/', include('usuarios.urls')),
     path('reservas/', include('reservas.urls')),
@@ -11,4 +10,6 @@ urlpatterns = [
     path('canchas/', include('canchas.urls')),
     path('administracion/', include('administracion.urls')),
     path('pagos/', include('pagos.urls')),
+    # AGREGA ESTA LÍNEA:
+    path('panel_admin/', include('panel_admin.urls')),
 ]

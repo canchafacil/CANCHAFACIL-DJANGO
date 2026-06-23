@@ -1,0 +1,86 @@
+<script>
+    let indiceReservaSeleccionada = null;
+
+    let reservas = JSON.parse(localStorage.getItem("reservas")) || [
+        { nombre:"Juan Pérez",  cancha:"Fútbol 5", fecha:"2026-06-18", hora:"18:00", estado:"Pendiente"  },
+        { nombre:"Ana Gómez",   cancha:"Fútbol 7", fecha:"2026-06-19", hora:"20:00", estado:"Confirmada" },
+        { nombre:"Danna Silva", cancha:"Fútbol 8", fecha:"2026-06-20", hora:"19:30", estado:"Pendiente"  }
+    ];
+    reservas.forEach(r => { if (!r.estado) r.estado = "Pendiente"; });
+    localStorage.setItem("reservas", JSON.stringify(reservas));
+
+    function actualizarEstadisticasReservas() {
+        const el = document.getElementById("stat-total-res");
+        if (!el) return;
+        el.textContent = reservas.length;
+        document.getElementById("stat-conf-res").textContent = reservas.filter(r => r.estado === "Confirmada").length;
+        document.getElementById("stat-pend-res").textContent = reservas.filter(r => r.estado === "Pendiente").length;
+    }
+
+    function cargarTablaReservas() {
+        const tbody = document.getElementById("tablaReservas");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+
+        if (!reservas.length) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">No hay reservas registradas.</td></tr>`;
+            actualizarEstadisticasReservas();
+            return;
+        }
+
+        reservas.forEach((r, i) => {
+            const pend = r.estado === "Pendiente";
+            tbody.innerHTML += `
+            <tr>
+                <td class="fw-bold">${r.nombre}</td>
+                <td>${r.cancha}</td>
+                <td>${r.fecha}</td>
+                <td>${r.hora}</td>
+                <td><span class="badge ${pend ? 'bg-warning text-dark' : 'bg-success'}">${r.estado}</span></td>
+                <td>
+                    ${pend ? `<button class="btn btn-success btn-sm me-1" onclick="pedirAprobarReserva(${i})" title="Confirmar">✔</button>` : ''}
+                    <button class="btn btn-danger btn-sm" onclick="pedirEliminarReserva(${i})" title="Eliminar">🗑</button>
+                </td>
+            </tr>`;
+        });
+        actualizarEstadisticasReservas();
+    }
+
+    function pedirEliminarReserva(i) {
+        indiceReservaSeleccionada = i;
+        document.getElementById('modal-reserva-eliminar-overlay').style.display = 'flex';
+    }
+    function cerrarModalEliminarReserva() {
+        document.getElementById('modal-reserva-eliminar-overlay').style.display = 'none';
+        indiceReservaSeleccionada = null;
+    }
+    document.getElementById('btn-confirmar-eliminar-reserva').onclick = function () {
+        if (indiceReservaSeleccionada !== null) {
+            reservas.splice(indiceReservaSeleccionada, 1);
+            localStorage.setItem("reservas", JSON.stringify(reservas));
+            cargarTablaReservas();
+        }
+        cerrarModalEliminarReserva();
+    };
+
+    function pedirAprobarReserva(i) {
+        indiceReservaSeleccionada = i;
+        document.getElementById('modal-reserva-aprobar-overlay').style.display = 'flex';
+    }
+    function cerrarModalAprobarReserva() {
+        document.getElementById('modal-reserva-aprobar-overlay').style.display = 'none';
+        indiceReservaSeleccionada = null;
+    }
+    document.getElementById('btn-confirmar-aprobar-reserva').onclick = function () {
+        if (indiceReservaSeleccionada !== null) {
+            reservas[indiceReservaSeleccionada].estado = "Confirmada";
+            localStorage.setItem("reservas", JSON.stringify(reservas));
+            cargarTablaReservas();
+        }
+        cerrarModalAprobarReserva();
+    };
+
+    document.addEventListener("DOMContentLoaded", function () {
+        cargarTablaReservas();
+    });
+    </script>

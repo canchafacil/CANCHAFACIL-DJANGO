@@ -1,0 +1,57 @@
+<script>
+/* ── GRÁFICA DE INGRESOS ── */
+const ctxIngresos = document.getElementById('graficaIngresos').getContext('2d');
+new Chart(ctxIngresos, {
+    type: 'bar',
+    data: {
+        labels: ['Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Sep (actual)'],
+        datasets: [{
+            label: 'Ingresos ($)',
+            data: [7200000, 10500000, 5100000, 6900000, 4400000, 5400000],
+            backgroundColor: [
+                'rgba(98,255,0,0.7)',
+                'rgba(98,255,0,0.7)',
+                'rgba(98,255,0,0.7)',
+                'rgba(98,255,0,0.7)',
+                'rgba(98,255,0,0.7)',
+                'rgba(98,255,1)'
+            ],
+            borderColor: '#62ff00',
+            borderWidth: 2,
+            borderRadius: 8,
+            borderSkipped: false
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#121212',
+                titleColor: '#62ff00',
+                bodyColor: '#fff',
+                borderColor: '#62ff00',
+                borderWidth: 1,
+                callbacks: {
+                    label: ctx => ' $' + ctx.raw.toLocaleString('es-CO')
+                }
+            }
+        },
+        scales: {
+            x: {
+                ticks: { color: '#fff', font: { family: 'Nunito', weight: '700' } },
+                grid: { color: 'rgba(255,255,255,0.05)' }
+            },
+            y: {
+                ticks: {
+                    color: '#aaa',
+                    callback: val => '$' + (val / 1000000).toFixed(1) + 'M'
+                },
+                grid: { color: 'rgba(255,255,255,0.07)' },
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>

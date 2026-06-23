@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="{% static 'css/nosotros.css' %}">
+    <link rel="stylesheet" href="{% static 'resenas/css/nosotros.css' %}">
 </head>
 
 <body>
@@ -31,12 +31,12 @@
 
             <div class="collapse navbar-collapse" id="menu">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link active" href="{% url 'inicio' %}">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="{% url 'reservas' %}">Reservas</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="{% url 'nosotros' %}">Sobre Nosotros</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="{% url 'contacto' %}">Contacto</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="../index.html">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="../html/reservas.html">Reservas</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="../html/nosotros.html">Sobre Nosotros</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="../html/contacto.html">Contacto</a></li>
                     <li class="nav-item">
-                        <a href="{% url 'login' %}" class="btn btn-info border-0 ms-2" style="background-color: #62ff00; color: #03045e; font-weight: bold;">Iniciar sesión</a>
+                        <a href="../html/login.html" class="btn btn-info border-0 ms-2" style="background-color: #62ff00; color: #03045e; font-weight: bold;">Iniciar sesión</a>
                     </li>
                 </ul>
             </div>
@@ -83,11 +83,11 @@
             <p class="rf-sub">Jugadores reales, experiencias reales en Cancha Fácil</p>
             <div class="rf-stats">
                 <div>
-                    <span class="rf-stat-num" id="stat-total">15</span>
+                    <span class="rf-stat-num">{{ resenas.count }}</span>
                     <span class="rf-stat-lbl">Reseñas</span>
                 </div>
                 <div>
-                    <span class="rf-stat-num" id="stat-prom">4.8</span>
+                    <span class="rf-stat-num">{{ promedio }}</span>
                     <span class="rf-stat-lbl">Promedio</span>
                 </div>
                 <div>
@@ -97,24 +97,44 @@
             </div>
         </div>
 
-        <div class="rf-grid" id="rf-grid"></div>
+        <div class="rf-grid" id="rf-grid">
+            {% for r in resenas %}
+            <div class="rf-card">
+                <div class="rf-card-top">
+                    <div class="rf-avatar">{{ r.nombre|slice:":2"|upper }}</div>
+                    <div>
+                        <p class="rf-nombre">{{ r.nombre }}</p>
+                        <p class="rf-tipo-jugador">{{ r.jugador }}</p>
+                    </div>
+                </div>
+                <div class="rf-stars">
+                    {% for i in "12345" %}
+                        <span style="color:{% if forloop.counter <= r.estrellas %}#facc15{% else %}#d1d5db{% endif %}">★</span>
+                    {% endfor %}
+                </div>
+                <span class="rf-badge">{{ r.cancha }}</span>
+                <p class="rf-texto">"{{ r.texto }}"</p>
+            </div>
+            {% endfor %}
+        </div>
 
         <div class="rf-form-wrap">
             <h3 class="rf-form-titulo">DEJA TU RESEÑA</h3>
             <p class="rf-form-sub">¿Ya jugaste con nosotros? Comparte tu experiencia</p>
 
+            <form method="post">
+            {% csrf_token %}
             <div class="rf-form-grid">
                 <div class="rf-field">
                     <label class="rf-label" for="f-nombre">Tu nombre</label>
-                    <input class="rf-input" id="f-nombre" type="text" placeholder="Ej: Juan García">
+                    <input class="rf-input" id="f-nombre" name="nombre" type="text" placeholder="Ej: Juan García">
                 </div>
 
                 <div class="rf-field">
                     <label class="rf-label" for="f-jugador">Tipo de jugador</label>
-                    <select class="rf-select" id="f-jugador">
+                    <select class="rf-select" id="f-jugador" name="jugador">
                         <option value="">Selecciona...</option>
                         <option>Jugador amateur</option>
-                        <option>Jugador semiprofesional</option>
                         <option>Capitán de equipo</option>
                         <option>Organizador de torneos</option>
                         <option>Jugador recreativo</option>
@@ -124,7 +144,7 @@
 
                 <div class="rf-field">
                     <label class="rf-label" for="f-cancha">Tipo de cancha</label>
-                    <select class="rf-select" id="f-cancha">
+                    <select class="rf-select" id="f-cancha" name="cancha">
                         <option value="">Selecciona...</option>
                         <option>Fútbol 5</option>
                         <option>Fútbol 8</option>
@@ -141,12 +161,13 @@
                         <button class="rf-star-btn" data-v="4" type="button">★</button>
                         <button class="rf-star-btn" data-v="5" type="button">★</button>
                         <span class="rf-star-label" id="star-label">Sin calificar</span>
+                        <input type="hidden" name="estrellas" id="f-estrellas" value="0">
                     </div>
                 </div>
 
                 <div class="rf-field full">
                     <label class="rf-label" for="f-texto">Tu comentario</label>
-                    <textarea class="rf-input" id="f-texto" rows="3" placeholder="¿Cómo fue tu experiencia jugando en Cancha Fácil?"></textarea>
+                    <textarea class="rf-input" id="f-texto" name="texto" rows="3" placeholder="¿Cómo fue tu experiencia jugando en Cancha Fácil?"></textarea>
                 </div>
 
                 <div class="rf-field full">
@@ -158,6 +179,7 @@
                     </div>
                 </div>
             </div>
+            </form>
         </div>
     </section>
 
@@ -192,242 +214,48 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-let resenas = JSON.parse(localStorage.getItem("resenas")) || [
-    {
-        id:1,
-        nombre:"Carlos Mendoza",
-        jugador:"Capitán de equipo",
-        cancha:"Fútbol 8",
-        estrellas:5,
-        texto:"La iluminación nocturna es excelente, jugamos hasta las 11 pm sin ningún problema. El pasto sintético en perfecto estado."
-    },
-    {
-        id:2,
-        nombre:"Valentina Ríos",
-        jugador:"Jugadora amateur",
-        cancha:"Fútbol 5",
-        estrellas:5,
-        texto:"Reservé en menos de 2 minutos desde el celular. Proceso súper fácil y el precio es muy justo para la calidad que ofrecen."
-    },
-    {
-        id:3,
-        nombre:"Andrés Camargo",
-        jugador:"Organizador de torneos",
-        cancha:"Cancha múltiple",
-        estrellas:5,
-        texto:"Organizamos torneos aquí cada mes. El staff es puntual y las canchas siempre en perfectas condiciones. Totalmente recomendado."
-    },
-    {
-        id:4,
-        nombre:"María Fernanda G.",
-        jugador:"Jugadora recreativa",
-        cancha:"Fútbol 5",
-        estrellas:5,
-        texto:"Me sorprendió lo bien cuidada que está la grama. Ambiente seguro y muy limpio. Volvería mil veces más sin dudarlo."
-    },
-    {
-        id:5,
-        nombre:"Felipe Ortega",
-        jugador:"Jugador semiprofesional",
-        cancha:"Fútbol 8",
-        estrellas:4,
-        texto:"La cancha es de muy buena calidad. Solo sugeriría agregar más zona de descanso para los jugadores que esperan turno."
-    }
-];
-
 let estrellaActual = 0;
 
-function starsHTML(n) {
-    let html = "";
-    for (let i = 1; i <= 5; i++) {
-        html += `<span style="color:${i <= n ? '#facc15' : '#d1d5db'}">★</span>`;
-    }
-    return html;
-}
-
-function iniciales(nombre) {
-    if (!nombre) return "CF";
-
-    return nombre
-        .trim()
-        .split(" ")
-        .filter(p => p.length > 0)
-        .slice(0, 2)
-        .map(p => p[0])
-        .join("")
-        .toUpperCase();
-}
-
-function crearCard(r) {
-    const card = document.createElement("div");
-
-    card.className = "rf-card";
-
-    card.innerHTML = `
-        <div class="rf-card-top">
-            <div class="rf-avatar">${iniciales(r.nombre)}</div>
-            <div>
-                <p class="rf-nombre">${r.nombre}</p>
-                <p class="rf-tipo-jugador">${r.jugador}</p>
-            </div>
-        </div>
-
-        <div class="rf-stars">
-            ${starsHTML(r.estrellas)}
-        </div>
-
-        <span class="rf-badge">${r.cancha}</span>
-
-        <p class="rf-texto">"${r.texto}"</p>
-    `;
-
-    return card;
-}
-
-function renderTodas() {
-
-    resenas = JSON.parse(localStorage.getItem("resenas")) || resenas;
-
-    const grid = document.getElementById("rf-grid");
-
-    grid.innerHTML = "";
-
-    resenas.forEach(r => {
-        grid.appendChild(crearCard(r));
-    });
-
-    actualizarStats();
-}
-
-function actualizarStats() {
-
-    document.getElementById("stat-total").textContent = resenas.length;
-
-    if (resenas.length === 0) {
-        document.getElementById("stat-prom").textContent = "0";
-        return;
-    }
-
-    const prom =
-        resenas.reduce((a, r) => a + Number(r.estrellas), 0) / resenas.length;
-
-    document.getElementById("stat-prom").textContent =
-        prom.toFixed(1);
-}
-
-const labels = [
-    "",
-    "Malo",
-    "Regular",
-    "Bueno",
-    "Muy bueno",
-    "Excelente"
-];
+const labels = ["","Malo","Regular","Bueno","Muy bueno","Excelente"];
 
 function highlightStars(v) {
-
     document.querySelectorAll(".rf-star-btn").forEach(btn => {
-
-        const val = parseInt(btn.dataset.v);
-
-        if (val <= v) {
-            btn.style.color = "#facc15";
-        } else {
-            btn.style.color = "#d1d5db";
-        }
+        btn.style.color = parseInt(btn.dataset.v) <= v ? "#facc15" : "#d1d5db";
     });
 }
 
 function setStar(v) {
-
     estrellaActual = v;
-
-    document.getElementById("star-label").textContent =
-        labels[v];
-
+    document.getElementById("star-label").textContent = labels[v];
+    document.getElementById("f-estrellas").value = v;
     highlightStars(v);
 }
 
 function enviarResena() {
-
-    const nombre =
-        document.getElementById("f-nombre").value.trim();
-
-    const jugador =
-        document.getElementById("f-jugador").value;
-
-    const cancha =
-        document.getElementById("f-cancha").value;
-
-    const texto =
-        document.getElementById("f-texto").value.trim();
+    const nombre   = document.getElementById("f-nombre").value.trim();
+    const jugador  = document.getElementById("f-jugador").value;
+    const cancha   = document.getElementById("f-cancha").value;
+    const texto    = document.getElementById("f-texto").value.trim();
 
     if (!nombre || !jugador || !cancha || !texto || estrellaActual === 0) {
         alert("Completa todos los campos.");
         return;
     }
 
-    const nueva = {
-        id: Date.now(),
-        nombre,
-        jugador,
-        cancha,
-        estrellas: estrellaActual,
-        texto,
-        fecha: new Date().toISOString()
-    };
-
-    resenas.unshift(nueva);
-
-    localStorage.setItem(
-        "resenas",
-        JSON.stringify(resenas)
-    );
-
-    renderTodas();
-
-    document.getElementById("f-nombre").value = "";
-    document.getElementById("f-jugador").value = "";
-    document.getElementById("f-cancha").value = "";
-    document.getElementById("f-texto").value = "";
-
-    estrellaActual = 0;
-
-    document.getElementById("star-label").textContent =
-        "Sin calificar";
-
-    highlightStars(0);
-
     const toast = document.getElementById("rf-toast");
-
     toast.style.display = "block";
+    setTimeout(() => { toast.style.display = "none"; }, 3000);
 
-    setTimeout(() => {
-        toast.style.display = "none";
-    }, 3000);
+    document.querySelector("form").submit();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-
     document.querySelectorAll(".rf-star-btn").forEach(btn => {
-
-        btn.addEventListener("click", () => {
-            setStar(parseInt(btn.dataset.v));
-        });
-
-        btn.addEventListener("mouseenter", () => {
-            highlightStars(parseInt(btn.dataset.v));
-        });
-
-        btn.addEventListener("mouseleave", () => {
-            highlightStars(estrellaActual);
-        });
-
+        btn.addEventListener("click",      () => setStar(parseInt(btn.dataset.v)));
+        btn.addEventListener("mouseenter", () => highlightStars(parseInt(btn.dataset.v)));
+        btn.addEventListener("mouseleave", () => highlightStars(estrellaActual));
     });
-
-    renderTodas();
     highlightStars(0);
-
 });
 </script>
 </body>

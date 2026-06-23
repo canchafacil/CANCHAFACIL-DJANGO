@@ -1,0 +1,145 @@
+
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background-color: #0a0a0a;
+  color: #ffffff;
+}
+
+/* ===== CARD (login / registro / editar) ===== */
+.admin-card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 16px;
+  border: 1px solid #62ff0033;
+  background-color: #111111 !important;
+}
+
+/* ===== INPUTS ===== */
+.custom-input {
+  background-color: #1a1a1a !important;
+  border: 1px solid #333 !important;
+  color: #ffffff !important;
+  border-radius: 10px !important;
+  padding: 10px 14px;
+  transition: border-color 0.2s;
+}
+
+.custom-input:focus {
+  border-color: #62ff00 !important;
+  box-shadow: 0 0 0 2px #62ff0033 !important;
+  outline: none;
+}
+
+.custom-input::placeholder {
+  color: #555 !important;
+}
+
+/* ===== BOTÓN PRINCIPAL ===== */
+.btn-custom {
+  background-color: #62ff00;
+  color: #000000;
+  font-weight: 800;
+  border: none;
+  border-radius: 50px;
+  padding: 10px 24px;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-custom:hover {
+  background-color: #4fd400;
+  color: #000;
+  transform: translateY(-1px);
+}
+
+.btn-custom:active {
+  transform: translateY(0);
+}
+
+/* ===== LINKS ===== */
+.secondary-link {
+  color: #62ff00;
+  font-size: 0.9rem;
+}
+
+.secondary-link:hover {
+  color: #4fd400;
+}
+
+.back-link {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.back-link:hover {
+  color: #aaa;
+}
+
+/* ===== NAVBAR ===== */
+.cancha-nav {
+  background-color: #111111;
+  border-bottom: 1px solid #62ff0022;
+  padding: 8px 0;
+}
+
+.logo-text {
+  font-family: 'Nunito', sans-serif;
+  letter-spacing: -0.5px;
+}
+
+.btn-salir {
+  background-color: transparent;
+  border: 2px solid #ff4444;
+  color: #ff4444;
+  font-weight: 700;
+  border-radius: 50px;
+  transition: all 0.2s;
+}
+
+.btn-salir:hover {
+  background-color: #ff4444;
+  color: #fff;
+}
+
+/* ===== TABLA USUARIOS ===== */
+.adm-body {
+  background-color: #0a0a0a;
+}
+
+.table-dark {
+  --bs-table-bg: #111111;
+  --bs-table-striped-bg: #161616;
+  --bs-table-hover-bg: #1c1c1c;
+  border-color: #222 !important;
+}
+
+.table thead th {
+  color: #62ff00;
+  border-bottom: 2px solid #62ff0033;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table tbody td {
+  vertical-align: middle;
+  border-color: #1e1e1e;
+  color: #ddd;
+}
+
+/* ===== ALERTS ===== */
+.alert-danger {
+  background-color: #2a0a0a;
+  border-color: #ff444444;
+  color: #ff8080;
+  border-radius: 10px;
+}

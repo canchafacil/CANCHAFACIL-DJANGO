@@ -1,0 +1,170 @@
+<div class="tab-pane fade" id="sec-ingresos" role="tabpanel">
+    <div class="container p-0">
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+            <div>
+                <h2 class="text-white fw-bold m-0">Reporte de Ingresos</h2>
+                <p class="text-white-50 m-0 small">Resumen financiero — CanchaFácil</p>
+            </div>
+            <select id="filtro-periodo" class="form-select custom-input bg-dark text-white" style="max-width:180px;" onchange="actualizarGrafica()">
+                <option value="semana">Esta semana</option>
+                <option value="mes" selected>Este mes</option>
+                <option value="año">Este año</option>
+            </select>
+        </div>
+
+        <!-- Tarjetas resumen -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded-4 text-center" style="background:#1a1a1a;border:1px solid #62ff0033;">
+                    <p class="text-white-50 small mb-1">Total del mes</p>
+                    <h3 class="fw-bold m-0" style="color:#62ff00;">$4.820.000</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded-4 text-center" style="background:#1a1a1a;border:1px solid #333;">
+                    <p class="text-white-50 small mb-1">Reservas pagadas</p>
+                    <h3 class="fw-bold m-0 text-white">143</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded-4 text-center" style="background:#1a1a1a;border:1px solid #333;">
+                    <p class="text-white-50 small mb-1">Promedio diario</p>
+                    <h3 class="fw-bold m-0 text-white">$160.667</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 rounded-4 text-center" style="background:#1a1a1a;border:1px solid #333;">
+                    <p class="text-white-50 small mb-1">Mejor día</p>
+                    <h3 class="fw-bold m-0 text-white">Sábado</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfica -->
+        <div class="p-4 rounded-4 mb-4" style="background:#111;border:1px solid #222;">
+            <h5 class="text-white fw-bold mb-3">Ingresos por día</h5>
+            <canvas id="graficaIngresos" style="max-height:320px;"></canvas>
+        </div>
+
+        <!-- Tabla detalle -->
+        <div class="p-4 rounded-4" style="background:#111;border:1px solid #222;">
+            <h5 class="text-white fw-bold mb-3">Detalle de transacciones</h5>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle m-0">
+                    <thead>
+                        <tr style="color:#62ff00;border-bottom:2px solid #62ff0033;">
+                            <th>Fecha</th>
+                            <th>Usuario</th>
+                            <th>Cancha</th>
+                            <th>Horas</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>23 Jun</td><td>Esteban Díaz</td><td>Fútbol 5</td><td>2h</td><td>$160.000</td><td><span class="badge rounded-pill px-3" style="background:#62ff00;color:#000;">Pagado</span></td></tr>
+                        <tr><td>23 Jun</td><td>Juan Romero</td><td>Fútbol 7</td><td>1h</td><td>$95.000</td><td><span class="badge rounded-pill px-3" style="background:#62ff00;color:#000;">Pagado</span></td></tr>
+                        <tr><td>22 Jun</td><td>Daniel Muñoz</td><td>Fútbol 5</td><td>2h</td><td>$160.000</td><td><span class="badge rounded-pill px-3" style="background:#62ff00;color:#000;">Pagado</span></td></tr>
+                        <tr><td>22 Jun</td><td>Sofía Torres</td><td>Fútbol 11</td><td>3h</td><td>$360.000</td><td><span class="badge rounded-pill px-3" style="background:#62ff00;color:#000;">Pagado</span></td></tr>
+                        <tr><td>21 Jun</td><td>Carlos Ríos</td><td>Fútbol 5</td><td>1h</td><td>$80.000</td><td><span class="badge bg-warning text-dark rounded-pill px-3">Pendiente</span></td></tr>
+                        <tr><td>21 Jun</td><td>Laura Gómez</td><td>Fútbol 7</td><td>2h</td><td>$190.000</td><td><span class="badge rounded-pill px-3" style="background:#62ff00;color:#000;">Pagado</span></td></tr>
+                        <tr><td>20 Jun</td><td>Andrés Mora</td><td>Fútbol 11</td><td>1h</td><td>$120.000</td><td><span class="badge bg-danger rounded-pill px-3">Cancelado</span></td></tr>
+                        <tr><td>20 Jun</td><td>Valentina Cruz</td><td>Fútbol 5</td><td>2h</td><td>$160.000</td><td><span class="badge rounded-pill px-3" style="background:#62ff00;color:#000;">Pagado</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+(function () {
+    const datos = {
+        semana: {
+            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+            valores: [320000, 415000, 290000, 510000, 680000, 920000, 540000]
+        },
+        mes: {
+            labels: ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23'],
+            valores: [200000,350000,180000,420000,310000,290000,650000,400000,370000,480000,520000,310000,440000,390000,710000,560000,480000,350000,620000,410000,370000,510000,480000]
+        },
+        año: {
+            labels: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+            valores: [3200000,2800000,4100000,3700000,4900000,4820000,0,0,0,0,0,0]
+        }
+    };
+
+    let grafica;
+
+    function crearGrafica(periodo) {
+        const ctx = document.getElementById('graficaIngresos').getContext('2d');
+        const d = datos[periodo];
+
+        if (grafica) grafica.destroy();
+
+        grafica = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: d.labels,
+                datasets: [{
+                    label: 'Ingresos ($)',
+                    data: d.valores,
+                    backgroundColor: d.valores.map(v => v > 0 ? '#62ff0099' : '#333'),
+                    borderColor: d.valores.map(v => v > 0 ? '#62ff00' : '#444'),
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    hoverBackgroundColor: '#62ff00',
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => '$' + ctx.parsed.y.toLocaleString('es-CO')
+                        },
+                        backgroundColor: '#1a1a1a',
+                        borderColor: '#62ff00',
+                        borderWidth: 1,
+                        titleColor: '#fff',
+                        bodyColor: '#62ff00',
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#888', font: { family: 'Nunito' } },
+                        grid: { color: '#1e1e1e' }
+                    },
+                    y: {
+                        ticks: {
+                            color: '#888',
+                            font: { family: 'Nunito' },
+                            callback: v => '$' + (v / 1000).toFixed(0) + 'k'
+                        },
+                        grid: { color: '#1e1e1e' },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    window.actualizarGrafica = function () {
+        const periodo = document.getElementById('filtro-periodo').value;
+        crearGrafica(periodo);
+    };
+
+    // Esperar a que Chart.js esté disponible
+    function init() {
+        if (typeof Chart !== 'undefined') {
+            crearGrafica('mes');
+        } else {
+            setTimeout(init, 100);
+        }
+    }
+    init();
+})();
+</script>
