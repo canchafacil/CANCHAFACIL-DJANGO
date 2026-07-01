@@ -20,7 +20,11 @@
 
         <h1 class="h3 mb-4 fw-bold text-white">Inicio administrador</h1>
 
-        <div id="loginAlert" class="alert d-none mb-3 py-2 text-start" role="alert"></div>
+        {% if error %}
+        <div id="loginAlert" class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
 
         <form method="POST">
             {% csrf_token %}

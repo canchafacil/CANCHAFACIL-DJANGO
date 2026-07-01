@@ -97,6 +97,13 @@ def login_admin(request):
                 password=password
             )
 
+            if not usuario.activo:
+                return render(
+                    request,
+                    'usuarios/login_admin.html',
+                    {'error': 'Tu cuenta está deshabilitada. Contacta con el Superadministrador.'}
+                )
+
             request.session['usuario_id'] = usuario.id
             request.session['rol'] = usuario.rol
             request.session['nombre'] = usuario.first_name
