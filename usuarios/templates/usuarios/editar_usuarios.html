@@ -30,9 +30,15 @@
       </div>
 
       <div class="mb-3 text-start">
+        <label class="form-label text-white fw-semibold">Apellido</label>
+        <input type="text" name="last_name" class="form-control custom-input bg-dark text-white"
+          placeholder="Ingrese su Apellido" value="{{ usuario.last_name }}" required />                     
+      </div>
+
+      <div class="mb-3 text-start">
         <label class="form-label text-white fw-semibold">Correo</label>
         <input type="email" name="email" class="form-control custom-input bg-dark text-white"
-          placeholder="Ingrese su correo" value="{{ usuario.email }}" required />
+          placeholder="Ingrese su correo" value="{{ usuario.email }}" required />                      
       </div>
 
       <div class="mb-3 text-start">
@@ -41,18 +47,18 @@
           placeholder="Ingrese su Número" value="{{ usuario.phone }}" required />
       </div>
 
-      <div class="mb-3">
-        <label class="form-label">Rol</label>
+      <div class="mb-3 text-start">
+        <label class="form-label text-white fw-semibold">Rol</label>
 
-        <select name="rol" class="form-select">
+        <select name="rol" class="form-select custom-input bg-dark text-white">
 
-          <option value="CLIENTE" {% if usuario.rol=='CLIENTE' %}selected{% endif %}>
+          <option value="CLIENTE" {% if usuario.rol == 'CLIENTE' %}selected{% endif %}>
             Cliente
           </option>
-          <option value="ADMIN" {% if usuario.rol=='ADMIN' %}selected{% endif %}>
+          <option value="ADMIN" {% if usuario.rol == 'ADMIN' %}selected{% endif %}>
             Administrador
           </option>
-          <option value="SUPERADMIN" {% if usuario.rol=='SUPERADMIN' %}selected{% endif %}>
+          <option value="SUPERADMIN" {% if usuario.rol == 'SUPERADMIN' %}selected{% endif %}>
             Superadministrador
           </option>
         </select>

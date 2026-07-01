@@ -108,16 +108,16 @@ body.adm-body {
 }
 
 .btn-salir {
-    background-color: #2a1414;
-    color: var(--danger-red);
-    border: 2px solid var(--danger-red);
+    background-color: #2a1414 !important;
+    color: var(--danger-red) !important;
+    border: 2px solid var(--danger-red) !important;
     transition: all 0.2s ease-in-out;
 }
 .btn-salir:hover {
-    background-color: var(--danger-red);
-    color: var(--text-white);
-    box-shadow: 0 0 15px rgba(239,68,68,0.4);
-    transform: translateY(-2px);
+    background-color: var(--danger-red) !important;
+    color: var(--text-white) !important;
+    box-shadow: 0 0 15px rgba(239,68,68,0.4) !important;
+    transform: translateY(-2px) !important;
 }
 
 /* ===== TABLA USUARIOS ===== */
