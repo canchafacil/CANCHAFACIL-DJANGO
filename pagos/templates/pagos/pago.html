@@ -50,7 +50,7 @@
                         </select>
                     </div>
                     <button type="button" id="btnConfirmarPago" class="btn text-white fw-bold w-100" style="background-color: #62ff00; color: #03045e;">
-                        Confirmar pago (prueba)
+                        Confirmar pago 
                     </button>
                 </form>
 
@@ -59,7 +59,7 @@
         </div>
         {% else %}
         <div class="alert alert-warning">
-            No hay ninguna reserva pendiente de pago. <a href="{% url 'reservas' %}">Volver a reservas</a>.
+            No hay ninguna reserva pendiente de pago. por el momento realiza otra reserva <a href="{% url 'reservas' %}">Volver a reservas</a>.
         </div>
         {% endif %}
 
