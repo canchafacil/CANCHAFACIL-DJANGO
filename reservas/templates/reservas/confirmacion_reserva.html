@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+  <div style="max-width: 500px; margin: auto; background: #ffffff; border-radius: 8px; overflow: hidden;">
+    <div style="background-color: #03045e; padding: 20px; text-align: center;">
+      <h1 style="color: #62ff00; margin: 0;">CanchaFácil</h1>
+    </div>
+    <div style="padding: 25px; color: #333;">
+      <h2 style="color: #03045e;">¡Reserva confirmada, {{ reserva.nombre }}!</h2>
+      <p>Tu pago fue procesado correctamente. Estos son los detalles:</p>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+        <tr><td style="padding: 6px 0;"><strong>Cancha:</strong></td><td>{{ reserva.cancha }}</td></tr>
+        <tr><td style="padding: 6px 0;"><strong>Fecha:</strong></td><td>{{ reserva.fecha }}</td></tr>
+        <tr><td style="padding: 6px 0;"><strong>Hora:</strong></td><td>{{ reserva.hora }}</td></tr>
+        <tr><td style="padding: 6px 0;"><strong>Duración:</strong></td><td>{{ reserva.duracion }}</td></tr>
+        <tr><td style="padding: 6px 0;"><strong>Total pagado:</strong></td><td>${{ reserva.precio_total }}</td></tr>
+        <tr><td style="padding: 6px 0;"><strong>N° de factura:</strong></td><td>{{ reserva.numero_factura }}</td></tr>
+      </table>
+      <p style="margin-top: 25px;">¡Te esperamos, prepara los guayos! ⚽</p>
+    </div>
+    <div style="background-color: #03045e; padding: 15px; text-align: center; color: #ccc; font-size: 13px;">
+      Equipo {{ reserva.cancha|default:"CanchaFácil" }} · {% if request %}{% endif %}
+    </div>
+  </div>
+</body>
+</html>

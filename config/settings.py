@@ -142,3 +142,13 @@ EMPRESA_CORREO = "info@canchafacil.com"
 EMPRESA_LOGO = "img/logo-green.png"
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# settings.py
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'angelososa05@gmail.com'          # tu correo emisor
+EMAIL_HOST_PASSWORD = 'eqxb dhmm cvzi rxfz'        # contraseña de aplicación, NO tu clave normal
+DEFAULT_FROM_EMAIL = 'CanchaFácil <angelososa05@gmail.com>'
