@@ -84,6 +84,33 @@ def login_view(request):
     """Renderiza la pantalla de inicio de sesión."""
     return render(request, 'usuarios/login.html')
 
+def recuperar_contra(request):
+
+    if request.method == 'POST':
+
+        email = request.POST.get('email')
+
+        try:
+            usuario = Usuario.objects.get(email=email)
+
+            return redirect(
+                'cambiar_password',
+                usuario.id
+            )
+
+        except Usuario.DoesNotExist:
+
+            return render(
+                request,
+                'usuarios/recuperar_contra.html',
+                {'error': 'No existe una cuenta con ese correo'}
+            )
+
+    return render(
+        request,
+        'usuarios/recuperar_contra.html'
+    )
+
 def login_admin(request):
 
     if request.method == 'POST':
