@@ -150,5 +150,5 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'angelososa05@gmail.com'          # tu correo emisor
-EMAIL_HOST_PASSWORD = 'eqxb dhmm cvzi rxfz'        # contraseña de aplicación, NO tu clave normal
+EMAIL_HOST_PASSWORD = 'cyjkfukvqxwwvuvk'        # contraseña de aplicación, NO tu clave normal
 DEFAULT_FROM_EMAIL = 'CanchaFácil <angelososa05@gmail.com>'
