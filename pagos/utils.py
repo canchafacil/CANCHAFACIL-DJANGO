@@ -23,20 +23,18 @@ EMPRESA = {
 }
 
 # ========== COLORES ==========
-COLOR_VERDE_OSCURO = colors.HexColor('#62ff00')
+COLOR_VERDE_OSCURO = colors.HexColor('#1B5E20')
 COLOR_VERDE_CLARO = colors.HexColor('#E8F5E9')
 COLOR_BLANCO = colors.white
 COLOR_NEGRO = colors.black
 
 # ========== DICCIONARIO DE PRECIOS POR CANCHA ==========
-# Los mismos precios que tienes en el JavaScript del frontend
 PRECIOS_CANCHAS = {
     'Cancha Principal': Decimal('80000'),
     'Cancha Auxiliar': Decimal('95000'),
     'Cancha Sintética Norte': Decimal('80000'),
     'Cancha Sur': Decimal('120000'),
 }
-# Precio por defecto si no se encuentra la cancha
 PRECIO_POR_DEFECTO = Decimal('50000')
 
 
@@ -44,27 +42,23 @@ def encontrar_logo():
     """Busca el archivo del logo en varias ubicaciones posibles."""
     logo_relativo = EMPRESA['logo']
 
-    # 1. Buscar en STATIC_ROOT
     if hasattr(settings, 'STATIC_ROOT') and settings.STATIC_ROOT:
         ruta = os.path.join(settings.STATIC_ROOT, logo_relativo)
         if os.path.exists(ruta):
             return ruta
 
-    # 2. Buscar en STATICFILES_DIRS
     if hasattr(settings, 'STATICFILES_DIRS'):
         for static_dir in settings.STATICFILES_DIRS:
             ruta = os.path.join(static_dir, logo_relativo)
             if os.path.exists(ruta):
                 return ruta
 
-    # 3. Buscar en BASE_DIR / static
     base_dir = getattr(settings, 'BASE_DIR', None)
     if base_dir:
         ruta = os.path.join(base_dir, 'static', logo_relativo)
         if os.path.exists(ruta):
             return ruta
 
-    # 4. Buscar en la carpeta 'static' de la app 'pagos'
     app_dir = os.path.dirname(os.path.abspath(__file__))
     ruta = os.path.join(app_dir, 'static', logo_relativo)
     if os.path.exists(ruta):
@@ -74,18 +68,14 @@ def encontrar_logo():
 
 
 def obtener_precio_cancha(nombre_cancha):
-    """
-    Obtiene el precio por hora de una cancha según su nombre.
-    Si no se encuentra, usa el precio por defecto.
-    """
-    precio = PRECIOS_CANCHAS.get(nombre_cancha, PRECIO_POR_DEFECTO)
-    return precio
+    """Obtiene el precio por hora de una cancha según su nombre."""
+    return PRECIOS_CANCHAS.get(nombre_cancha, PRECIO_POR_DEFECTO)
 
 
 def generar_factura_pdf(reserva_id):
     """
     Genera un PDF de factura para la reserva con ID reserva_id.
-    Retorna un objeto BytesIO con el contenido del PDF.
+    Sin IVA, muestra solo el precio base.
     """
     buffer = BytesIO()
     doc = SimpleDocTemplate(
@@ -97,35 +87,25 @@ def generar_factura_pdf(reserva_id):
         bottomMargin=0.75 * inch,
     )
 
-    # Obtener la reserva
     try:
         reserva = Reserva.objects.get(id=reserva_id)
     except Reserva.DoesNotExist:
         return None
 
-    # ========== CÁLCULOS CON PRECIO DINÁMICO ==========
-    # Obtener el precio por hora según el nombre de la cancha
+    # ========== CÁLCULOS (SIN IVA) ==========
     precio_hora = obtener_precio_cancha(reserva.cancha)
 
-    # Calcular duración en horas
     duracion_texto = reserva.duracion.lower()
     if 'hora' in duracion_texto:
-        # Ej: "2 Horas" -> 2
         horas = Decimal(duracion_texto.split()[0])
     elif 'min' in duracion_texto:
-        # Ej: "60 min" -> 1
         minutos = Decimal(duracion_texto.split()[0])
         horas = minutos / 60
     else:
         horas = Decimal(1)
 
-    # Calcular subtotal, IVA y total
-    subtotal = precio_hora * horas
-    iva_porcentaje = Decimal('0.19')  # 19%
-    iva = subtotal * iva_porcentaje
-    total = subtotal + iva
+    total = precio_hora * horas  # Sin IVA
 
-    # Número de factura
     anio = reserva.fecha.strftime('%Y')
     mes = reserva.fecha.strftime('%m')
     num_factura = f"FAC-{anio}-{mes}-{reserva.id:04d}"
@@ -268,7 +248,7 @@ def generar_factura_pdf(reserva_id):
             Paragraph("<b>Hora</b>", estilo_encabezado_tabla),
             Paragraph("<b>Duración</b>", estilo_encabezado_tabla),
             Paragraph("<b>Precio/hora</b>", estilo_encabezado_tabla),
-            Paragraph("<b>Subtotal</b>", estilo_encabezado_tabla),
+            Paragraph("<b>Total</b>", estilo_encabezado_tabla),
         ],
         [
             Paragraph(reserva.cancha, estilo_celda_tabla),
@@ -276,7 +256,7 @@ def generar_factura_pdf(reserva_id):
             Paragraph(reserva.hora.strftime("%I:%M %p"), estilo_celda_tabla),
             Paragraph(f"{horas:.1f} h", estilo_celda_tabla),
             Paragraph(f"${precio_hora:,.0f}", estilo_celda_tabla),
-            Paragraph(f"${subtotal:,.0f}", estilo_celda_tabla),
+            Paragraph(f"${total:,.0f}", estilo_celda_tabla),
         ]
     ]
 
@@ -296,11 +276,9 @@ def generar_factura_pdf(reserva_id):
     elementos.append(tabla_detalle)
     elementos.append(Spacer(1, 0.2 * inch))
 
-    # ----- RESUMEN -----
+    # ----- RESUMEN (SIN IVA) -----
     resumen_data = [
-        [Paragraph("<b>Subtotal</b>", estilo_negrita), Paragraph(f"${subtotal:,.0f}", estilo_normal)],
-        [Paragraph("<b>IVA (19%)</b>", estilo_negrita), Paragraph(f"${iva:,.0f}", estilo_normal)],
-        [Paragraph("<b>TOTAL A PAGAR</b>", estilo_total), Paragraph(f"${total:,.0f}", estilo_total)],
+        [Paragraph("<b>Total a pagar</b>", estilo_total), Paragraph(f"${total:,.0f}", estilo_total)],
     ]
     tabla_resumen = Table(resumen_data, colWidths=[4 * inch, 2 * inch])
     tabla_resumen.setStyle(TableStyle([
@@ -311,8 +289,8 @@ def generar_factura_pdf(reserva_id):
         ('FONTSIZE', (0, 0), (-1, -1), 10),
         ('LEFTPADDING', (0, 0), (-1, -1), 5),
         ('RIGHTPADDING', (0, 0), (-1, -1), 5),
-        ('LINEABOVE', (0, 2), (-1, 2), 1, colors.black),
-        ('BACKGROUND', (0, 2), (1, 2), COLOR_VERDE_CLARO),
+        ('LINEABOVE', (0, 0), (-1, 0), 1, colors.black),
+        ('BACKGROUND', (0, 0), (1, 0), COLOR_VERDE_CLARO),
     ]))
     elementos.append(tabla_resumen)
     elementos.append(Spacer(1, 0.3 * inch))
