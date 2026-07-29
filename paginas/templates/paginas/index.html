@@ -67,11 +67,9 @@
                 Vive la pasión del fútbol en las mejores canchas sintéticas
             </p>
 
-            <!-- FIX: antes apuntaba a {% url 'reservas' %}, que va directo a
-                 formulario.html. Ahora apunta a {% url 'canchas' %} para que
-                 primero se muestre el listado de canchas disponibles. -->
-            <a href="{% url 'canchas' %}" class="btn btn-success btn-lg mt-3" style="background-color: #03045e;">
-                Reservar Ahora
+    
+           <a href="{% url 'gestion_canchas:canchas' %}" class="btn btn-success btn-lg mt-3" style="background-color: #03045e;">
+                Ver canchas disponibles
             </a>
         </div>
     </section>

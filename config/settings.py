@@ -41,12 +41,11 @@ INSTALLED_APPS = [
 
     'paginas',
     'usuarios',
-    'canchas',
+    'gestion_canchas',
     'reservas',
     'pagos',
     'administracion',
     'contacto',
-    'canchas_admin',
 ]
 
 MIDDLEWARE = [

@@ -6,6 +6,46 @@ from django.template.loader import render_to_string
 from django.conf import settings
 import json
 from .models import Reserva
+from gestion_canchas.models import Cancha
+
+
+def pagina_reservas(request):
+    return render(request, "reservas/reservas.html")
+
+
+def reservas(request, cancha_id=None):
+    """
+    Muestra el formulario de reservas.
+    Si se pasa cancha_id, se preselecciona esa cancha.
+    """
+    todas = Reserva.objects.all().order_by('-id')
+    canchas = Cancha.objects.filter(disponible=True)  # Solo canchas disponibles
+    return render(request, "reservas/formulario.html", {
+        "reservas": todas,
+        "canchas": canchas,
+        "cancha_id": cancha_id,
+    })
+
+
+@require_POST
+def crear_reserva(request):
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        reserva = Reserva.objects.create(
+            nombre   = data["nombre"],
+            correo   = data["correo"],
+            telefono = data["telefono"],
+            fecha    = data["fecha"],
+            hora     = data["hora"],
+            cancha   = data["cancha"],  # nombre de la cancha
+            duracion = data["duracion"],
+        )
+        request.session["reserva_pendiente_id"] = reserva.id
+        return JsonResponse({"status": "ok", "id": reserva.id})
+    except (KeyError, json.JSONDecodeError):
+        return JsonResponse({"status": "error", "mensaje": "Datos inválidos"}, status=400)
+
+
 
 
 def pagina_reservas(request):
