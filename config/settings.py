@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'administracion',
     'contacto',
     'canchas_admin',
+    'perfil',
 ]
 
 MIDDLEWARE = [
@@ -84,8 +85,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'CANCHA_FACIL',
+        'USER': 'root',
+        'PASSWORD': '',  # XAMPP por defecto no tiene password
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 

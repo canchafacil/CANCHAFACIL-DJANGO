@@ -22,7 +22,7 @@ def nosotros(request):
     return render(request, 'contacto/nosotros.html', {'resenas': resenas, 'promedio': promedio})
 
 
-def contacto(request):  # ✅ vista propia para contacto
+def contacto(request):  
     return render(request, 'contacto/contacto.html')
 
 
