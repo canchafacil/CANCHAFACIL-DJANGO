@@ -11,6 +11,7 @@ urlpatterns = [
     path('editar/<int:id>/', views.editar_usuario, name='editar_usuario'),
     path('deshabilitar/<int:id>/', views.deshabilitar_usuario, name='deshabilitar_usuario'),
     path('habilitar/<int:id>/', views.habilitar_usuario, name='habilitar_usuario'),
-    path('recuperar_contra/', views.recuperar_contra, name='recuperar_contra'
-),
+    path('recuperar_contra/', views.recuperar_contra, name='recuperar_contra'),
+    path('verificar_codigo/', views.verificar_codigo, name='verificar_codigo'),
+    path('cambiar_contra/', views.cambiar_contra, name='cambiar_contra'),
 ]
