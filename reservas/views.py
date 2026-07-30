@@ -6,6 +6,7 @@ from django.template.loader import render_to_string
 from django.conf import settings
 import json
 from .models import Reserva
+from usuarios.models import Usuario
 
 
 def pagina_reservas(request):
@@ -14,17 +15,28 @@ def pagina_reservas(request):
 
 def reservas(request):
     todas = Reserva.objects.all().order_by('-id')
-    return render(request, "reservas/formulario.html", {"reservas": todas})
+
+    usuario = None
+    usuario_id = request.session.get('usuario_id')
+    if usuario_id:
+        usuario = Usuario.objects.filter(id=usuario_id).first()
+
+    return render(request, "reservas/formulario.html", {"reservas": todas, "usuario": usuario})
 
 
 @require_POST
 def crear_reserva(request):
+    usuario_id = request.session.get('usuario_id')
+    if not usuario_id:
+        return JsonResponse({"status": "error", "mensaje": "Debes iniciar sesión", "redirect": "login"}, status=401)
+
     try:
+        usuario = Usuario.objects.get(id=usuario_id)
         data = json.loads(request.body.decode("utf-8"))
         reserva = Reserva.objects.create(
-            nombre   = data["nombre"],
-            correo   = data["correo"],
-            telefono = data["telefono"],
+            nombre   = f"{usuario.first_name} {usuario.last_name}".strip(),
+            correo   = usuario.email,
+            telefono = usuario.phone,
             fecha    = data["fecha"],
             hora     = data["hora"],
             cancha   = data["cancha"],
@@ -133,3 +145,45 @@ def enviar_correo_confirmacion(reserva):
         email.send(fail_silently=False)
     except Exception as e:
         print(f"Error enviando correo de confirmación: {e}")
+
+
+# ---------------------------------------------------------------------
+# Vistas para el PERFIL del usuario (editar/eliminar sus propias reservas)
+# ---------------------------------------------------------------------
+
+@require_POST
+def editar_reserva_perfil(request, id):
+    usuario_id = request.session.get('usuario_id')
+    if not usuario_id:
+        return redirect('login_admin')
+
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+    reserva = get_object_or_404(Reserva, id=id)
+
+    # Verificación de dueño: solo quien hizo la reserva puede editarla
+    if reserva.correo != usuario.email:
+        return redirect('perfil')
+
+    reserva.fecha    = request.POST.get('fecha', reserva.fecha)
+    reserva.hora     = request.POST.get('hora', reserva.hora)
+    reserva.cancha   = request.POST.get('cancha', reserva.cancha)
+    reserva.duracion = request.POST.get('duracion', reserva.duracion)
+    reserva.save()
+
+    return redirect('perfil')
+
+
+@require_POST
+def eliminar_reserva_perfil(request, id):
+    usuario_id = request.session.get('usuario_id')
+    if not usuario_id:
+        return redirect('login_admin')
+
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+    reserva = get_object_or_404(Reserva, id=id)
+
+    # Verificación de dueño: solo quien hizo la reserva puede eliminarla
+    if reserva.correo == usuario.email:
+        reserva.delete()
+
+    return redirect('perfil')

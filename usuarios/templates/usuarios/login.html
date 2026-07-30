@@ -17,7 +17,7 @@
         
         <h1 class="h3 mb-4 fw-bold text-white">Iniciar sesión</h1> 
         
-        <form method="POST">
+        <form method="POST" action="{% url 'login_admin' %}">
             {% csrf_token %}
 
             <div class="mb-3 text-start">

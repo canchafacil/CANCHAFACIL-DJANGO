@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'administracion',
     'contacto',
     'canchas_admin',
-    'perfil',
 ]
 
 MIDDLEWARE = [

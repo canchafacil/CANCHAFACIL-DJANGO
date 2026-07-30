@@ -1,0 +1,307 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi perfil - CanchaFácil</title>
+
+    <link rel="icon" type="image/png" href="{% static 'img/logo-green.png' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <style>
+        .avatar-radio:checked + .avatar-img {
+            outline: 3px solid #62ff00;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark shadow" style="background-color: #03045e;">
+        <div class="container">
+            <img src="{% static 'img/logo-green.png' %}" style="height: 90px;" alt="">
+            <a class="navbar-brand fw-bold ms-2" href="{% url 'inicio' %}" style="font-size: 2rem; color: white;">
+                Cancha<span style="color: #62ff00;">Fácil </span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="menu">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'inicio' %}">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'reservas' %}">Reservas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'nosotros' %}">Sobre Nosotros</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'contacto' %}">Contacto</a>
+                    </li>
+
+                    {% if request.session.usuario_id %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center active" href="#" id="perfilDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1" style="font-size: 1.3rem;"></i> {{ request.session.nombre }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'perfil' %}">Mi perfil</a></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">Cerrar sesión</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a href="{% url 'login' %}" class="btn btn-info border-0 ms-2" style="background-color: #62ff00;">Iniciar Sesión</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        <!-- DATOS DEL PERFIL -->
+        <div class="card mb-5 shadow-sm">
+            <div class="card-header text-white" style="background-color: #03045e;">
+                <h4 class="mb-0">Mi perfil</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'editar_perfil' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- AVATAR ACTUAL -->
+                    <div class="text-center mb-4">
+                        {% if usuario.foto %}
+                            <img src="{{ usuario.foto.url }}" alt="Avatar" class="rounded-circle border" style="width: 110px; height: 110px; object-fit: cover;">
+                        {% elif usuario.avatar_icono %}
+                            <img src="{% static usuario.avatar_icono %}" alt="Avatar" class="rounded-circle border" style="width: 110px; height: 110px; object-fit: cover;">
+                        {% else %}
+                            <i class="bi bi-person-circle" style="font-size: 110px; color: #03045e;"></i>
+                        {% endif %}
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" class="form-control" value="{{ usuario.first_name }}" disabled readonly>
+                            <small class="text-muted">El nombre no se puede modificar.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Apellido</label>
+                            <input type="text" class="form-control" value="{{ usuario.last_name }}" disabled readonly>
+                            <small class="text-muted">El apellido no se puede modificar.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Correo</label>
+                            <input type="email" name="email" class="form-control" value="{{ usuario.email }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" name="phone" class="form-control" value="{{ usuario.phone }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Nueva contraseña (opcional)</label>
+                            <input type="password" name="password" class="form-control" placeholder="Dejar en blanco para no cambiarla">
+                        </div>
+                    </div>
+
+                    <!-- FOTO DE PERFIL -->
+                    <hr class="my-4">
+                    <h6 class="mb-3">Foto de perfil</h6>
+                    <div class="mb-4">
+                        <input type="file" name="foto" accept="image/*" class="form-control" style="max-width: 350px;">
+                        <small class="text-muted">Subí una imagen (JPG o PNG). Si subís una foto, se usará en lugar del ícono elegido abajo.</small>
+                    </div>
+
+                    <!-- SELECTOR DE ÍCONOS -->
+                    <h6 class="mb-3">O elegí un ícono como avatar</h6>
+
+                    <p class="mb-2 text-muted">Jugadores de fútbol</p>
+                    <div class="d-flex flex-wrap gap-3 mb-4">
+                        {% for icono in iconos_jugadores %}
+                        <label class="avatar-option">
+                            <input type="radio" name="avatar_icono" value="{{ icono.ruta }}" class="d-none avatar-radio"
+                                   {% if usuario.avatar_icono == icono.ruta %}checked{% endif %}>
+                            <img src="{% static icono.ruta %}" alt="{{ icono.nombre }}"
+                                 class="rounded-circle border avatar-img" style="width: 70px; height: 70px; object-fit: cover; cursor: pointer;">
+                        </label>
+                        {% endfor %}
+                    </div>
+
+                    <p class="mb-2 text-muted">Banderas de países</p>
+                    <div class="d-flex flex-wrap gap-3 mb-3">
+                        {% for bandera in iconos_banderas %}
+                        <label class="avatar-option">
+                            <input type="radio" name="avatar_icono" value="{{ bandera.ruta }}" class="d-none avatar-radio"
+                                   {% if usuario.avatar_icono == bandera.ruta %}checked{% endif %}>
+                            <img src="{% static bandera.ruta %}" alt="{{ bandera.nombre }}"
+                                 class="rounded-circle border avatar-img" style="width: 70px; height: 70px; object-fit: cover; cursor: pointer;">
+                        </label>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="btn mt-3 text-white" style="background-color: #03045e;">Guardar cambios</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- HISTORIAL DE RESERVAS -->
+        <h4 class="mb-3">Mis reservas</h4>
+        {% if reservas %}
+            {% for reserva in reservas %}
+            <div class="card mb-3 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap">
+                        <div>
+                            <strong>{{ reserva.cancha }}</strong> — {{ reserva.fecha }} a las {{ reserva.hora }}
+                            <br>
+                            <small class="text-muted">Duración: {{ reserva.duracion }} · Estado: {{ reserva.estado }}</small>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#editar-reserva-{{ reserva.id }}">
+                                Editar
+                            </button>
+                            <form method="post" action="{% url 'eliminar_reserva_perfil' reserva.id %}" class="d-inline"
+                                  onsubmit="return confirm('¿Eliminar esta reserva?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="collapse mt-3" id="editar-reserva-{{ reserva.id }}">
+                        <form method="post" action="{% url 'editar_reserva_perfil' reserva.id %}">
+                            {% csrf_token %}
+                            <div class="row g-2">
+                                <div class="col-md-3">
+                                    <label class="form-label">Fecha</label>
+                                    <input type="date" name="fecha" class="form-control" value="{{ reserva.fecha|date:'Y-m-d' }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Hora</label>
+                                    <input type="time" name="hora" class="form-control" value="{{ reserva.hora|time:'H:i' }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Cancha</label>
+                                    <input type="text" name="cancha" class="form-control" value="{{ reserva.cancha }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Duración</label>
+                                    <input type="text" name="duracion" class="form-control" value="{{ reserva.duracion }}">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-sm mt-2 text-white" style="background-color: #03045e;">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted">Todavía no tenés reservas.</p>
+        {% endif %}
+
+        <!-- HISTORIAL DE RESEÑAS -->
+        <h4 class="mb-3 mt-5">Mis reseñas</h4>
+        {% if resenas %}
+            {% for resena in resenas %}
+            <div class="card mb-3 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap">
+                        <div>
+                            <strong>{{ resena.cancha }}</strong> — {{ resena.estrellas }}★
+                            <br>
+                            <small class="text-muted">{{ resena.texto }}</small>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#editar-resena-{{ resena.id }}">
+                                Editar
+                            </button>
+                            <form method="post" action="{% url 'eliminar_resena_perfil' resena.id %}" class="d-inline"
+                                  onsubmit="return confirm('¿Eliminar esta reseña?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="collapse mt-3" id="editar-resena-{{ resena.id }}">
+                        <form method="post" action="{% url 'editar_resena_perfil' resena.id %}">
+                            {% csrf_token %}
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label class="form-label">Tipo de jugador</label>
+                                    <select name="jugador" class="form-select">
+                                        <option value="Amateur" {% if resena.jugador == "Amateur" %}selected{% endif %}>Amateur</option>
+                                        <option value="Semi-profesional" {% if resena.jugador == "Semi-profesional" %}selected{% endif %}>Semi-profesional</option>
+                                        <option value="Profesional" {% if resena.jugador == "Profesional" %}selected{% endif %}>Profesional</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Cancha</label>
+                                    <select name="cancha" class="form-select">
+                                        <option value="Fútbol 5" {% if resena.cancha == "Fútbol 5" %}selected{% endif %}>Fútbol 5</option>
+                                        <option value="Fútbol 7" {% if resena.cancha == "Fútbol 7" %}selected{% endif %}>Fútbol 7</option>
+                                        <option value="Fútbol 11" {% if resena.cancha == "Fútbol 11" %}selected{% endif %}>Fútbol 11</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Estrellas</label>
+                                    <input type="number" name="estrellas" class="form-control" min="1" max="5" value="{{ resena.estrellas }}">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Comentario</label>
+                                    <textarea name="texto" class="form-control" rows="3">{{ resena.texto }}</textarea>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-sm mt-2 text-white" style="background-color: #03045e;">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted">Todavía no dejaste reseñas.</p>
+        {% endif %}
+
+    </div>
+
+    <footer class="bg-dark text-light">
+        <div class="container">
+            <div class="p-4">
+                <div class="row align-items-center pt-2">
+                    <div class="col-12 col-md-6 text-center text-md-start mb-2 mb-md-0">
+                        <p>Teléfono: <span style="color: #62ff00;">+57 300 000 0000</span></p>
+                    </div>
+                    <div class="col-12 col-md-6 text-end text-md-center">
+                        <span class="justify-content-end d-flex">
+                            <p>Correo electrónico: <span style="color: #62ff00;"> canchafacil@gmail.com</span></p>
+                        </span>
+                    </div>
+                </div>
+                <div class="row align-items-center pt-2" style="border-top: 1px solid #eee;">
+                    <div class="col-12 col-md-6 text-center text-md-start mb-2 mb-md-0">
+                        <p class="mb-0">Copyright © 2026 CanchaFacil todos los derechos reservados</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

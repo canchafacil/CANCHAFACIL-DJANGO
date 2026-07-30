@@ -32,9 +32,25 @@
                     <li class="nav-item"><a class="nav-link active" href="{% url 'reservas' %}">Reservas</a></li>
                     <li class="nav-item"><a class="nav-link active" href="{% url 'nosotros' %}">Sobre Nosotros</a></li>
                     <li class="nav-item"><a class="nav-link active" href="{% url 'contacto' %}">Contacto</a></li>
-                    <li class="nav-item">
-                        <a href="{% url 'login' %}" class="btn btn-info border-0 ms-2" style="background-color: #62ff00; color: #03045e; font-weight: bold;">Iniciar sesión</a>
+                    {% if request.session.usuario_id %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="perfilDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1" style="font-size: 1.3rem;"></i> {{ request.session.nombre }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'perfil' %}">Mi perfil</a></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#modalLogout">
+                                    Cerrar sesión
+                                </a>
+                            </li>
+                        </ul>
                     </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a href="{% url 'login' %}" class="btn btn-info border-0 ms-2" style="background-color: #62ff00;">Iniciar Sesión</a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -110,39 +126,68 @@
                 </div>
                 <span class="rf-badge">{{ r.cancha }}</span>
                 <p class="rf-texto">"{{ r.texto }}"</p>
+
+                {% if request.session.correo and r.correo == request.session.correo %}
+                <div class="d-flex gap-2 mt-2">
+                    <button class="btn btn-sm btn-outline-secondary" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#editar-resena-{{ r.id }}">
+                        Editar
+                    </button>
+                    <form method="post" action="{% url 'eliminar_resena_perfil' r.id %}"
+                          onsubmit="return confirm('¿Eliminar tu reseña?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                    </form>
+                </div>
+
+                <div class="collapse mt-2" id="editar-resena-{{ r.id }}">
+                    <form method="post" action="{% url 'editar_resena_perfil' r.id %}" class="text-start">
+                        {% csrf_token %}
+                        <select name="jugador" class="form-select form-select-sm mb-1">
+                            <option value="Amateur" {% if r.jugador == "Amateur" %}selected{% endif %}>Amateur</option>
+                            <option value="Semi-profesional" {% if r.jugador == "Semi-profesional" %}selected{% endif %}>Semi-profesional</option>
+                            <option value="Profesional" {% if r.jugador == "Profesional" %}selected{% endif %}>Profesional</option>
+                        </select>
+                        <select name="cancha" class="form-select form-select-sm mb-1">
+                            <option value="Fútbol 5" {% if r.cancha == "Fútbol 5" %}selected{% endif %}>Fútbol 5</option>
+                            <option value="Fútbol 7" {% if r.cancha == "Fútbol 7" %}selected{% endif %}>Fútbol 7</option>
+                            <option value="Fútbol 11" {% if r.cancha == "Fútbol 11" %}selected{% endif %}>Fútbol 11</option>
+                        </select>
+                        <input type="number" name="estrellas" class="form-control form-control-sm mb-1" min="1" max="5" value="{{ r.estrellas }}">
+                        <textarea name="texto" class="form-control form-control-sm mb-1" rows="2">{{ r.texto }}</textarea>
+                        <button type="submit" class="btn btn-sm btn-primary">Guardar</button>
+                    </form>
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
 
         <div class="rf-form-wrap">
             <h3 class="rf-form-titulo">DEJA TU RESEÑA</h3>
-            <p class="rf-form-sub">¿Ya jugaste con nosotros? Comparte tu experiencia</p>
+
+            {% if request.session.usuario_id %}
+            <p class="rf-form-sub">Publicando como <strong>{{ request.session.nombre }}</strong></p>
 
             <form method="post">
             {% csrf_token %}
             <div class="rf-form-grid">
                 <div class="rf-field">
-                    <label class="rf-label" for="f-nombre">Tu nombre</label>
-                    <input class="rf-input" id="f-nombre" name="nombre" type="text" placeholder="Ej: Juan García">
-                </div>
-                <div class="rf-field">
                     <label class="rf-label" for="f-jugador">Tipo de jugador</label>
                     <select class="rf-select" id="f-jugador" name="jugador">
                         <option value="">Selecciona...</option>
-                        <option>Jugador amateur</option>
-                        <option>Capitán de equipo</option>
-                        <option>Organizador de torneos</option>
-                        <option>Jugador recreativo</option>
-                        <option>Entrenador</option>
+                        <option value="Amateur">Amateur</option>
+                        <option value="Semi-profesional">Semi-profesional</option>
+                        <option value="Profesional">Profesional</option>
                     </select>
                 </div>
                 <div class="rf-field">
                     <label class="rf-label" for="f-cancha">Tipo de cancha</label>
                     <select class="rf-select" id="f-cancha" name="cancha">
                         <option value="">Selecciona...</option>
-                        <option>Fútbol 5</option>
-                        <option>Fútbol 8</option>
-                        <option>Cancha múltiple</option>
+                        <option value="Fútbol 5">Fútbol 5</option>
+                        <option value="Fútbol 7">Fútbol 7</option>
+                        <option value="Fútbol 11">Fútbol 11</option>
                     </select>
                 </div>
                 <div class="rf-field">
@@ -171,6 +216,13 @@
                 </div>
             </div>
             </form>
+
+            {% else %}
+            <p class="rf-form-sub">Tienes que iniciar sesión para poder dejar una reseña.</p>
+            <a href="{% url 'login' %}" class="rf-submit d-inline-block text-decoration-none">
+                Iniciar sesión →
+            </a>
+            {% endif %}
         </div>
     </section>
 
@@ -202,6 +254,22 @@
         </div>
     </footer>
 
+    <div class="modal fade" id="modalLogout" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+          <div class="modal-body text-center p-4">
+            <i class="bi bi-box-arrow-right" style="font-size: 3rem; color: #03045e;"></i>
+            <h5 class="mt-3 fw-bold">¿Cerrar sesión?</h5>
+            <p class="text-muted">Vas a tener que volver a iniciar sesión para acceder a tu perfil.</p>
+            <div class="d-flex justify-content-center gap-2 mt-3">
+              <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+              <a href="{% url 'logout' %}" class="btn rounded-pill px-4 text-white" style="background-color: #03045e;">Sí, cerrar sesión</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
 let estrellaActual = 0;
@@ -221,12 +289,15 @@ function setStar(v) {
 }
 
 function enviarResena() {
-    const nombre  = document.getElementById("f-nombre").value.trim();
-    const jugador = document.getElementById("f-jugador").value;
-    const cancha  = document.getElementById("f-cancha").value;
-    const texto   = document.getElementById("f-texto").value.trim();
+    const jugadorEl = document.getElementById("f-jugador");
+    const canchaEl  = document.getElementById("f-cancha");
+    const textoEl   = document.getElementById("f-texto");
 
-    if (!nombre || !jugador || !cancha || !texto || estrellaActual === 0) {
+    const jugador = jugadorEl.value;
+    const cancha  = canchaEl.value;
+    const texto   = textoEl.value.trim();
+
+    if (!jugador || !cancha || !texto || estrellaActual === 0) {
         alert("Completa todos los campos.");
         return;
     }
@@ -235,7 +306,7 @@ function enviarResena() {
     toast.style.display = "block";
     setTimeout(() => { toast.style.display = "none"; }, 3000);
 
-    document.querySelector("form").submit();
+    document.querySelector(".rf-form-wrap form").submit();
 }
 
 document.addEventListener("DOMContentLoaded", () => {

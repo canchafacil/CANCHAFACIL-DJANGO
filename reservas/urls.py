@@ -9,4 +9,6 @@ urlpatterns = [
     path("eliminar/<int:id>/", views.eliminar_reserva, name="eliminar_reserva"),
     path("pago/", views.pago, name="pago"),
     path("confirmar-pago/", views.confirmar_pago, name="confirmar_pago"),  # NUEVO
+    path('perfil/editar/<int:id>/', views.editar_reserva_perfil, name='editar_reserva_perfil'),
+    path('perfil/eliminar/<int:id>/', views.eliminar_reserva_perfil, name='eliminar_reserva_perfil'),
 ]

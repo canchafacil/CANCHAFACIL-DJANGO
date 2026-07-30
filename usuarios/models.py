@@ -14,6 +14,8 @@ class Usuario(models.Model):
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=10)
     password = models.CharField(max_length=100)
+    foto = models.ImageField(upload_to='perfiles/', null=True, blank=True)
+    avatar_icono = models.CharField(max_length=200, null=True, blank=True)
 
     rol = models.CharField(
         max_length=15,

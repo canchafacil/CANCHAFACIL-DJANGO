@@ -11,6 +11,8 @@ urlpatterns = [
     path('editar/<int:id>/', views.editar_usuario, name='editar_usuario'),
     path('deshabilitar/<int:id>/', views.deshabilitar_usuario, name='deshabilitar_usuario'),
     path('habilitar/<int:id>/', views.habilitar_usuario, name='habilitar_usuario'),
-    path('recuperar_contra/', views.recuperar_contra, name='recuperar_contra'
-),
+    path('recuperar_contra/', views.recuperar_contra, name='recuperar_contra'),
+    path('perfil/', views.perfil, name='perfil'),
+    path('perfil/editar/', views.editar_perfil, name='editar_perfil'),
+    path('logout/', views.logout_view, name='logout'),
 ]
