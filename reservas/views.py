@@ -6,7 +6,7 @@ from django.template.loader import render_to_string
 from django.conf import settings
 import json
 from .models import Reserva
-from gestion_canchas.models import Cancha
+from gestion_canchas.models import Cancha  # <-- Import correcto
 
 
 def pagina_reservas(request):
@@ -14,12 +14,9 @@ def pagina_reservas(request):
 
 
 def reservas(request, cancha_id=None):
-    """
-    Muestra el formulario de reservas.
-    Si se pasa cancha_id, se preselecciona esa cancha.
-    """
+    """Vista del formulario de reservas con lista de canchas disponibles."""
     todas = Reserva.objects.all().order_by('-id')
-    canchas = Cancha.objects.filter(disponible=True)  # Solo canchas disponibles
+    canchas = Cancha.objects.filter(disponible=True)  # Solo disponibles
     return render(request, "reservas/formulario.html", {
         "reservas": todas,
         "canchas": canchas,
@@ -37,42 +34,10 @@ def crear_reserva(request):
             telefono = data["telefono"],
             fecha    = data["fecha"],
             hora     = data["hora"],
-            cancha   = data["cancha"],  # nombre de la cancha
-            duracion = data["duracion"],
-        )
-        request.session["reserva_pendiente_id"] = reserva.id
-        return JsonResponse({"status": "ok", "id": reserva.id})
-    except (KeyError, json.JSONDecodeError):
-        return JsonResponse({"status": "error", "mensaje": "Datos inválidos"}, status=400)
-
-
-
-
-def pagina_reservas(request):
-    return render(request, "reservas/reservas.html")
-
-
-def reservas(request):
-    todas = Reserva.objects.all().order_by('-id')
-    return render(request, "reservas/formulario.html", {"reservas": todas})
-
-
-@require_POST
-def crear_reserva(request):
-    try:
-        data = json.loads(request.body.decode("utf-8"))
-        reserva = Reserva.objects.create(
-            nombre   = data["nombre"],
-            correo   = data["correo"],
-            telefono = data["telefono"],
-            fecha    = data["fecha"],
-            hora     = data["hora"],
             cancha   = data["cancha"],
             duracion = data["duracion"],
         )
-        # Todavía NO se envía correo: la reserva está "Pendiente" hasta que se pague
         request.session["reserva_pendiente_id"] = reserva.id
-
         return JsonResponse({"status": "ok", "id": reserva.id})
     except (KeyError, json.JSONDecodeError):
         return JsonResponse({"status": "error", "mensaje": "Datos inválidos"}, status=400)
@@ -102,7 +67,7 @@ def editar_reserva(request, id):
 def eliminar_reserva(request, id):
     reserva = get_object_or_404(Reserva, id=id)
     reserva.delete()
-    return redirect("reservas")
+    return redirect("reservas")  # Ojo: esta URL debe existir en tus rutas
 
 
 def pago(request):
@@ -118,18 +83,12 @@ def pago(request):
 
 @require_POST
 def confirmar_pago(request):
-    """
-    Vista de PRUEBA: simula que el pago fue exitoso.
-    Cuando integres la pasarela real, esta lógica va en el webhook/callback
-    de confirmación de esa pasarela (reemplazando el simulado por la real).
-    """
     reserva_id = request.session.get("reserva_pendiente_id")
     if not reserva_id:
         return JsonResponse({"status": "error", "mensaje": "No hay reserva pendiente"}, status=400)
 
     reserva = get_object_or_404(Reserva, id=reserva_id)
 
-    # --- Datos simulados de pago (acá irían los reales de la pasarela) ---
     data = json.loads(request.body.decode("utf-8")) if request.body else {}
     reserva.metodo_pago = data.get("metodo_pago", "Simulado")
     reserva.precio_total = reserva.calcular_total()
@@ -139,7 +98,6 @@ def confirmar_pago(request):
 
     enviar_correo_confirmacion(reserva)
 
-    # Limpiamos la sesión: ya no queda pendiente
     del request.session["reserva_pendiente_id"]
 
     return JsonResponse({"status": "ok", "mensaje": "Pago confirmado y correo enviado"})
