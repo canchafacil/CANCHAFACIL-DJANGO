@@ -3,6 +3,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import Usuario
 from reservas.models import Reserva
 from contacto.models import Resena
+import random
+from django.core.mail import send_mail
+from django.conf import settings
 
 def registro(request):
 
@@ -93,24 +96,100 @@ def recuperar_contra(request):
         email = request.POST.get('email')
 
         try:
+
             usuario = Usuario.objects.get(email=email)
 
-            return redirect(
-                'cambiar_password',
-                usuario.id
+            codigo = random.randint(100000,999999)
+
+            request.session['codigo'] = codigo
+            request.session['correo'] = email
+
+            send_mail(
+                'Recuperación de contraseña - CanchaFácil',
+                f'''
+Hola {usuario.first_name}
+
+Tu código para recuperar la contraseña es:
+
+{codigo}
+
+No compartas este código con nadie.
+                ''',
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False
             )
+
+            return redirect('verificar_codigo')
 
         except Usuario.DoesNotExist:
 
             return render(
                 request,
                 'usuarios/recuperar_contra.html',
-                {'error': 'No existe una cuenta con ese correo'}
+                {
+                    'error':'No existe una cuenta con ese correo.'
+                }
             )
 
     return render(
         request,
         'usuarios/recuperar_contra.html'
+    )
+
+def verificar_codigo(request):
+
+    if request.method == 'POST':
+
+        codigo_ingresado = request.POST.get('codigo')
+        codigo_guardado = str(request.session.get('codigo'))
+
+        if codigo_ingresado == codigo_guardado:
+            return redirect('cambiar_contra')
+
+        return render(
+            request,
+            'usuarios/verificar_codigo.html',
+            {'error': 'Código incorrecto'}
+        )
+
+    return render(request, 'usuarios/verificar_codigo.html')
+
+def cambiar_contra(request):
+
+    email = request.session.get('correo')
+
+    if not email:
+        return redirect('login')
+
+    usuario = Usuario.objects.get(email=email)
+
+    if request.method == 'POST':
+
+        password = request.POST.get('password')
+        confirmar = request.POST.get('confirmar')
+
+        if password != confirmar:
+
+            return render(
+                request,
+                'usuarios/cambiar_contra.html',
+                {
+                    'error': 'Las contraseñas no coinciden'
+                }
+            )
+
+        usuario.password = password
+        usuario.save()
+
+        request.session.pop('codigo', None)
+        request.session.pop('correo', None)
+
+        return redirect('login')
+
+    return render(
+        request,
+        'usuarios/cambiar_contra.html'
     )
 
 def login_admin(request):
