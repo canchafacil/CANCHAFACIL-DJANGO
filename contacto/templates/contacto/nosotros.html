@@ -149,9 +149,12 @@
                             <option value="Profesional" {% if r.jugador == "Profesional" %}selected{% endif %}>Profesional</option>
                         </select>
                         <select name="cancha" class="form-select form-select-sm mb-1">
-                            <option value="Fútbol 5" {% if r.cancha == "Fútbol 5" %}selected{% endif %}>Fútbol 5</option>
-                            <option value="Fútbol 7" {% if r.cancha == "Fútbol 7" %}selected{% endif %}>Fútbol 7</option>
-                            <option value="Fútbol 11" {% if r.cancha == "Fútbol 11" %}selected{% endif %}>Fútbol 11</option>
+                            {% for c in canchas_disponibles_resena %}
+                            <option value="{{ c }}" {% if r.cancha == c %}selected{% endif %}>{{ c }}</option>
+                            {% endfor %}
+                            {% if r.cancha not in canchas_disponibles_resena %}
+                            <option value="{{ r.cancha }}" selected>{{ r.cancha }}</option>
+                            {% endif %}
                         </select>
                         <input type="number" name="estrellas" class="form-control form-control-sm mb-1" min="1" max="5" value="{{ r.estrellas }}">
                         <textarea name="texto" class="form-control form-control-sm mb-1" rows="2">{{ r.texto }}</textarea>
@@ -169,6 +172,7 @@
             {% if request.session.usuario_id %}
             <p class="rf-form-sub">Publicando como <strong>{{ request.session.nombre }}</strong></p>
 
+            {% if canchas_disponibles_resena %}
             <form method="post">
             {% csrf_token %}
             <div class="rf-form-grid">
@@ -182,13 +186,14 @@
                     </select>
                 </div>
                 <div class="rf-field">
-                    <label class="rf-label" for="f-cancha">Tipo de cancha</label>
+                    <label class="rf-label" for="f-cancha">Cancha reservada</label>
                     <select class="rf-select" id="f-cancha" name="cancha">
                         <option value="">Selecciona...</option>
-                        <option value="Fútbol 5">Fútbol 5</option>
-                        <option value="Fútbol 7">Fútbol 7</option>
-                        <option value="Fútbol 11">Fútbol 11</option>
+                        {% for c in canchas_disponibles_resena %}
+                        <option value="{{ c }}">{{ c }}</option>
+                        {% endfor %}
                     </select>
+                    <small class="text-muted d-block mt-1">Solo podés reseñar canchas donde tengas una reserva confirmada.</small>
                 </div>
                 <div class="rf-field">
                     <label class="rf-label">Calificación</label>
@@ -216,6 +221,12 @@
                 </div>
             </div>
             </form>
+            {% else %}
+            <p class="rf-form-sub">Todavía no tenés reservas confirmadas. Necesitás haber jugado en una cancha para poder reseñarla.</p>
+            <a href="{% url 'reservas' %}" class="rf-submit d-inline-block text-decoration-none">
+                Hacer una reserva →
+            </a>
+            {% endif %}
 
             {% else %}
             <p class="rf-form-sub">Tienes que iniciar sesión para poder dejar una reseña.</p>

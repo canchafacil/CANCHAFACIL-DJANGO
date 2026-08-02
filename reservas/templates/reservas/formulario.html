@@ -222,63 +222,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- TABLA RESERVAS -->
-        <div class="row mt-5">
-            <div class="col-12">
-                <div class="card p-4 shadow-sm bg-white">
-                    <h4 class="fw-bold border-bottom pb-2 mb-3 text-uppercase" style="color:#03045e;">
-                        Panel de Gestión: Reservas Guardadas
-                    </h4>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Cliente</th>
-                                    <th>Cancha</th>
-                                    <th>Fecha</th>
-                                    <th>Hora</th>
-                                    <th>Duración</th>
-                                    <th>Estado</th>
-                                    <th class="text-center">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaReservasCuerpo">
-                                {% for reserva in reservas %}
-                                <tr>
-                                    <td>{{ reserva.nombre }}</td>
-                                    <td>{{ reserva.cancha }}</td>
-                                    <td>{{ reserva.fecha|date:"Y-m-d" }}</td>
-                                    <td>{{ reserva.hora|time:"H:i" }}</td>
-                                    <td>{{ reserva.duracion }}</td>
-                                    <td><span class="badge bg-success">Confirmada</span></td>
-                                    <td class="text-center">
-                                        <form method="POST" action="/reservas/eliminar/{{ reserva.id }}/"
-                                            style="display:inline;">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-danger"
-                                                onclick="return confirm('¿Eliminar esta reserva?')">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                        <button class="btn btn-sm btn-warning ms-1"
-                                            onclick="abrirEdicion('{{ reserva.id }}','{{ reserva.nombre }}','{{ reserva.correo }}','{{ reserva.telefono }}','{{ reserva.fecha|date:"Y-m-d" }}','{{ reserva.hora|time:"H:i" }}','{{ reserva.cancha }}','{{ reserva.duracion }}')">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">No hay reservas guardadas aún.
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <footer class="mt-5" style="background:linear-gradient(to right,#1f252b,#2b333b);color:white;padding:30px 0;">

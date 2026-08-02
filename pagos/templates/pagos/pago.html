@@ -69,7 +69,7 @@
                 <form id="formPago">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label class="form-label">Método de pago (simulado)</label>
+                        <label class="form-label">Método de pago</label>
                         <select class="form-select" id="metodoPago">
                             <option value="Tarjeta">Tarjeta de crédito/débito</option>
                             <option value="PSE">PSE</option>
@@ -77,6 +77,54 @@
                             <option value="Nequi">Nequi</option>
                         </select>
                     </div>
+
+                    <!-- Campos dinámicos según método de pago -->
+                    <div id="camposTarjeta" class="mb-3 border rounded p-3 bg-white">
+                        <div class="mb-2">
+                            <label class="form-label">Número de tarjeta</label>
+                            <input type="text" class="form-control" id="tarjetaNumero" maxlength="19" placeholder="0000 0000 0000 0000">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Nombre del titular</label>
+                            <input type="text" class="form-control" id="tarjetaNombre" placeholder="Nombre como aparece en la tarjeta">
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-2">
+                                <label class="form-label">Vencimiento</label>
+                                <input type="text" class="form-control" id="tarjetaVencimiento" maxlength="5" placeholder="MM/AA">
+                            </div>
+                            <div class="col-6 mb-2">
+                                <label class="form-label">CVV</label>
+                                <input type="text" class="form-control" id="tarjetaCVV" maxlength="4" placeholder="123">
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Correo para enviar la factura</label>
+                            <input type="email" class="form-control" id="tarjetaCorreo" placeholder="correo@ejemplo.com">
+                        </div>
+                    </div>
+
+                    <div id="camposPSE" class="mb-3 border rounded p-3 bg-white oculto">
+                        <div class="mb-2">
+                            <label class="form-label">Selecciona tu banco</label>
+                            <select class="form-select" id="pseBanco">
+                                <option value="Bancolombia">Bancolombia</option>
+                                <option value="Davivienda">Davivienda</option>
+                                <option value="BBVA">BBVA</option>
+                                <option value="Banco de Bogotá">Banco de Bogotá</option>
+                                <option value="Nequi">Nequi</option>
+                            </select>
+                        </div>
+                        <small class="text-muted">Serás redirigido (simulado) a tu banco para autorizar el pago.</small>
+                    </div>
+
+                    <div id="camposEfectivo" class="mb-3 oculto">
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            Con esta opción el pago se realiza directamente en el establecimiento al momento de tu reserva.
+                        </div>
+                    </div>
+
                     <button type="button" id="btnConfirmarPago" class="btn btn-pago fw-bold w-100 py-2">
                         <i class="bi bi-credit-card me-2"></i>Confirmar pago
                     </button>
@@ -97,15 +145,63 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // Mostrar/ocultar campos según el método de pago elegido
+        const selectMetodo = document.getElementById("metodoPago");
+        const camposTarjeta = document.getElementById("camposTarjeta");
+        const camposPSE = document.getElementById("camposPSE");
+        const camposEfectivo = document.getElementById("camposEfectivo");
+
+        function actualizarCamposPago() {
+            const metodo = selectMetodo.value;
+            camposTarjeta.classList.add("oculto");
+            camposPSE.classList.add("oculto");
+            camposEfectivo.classList.add("oculto");
+
+            if (metodo === "Tarjeta") {
+                camposTarjeta.classList.remove("oculto");
+            } else if (metodo === "PSE" || metodo === "Nequi") {
+                camposPSE.classList.remove("oculto");
+            } else if (metodo === "Efectivo") {
+                camposEfectivo.classList.remove("oculto");
+            }
+        }
+        selectMetodo?.addEventListener("change", actualizarCamposPago);
+        actualizarCamposPago();
+
         document.getElementById("btnConfirmarPago")?.addEventListener("click", function() {
             const btn = this;
             const metodo = document.getElementById("metodoPago").value;
             const csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
             const divResultado = document.getElementById("resultadoPago");
 
+            // Validación simple según el método elegido
+            if (metodo === "Tarjeta") {
+                const numero = document.getElementById("tarjetaNumero").value.trim();
+                const nombre = document.getElementById("tarjetaNombre").value.trim();
+                const vencimiento = document.getElementById("tarjetaVencimiento").value.trim();
+                const cvv = document.getElementById("tarjetaCVV").value.trim();
+                const correo = document.getElementById("tarjetaCorreo").value.trim();
+
+                if (!numero || !nombre || !vencimiento || !cvv || !correo) {
+                    divResultado.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            Completa todos los datos de la tarjeta antes de confirmar el pago.
+                        </div>
+                    `;
+                    return;
+                }
+            }
+
             // Deshabilitar botón y mostrar loading
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
+            if (metodo === "Efectivo") {
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Confirmando reserva...';
+            } else if (metodo === "PSE" || metodo === "Nequi") {
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Conectando con tu banco...';
+            } else {
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando pago...';
+            }
 
             fetch("{% url 'confirmar_pago' %}", {
                     method: "POST",
@@ -121,23 +217,66 @@
                 .then((res) => res.json())
                 .then((data) => {
                     if (data.status === "ok") {
-                        // Mostrar mensaje de éxito con botón de factura
-                        divResultado.innerHTML = `
-                            <div class="alert alert-success">
-                                <i class="bi bi-check-circle-fill me-2"></i>
-                                <strong>✅ ${data.mensaje}</strong>
-                            </div>
-                            <div class="d-grid gap-2">
-                                <a href="{% url 'pagos:descargar_factura' reserva.id %}" 
-                                   class="btn btn-success btn-lg factura-btn" 
-                                   target="_blank">
-                                    <i class="bi bi-file-pdf me-2"></i>Descargar Factura
-                                </a>
-                                <a href="{% url 'inicio' %}" class="btn btn-outline-secondary">
-                                    <i class="bi bi-house me-2"></i>Volver al inicio
-                                </a>
-                            </div>
-                        `;
+                        if (metodo === "Efectivo") {
+                            // Solo mostrar aviso de pago en el establecimiento, sin factura aún
+                            divResultado.innerHTML = `
+                                <div class="alert alert-success">
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                    <strong>¡Reserva confirmada!</strong>
+                                </div>
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-cash-coin me-2"></i>
+                                    Recuerda que debes pagar en efectivo directamente en el establecimiento antes de usar la cancha.
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'inicio' %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-house me-2"></i>Volver al inicio
+                                    </a>
+                                </div>
+                            `;
+                        } else if (metodo === "Tarjeta") {
+                            const correo = document.getElementById("tarjetaCorreo").value.trim();
+                            divResultado.innerHTML = `
+                                <div class="alert alert-success">
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                    <strong>✅ ${data.mensaje}</strong>
+                                </div>
+                                <div class="alert alert-info">
+                                    <i class="bi bi-envelope-check-fill me-2"></i>
+                                    Enviamos la factura a <strong>${correo}</strong>.
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <a id="linkFactura" href="{% url 'pagos:descargar_factura' reserva.id %}" 
+                                       class="btn btn-success btn-lg factura-btn" 
+                                       target="_blank">
+                                        <i class="bi bi-file-pdf me-2"></i>Descargar Factura
+                                    </a>
+                                    <a href="{% url 'inicio' %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-house me-2"></i>Volver al inicio
+                                    </a>
+                                </div>
+                            `;
+                            // Descarga automática de la factura
+                            document.getElementById("linkFactura")?.click();
+                        } else {
+                            // PSE / Nequi: mismo flujo simulado de siempre
+                            divResultado.innerHTML = `
+                                <div class="alert alert-success">
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                    <strong>✅ ${data.mensaje}</strong>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'pagos:descargar_factura' reserva.id %}" 
+                                       class="btn btn-success btn-lg factura-btn" 
+                                       target="_blank">
+                                        <i class="bi bi-file-pdf me-2"></i>Descargar Factura
+                                    </a>
+                                    <a href="{% url 'inicio' %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-house me-2"></i>Volver al inicio
+                                    </a>
+                                </div>
+                            `;
+                        }
                         // Ocultar el formulario
                         document.getElementById("formPago").style.display = "none";
                     } else {
