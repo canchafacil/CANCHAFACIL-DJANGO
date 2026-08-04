@@ -11,4 +11,5 @@ urlpatterns = [
     path("confirmar-pago/", views.confirmar_pago, name="confirmar_pago"),  # NUEVO
     path('perfil/editar/<int:id>/', views.editar_reserva_perfil, name='editar_reserva_perfil'),
     path('perfil/eliminar/<int:id>/', views.eliminar_reserva_perfil, name='eliminar_reserva_perfil'),
+    path("formulario/<int:cancha_id>/", views.reservas, name="formulario_reservas"),
 ]

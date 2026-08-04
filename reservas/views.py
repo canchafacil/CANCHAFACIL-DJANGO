@@ -7,21 +7,29 @@ from django.conf import settings
 import json
 from .models import Reserva
 from usuarios.models import Usuario
+from gestion_canchas.models import Cancha
 
 
 def pagina_reservas(request):
     return render(request, "reservas/reservas.html")
 
 
-def reservas(request):
+def reservas(request, cancha_id=None):  # <-- Acepta cancha_id para preselección
     todas = Reserva.objects.all().order_by('-id')
+    # Solo canchas disponibles
+    canchas = Cancha.objects.filter(disponible=True)
 
     usuario = None
     usuario_id = request.session.get('usuario_id')
     if usuario_id:
         usuario = Usuario.objects.filter(id=usuario_id).first()
 
-    return render(request, "reservas/formulario.html", {"reservas": todas, "usuario": usuario})
+    return render(request, "reservas/formulario.html", {
+        "reservas": todas,
+        "canchas": canchas,           # <-- Agregado para mostrar canchas
+        "usuario": usuario,
+        "cancha_id": cancha_id,       # <-- Para preselección
+    })
 
 
 @require_POST
@@ -42,9 +50,7 @@ def crear_reserva(request):
             cancha   = data["cancha"],
             duracion = data["duracion"],
         )
-        # Todavía NO se envía correo: la reserva está "Pendiente" hasta que se pague
         request.session["reserva_pendiente_id"] = reserva.id
-
         return JsonResponse({"status": "ok", "id": reserva.id})
     except (KeyError, json.JSONDecodeError):
         return JsonResponse({"status": "error", "mensaje": "Datos inválidos"}, status=400)

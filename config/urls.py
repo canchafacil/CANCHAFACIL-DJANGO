@@ -9,9 +9,7 @@ urlpatterns = [
     path('usuarios/', include('usuarios.urls')),
     path('reservas/', include('reservas.urls')),
     path('contacto/', include('contacto.urls')),
-    path('canchas/', include('canchas.urls')),
+    path('canchas/', include('gestion_canchas.urls')),
     path('panel_admin/', include('administracion.urls')),
-    path('pagos/', include('pagos.urls')),
-    
-    path('canchas_admin/', include('canchas_admin.urls')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('pagos/', include('pagos.urls')),    
+    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

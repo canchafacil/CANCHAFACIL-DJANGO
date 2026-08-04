@@ -220,20 +220,21 @@
                         if (metodo === "Efectivo") {
                             // Solo mostrar aviso de pago en el establecimiento, sin factura aún
                             divResultado.innerHTML = `
-                                <div class="alert alert-success">
-                                    <i class="bi bi-check-circle-fill me-2"></i>
-                                    <strong>¡Reserva confirmada!</strong>
-                                </div>
-                                <div class="alert alert-warning">
-                                    <i class="bi bi-cash-coin me-2"></i>
-                                    Recuerda que debes pagar en efectivo directamente en el establecimiento antes de usar la cancha.
-                                </div>
-                                <div class="d-grid gap-2">
-                                    <a href="{% url 'inicio' %}" class="btn btn-outline-secondary">
-                                        <i class="bi bi-house me-2"></i>Volver al inicio
-                                    </a>
-                                </div>
-                            `;
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                <strong>✅ ${data.mensaje}</strong>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'pagos:descargar_factura' reserva.id %}" 
+                                   class="btn btn-success btn-lg factura-btn" 
+                                   target="_blank">
+                                    <i class="bi bi-file-pdf me-2"></i>Descargar Factura
+                                </a>
+                                <a href="{% url 'inicio' %}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-house me-2"></i>Volver al inicio
+                                </a>
+                            </div>
+                        `;
                         } else if (metodo === "Tarjeta") {
                             const correo = document.getElementById("tarjetaCorreo").value.trim();
                             divResultado.innerHTML = `

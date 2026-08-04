@@ -84,9 +84,9 @@
             </p>
 
             <!-- FIX: antes apuntaba a {% url 'reservas' %}, que va directo a
-                 formulario.html. Ahora apunta a {% url 'canchas' %} para que
+                 formulario.html. Ahora apunta a {% url 'gestion_canchas:canchas' %} para que
                  primero se muestre el listado de canchas disponibles. -->
-            <a href="{% url 'canchas' %}" class="btn btn-success btn-lg mt-3" style="background-color: #03045e;">
+            <a href="{% url 'gestion_canchas:canchas' %}" class="btn btn-success btn-lg mt-3" style="background-color: #03045e;">
                 Reservar Ahora
             </a>
         </div>

@@ -46,7 +46,7 @@
                             data-bs-target="#sec-resenas" type="button" role="tab">Ver Reseñas</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <a href="{% url 'cancha_admin' %}" class="btn btn-custom rounded-pill">
+                        <a href="{% url 'gestion_canchas:cancha_admin' %}" class="btn btn-custom rounded-pill">
                             Administrar Canchas
                         </a>
                     </li>
@@ -82,6 +82,10 @@
                     {% if cancha.imagen %}
                     <img src="{{ cancha.imagen.url }}" class="card-img-top" alt="Cancha"
                         style="height:250px; object-fit:cover;">
+                    {% else %}
+                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height:250px; color:white;">
+                        Sin imagen
+                    </div>
                     {% endif %}
 
                     <div class="card-body">
@@ -111,12 +115,12 @@
 
                     <div class="card-footer border-0 d-flex justify-content-between">
 
-                        <a href="{% url 'editar_cancha' cancha.id %}" class="btn btn-warning btn-sm"
+                        <a href="{% url 'gestion_canchas:editar_cancha' cancha.id %}" class="btn btn-warning btn-sm"
                             style="background-color:#62ff00; border-color:#62ff00; color:black;">
                             Editar
                         </a>
 
-                        <a href="{% url 'eliminar_cancha' cancha.id %}" class="btn btn-danger btn-sm"
+                        <a href="{% url 'gestion_canchas:eliminar_cancha' cancha.id %}" class="btn btn-danger btn-sm"
                             onclick="return confirm('¿Seguro que deseas eliminar esta cancha?');">
                             Eliminar
                         </a>
@@ -157,7 +161,7 @@
 
                 <div class="modal-body">
 
-                    <form method="POST" action="{% url 'agregar_cancha' %}" enctype="multipart/form-data">
+                    <form method="POST" action="{% url 'gestion_canchas:agregar_cancha' %}" enctype="multipart/form-data">
 
                         {% csrf_token %}
 
