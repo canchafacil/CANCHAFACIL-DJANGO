@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&family=Roboto+Condensed:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
 
 :root {
     --primary-color: #62FF00;
@@ -13,6 +13,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    font-family: 'Bebas Neue', sans-serif;
 }
 
 body.adm-body {
@@ -23,7 +24,6 @@ body.adm-body {
     background-repeat: no-repeat;
     background-attachment: fixed;
     color: var(--text-white);
-    font-family: 'Nunito', sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
 }
@@ -36,7 +36,6 @@ body.adm-body {
 }
 
 .logo-text {
-    font-family: 'Nunito', sans-serif;
     font-weight: 800;
     font-size: 2rem;
     color: var(--text-white) !important;
@@ -48,7 +47,6 @@ body.adm-body {
     background-color: transparent;
     color: var(--text-white);
     border: 2px solid transparent;
-    font-family: 'Nunito', sans-serif;
     font-weight: 700;
     padding: 8px 24px;
     transition: all 0.3s ease-in-out;
@@ -137,7 +135,6 @@ body.adm-body {
 }
 
 .monto-ingreso {
-    font-family: 'Roboto Condensed', sans-serif;
     font-size: 1.4rem;
     font-weight: bold;
     letter-spacing: 0.5px;
@@ -145,7 +142,6 @@ body.adm-body {
 
 /* ── RESEÑAS — header ── */
 .adm-titulo {
-    font-family: 'Bebas Neue', sans-serif;
     font-size: 2.5rem;
     letter-spacing: 2px;
     color: var(--text-white);
@@ -164,7 +160,6 @@ body.adm-body {
     text-align: center;
 }
 .adm-stat-n {
-    font-family: 'Bebas Neue', sans-serif;
     font-size: 2.2rem;
     color: var(--primary-color);
     display: block;
@@ -349,7 +344,6 @@ body.adm-body {
     animation: modal-in 0.2s ease-out;
 }
 .adm-modal-titulo {
-    font-family: 'Bebas Neue', sans-serif;
     font-size: 1.8rem;
     color: var(--text-white);
 }

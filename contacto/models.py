@@ -14,6 +14,7 @@ class Resena(models.Model):
     ]
 
     nombre    = models.CharField(max_length=100)
+    correo    = models.EmailField(blank=True, null=True)
     jugador   = models.CharField(max_length=50, choices=JUGADOR_CHOICES)
     cancha    = models.CharField(max_length=50, choices=CANCHA_CHOICES)
     estrellas = models.IntegerField(default=0)

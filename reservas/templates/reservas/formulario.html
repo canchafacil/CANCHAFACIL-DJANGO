@@ -30,6 +30,25 @@
                     <li class="nav-item"><a class="nav-link active" href="{% url 'reservas' %}">Reservas</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'nosotros' %}">Sobre Nosotros</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'contacto' %}">Contacto</a></li>
+                    {% if request.session.usuario_id %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="perfilDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1" style="font-size: 1.3rem;"></i> {{ request.session.nombre }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'perfil' %}">Mi perfil</a></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#modalLogout">
+                                    Cerrar sesión
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a href="{% url 'login' %}" class="btn btn-info border-0 ms-2" style="background-color: #62ff00;">Iniciar Sesión</a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -70,7 +89,7 @@
 
         <div class="row g-4" id="seccionReserva">
 
-            <!-- RESUMEN (en mobile va arriba y queda fijo al hacer scroll; en desktop va al lado) -->
+            <!-- RESUMEN -->
             <div class="col-12 col-lg-4 order-1 order-lg-2">
                 <div class="card shadow border-0 text-white sticky-summary" style="background-color: #03045e;">
                     <div class="card-body p-3 p-md-4">
@@ -132,7 +151,7 @@
                         <i class="bi bi-dribbble me-2" style="color:#62ff00;"></i>1. Selecciona la Cancha
                     </h5>
                     <div class="row g-3" id="contenedorListaCanchas">
-                        <!-- Se llena con JS desde reservas_data -->
+                        <!-- Se llena con JS -->
                     </div>
                 </div>
 
@@ -171,77 +190,34 @@
                     <h5 class="text-uppercase fw-bold mb-3" style="color:#03045e;">
                         <i class="bi bi-person-fill me-2" style="color:#62ff00;"></i>3. Datos del Jugador
                     </h5>
+
+                    {% if not request.session.usuario_id %}
+                    <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <span><i class="bi bi-exclamation-triangle me-2"></i>Tenés que iniciar sesión para poder reservar.</span>
+                        <a href="{% url 'login' %}" class="btn btn-sm text-white" style="background-color: #03045e;">Iniciar sesión</a>
+                    </div>
+                    {% endif %}
+
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-secondary small">Nombre completo</label>
-                            <input type="text" id="nombre" class="form-control" placeholder="Ej. Juan Pérez"
+                            <input type="text" id="nombre" class="form-control"
+                                value="{% if usuario %}{{ usuario.first_name }} {{ usuario.last_name }}{% endif %}"
+                                {% if usuario %}readonly{% else %}disabled placeholder="Inicia sesión primero"{% endif %}
                                 oninput="actualizarResumen()">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-secondary small">Teléfono celular</label>
-                            <input type="tel" id="telefono" class="form-control" placeholder="3001234567">
+                            <input type="tel" id="telefono" class="form-control"
+                                value="{% if usuario %}{{ usuario.phone }}{% endif %}"
+                                {% if usuario %}readonly{% else %}disabled{% endif %}>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-secondary small">Correo electrónico</label>
-                            <input type="email" id="correo" class="form-control" placeholder="juan@correo.com">
+                            <input type="email" id="correo" class="form-control"
+                                value="{% if usuario %}{{ usuario.email }}{% endif %}"
+                                {% if usuario %}readonly{% else %}disabled{% endif %}>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TABLA RESERVAS -->
-        <div class="row mt-5">
-            <div class="col-12">
-                <div class="card p-4 shadow-sm bg-white">
-                    <h4 class="fw-bold border-bottom pb-2 mb-3 text-uppercase" style="color:#03045e;">
-                        Panel de Gestión: Reservas Guardadas
-                    </h4>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Cliente</th>
-                                    <th>Cancha</th>
-                                    <th>Fecha</th>
-                                    <th>Hora</th>
-                                    <th>Duración</th>
-                                    <th>Estado</th>
-                                    <th class="text-center">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaReservasCuerpo">
-                                {% for reserva in reservas %}
-                                <tr>
-                                    <td>{{ reserva.nombre }}</td>
-                                    <td>{{ reserva.cancha }}</td>
-                                    <td>{{ reserva.fecha|date:"Y-m-d" }}</td>
-                                    <td>{{ reserva.hora|time:"H:i" }}</td>
-                                    <td>{{ reserva.duracion }}</td>
-                                    <td><span class="badge bg-success">Confirmada</span></td>
-                                    <td class="text-center">
-                                        <form method="POST" action="/reservas/eliminar/{{ reserva.id }}/"
-                                            style="display:inline;">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-danger"
-                                                onclick="return confirm('¿Eliminar esta reserva?')">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                        <button class="btn btn-sm btn-warning ms-1"
-                                            onclick="abrirEdicion('{{ reserva.id }}','{{ reserva.nombre }}','{{ reserva.correo }}','{{ reserva.telefono }}','{{ reserva.fecha|date:"Y-m-d" }}','{{ reserva.hora|time:"H:i" }}','{{ reserva.cancha }}','{{ reserva.duracion }}')">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">No hay reservas guardadas aún.
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             </div>
@@ -353,255 +329,446 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // ── DATOS DESDE DJANGO ──────────────────────────────────────
-    // Canchas disponibles (solo las que tienen disponible=True)
-    const CANCHAS_DATA = [
-        {% for c in canchas %}
-        {
-            id: {{ c.id }},
-            nombre: "{{ c.nombre }}",
-            tipo: "{{ c.tipo }}",
-            precio: {{ c.precio }}
-        },
-        {% endfor %}
-    ];
-
-    // ID de la cancha a preseleccionar (si viene en la URL)
-    const PRESELECCIONAR_ID = {{ cancha_id|default:"null" }};
-
-    // Reservas existentes desde Django
-    const RESERVAS_BD = [
-        {% for r in reservas %}
-        { id: {{ r.id }}, cancha: "{{ r.cancha }}", fecha: "{{ r.fecha }}", hora: "{{ r.hora }}" },
-        {% endfor %}
-    ];
-
-    const HORAS = [
-    '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
-    '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
-    '18:00', '19:00', '20:00', '21:00', '22:00'
-];
-
-    // ── ESTADO (formulario principal) ─────────────────────────
-    let canchaSeleccionada = null;
-    let horasSeleccionadas = [];
-
-    // ── ESTADO (modal de edición) ──────────────────────────────
-    let editIdActual = null;
-    let editHorasSeleccionadas = [];
-    let editPrecioOriginalTotal = 0;
-
-    // ── INIT CANCHAS ───────────────────────────────────────────
-    function renderCanchas() {
-        const cont = document.getElementById('contenedorListaCanchas');
-        if (CANCHAS_DATA.length === 0) {
-            cont.innerHTML = '<div class="col-12 text-muted">No hay canchas disponibles.</div>';
-            return;
-        }
-        cont.innerHTML = CANCHAS_DATA.map((c, i) => `
-            <div class="col-6 col-md-3">
-                <div class="cancha-card text-center" id="cancha-${i}" onclick="seleccionarCancha(${i})" data-id="${c.id}">
-                    <i class="bi bi-dribbble fs-2 mb-1" style="color:#62ff00;"></i>
-                    <div class="fw-bold small">${c.nombre}</div>
-                    <div class="text-muted" style="font-size:0.75rem;">${c.tipo}</div>
-                    <div class="fw-bold mt-1" style="color:#03045e;">$${c.precio.toLocaleString('es-CO')}/h</div>
+    <div class="modal fade" id="modalLogout" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border: none;">
+                <div class="modal-body text-center p-4">
+                    <i class="bi bi-box-arrow-right" style="font-size: 3rem; color: #03045e;"></i>
+                    <h5 class="mt-3 fw-bold">¿Cerrar sesión?</h5>
+                    <p class="text-muted">Vas a tener que volver a iniciar sesión para acceder a tu perfil.</p>
+                    <div class="d-flex justify-content-center gap-2 mt-3">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                        <a href="{% url 'logout' %}" class="btn rounded-pill px-4 text-white" style="background-color: #03045e;">Sí, cerrar sesión</a>
+                    </div>
                 </div>
             </div>
-        `).join('');
+        </div>
+    </div>
 
-        // Si hay un ID para preseleccionar, seleccionar esa cancha
-        if (PRESELECCIONAR_ID) {
-            const idx = CANCHAS_DATA.findIndex(c => c.id === PRESELECCIONAR_ID);
-            if (idx !== -1) {
-                seleccionarCancha(idx);
-                // Hacer scroll a la sección de reserva
-                document.getElementById('seccionReserva').scrollIntoView({ behavior: 'smooth' });
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ── SESIÓN ─────────────────────────────────────────────────
+        const LOGUEADO = {% if request.session.usuario_id %}true{% else %}false{% endif %};
+
+        // ── DATOS DESDE DJANGO ──────────────────────────────────────
+        // CANCHAS_DATA se llena desde la vista con las canchas disponibles
+        const CANCHAS_DATA = [
+            {% for c in canchas %}
+            {
+                id: {{ c.id }},
+                nombre: "{{ c.nombre }}",
+                tipo: "{{ c.tipo }}",
+                precio: {{ c.precio }}
+            },
+            {% endfor %}
+        ];
+
+        // ID de la cancha a preseleccionar (si viene en la URL)
+        const PRESELECCIONAR_ID = {{ cancha_id|default:"null" }};
+
+        // Reservas existentes desde Django
+        const RESERVAS_BD = [
+            {% for r in reservas %}
+            { id: {{ r.id }}, cancha: "{{ r.cancha }}", fecha: "{{ r.fecha }}", hora: "{{ r.hora }}" },
+            {% endfor %}
+        ];
+
+        const HORAS = [
+            '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
+            '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
+            '18:00', '19:00', '20:00', '21:00', '22:00'
+        ];
+
+        // ── ESTADO (formulario principal) ─────────────────────────
+        let canchaSeleccionada = null;
+        let horasSeleccionadas = [];
+
+        // ── ESTADO (modal de edición) ──────────────────────────────
+        let editIdActual = null;
+        let editHorasSeleccionadas = [];
+        let editPrecioOriginalTotal = 0;
+
+        // ── RENDERIZAR CANCHAS ─────────────────────────────────────
+        function renderCanchas() {
+            const cont = document.getElementById('contenedorListaCanchas');
+            if (CANCHAS_DATA.length === 0) {
+                cont.innerHTML = '<div class="col-12 text-muted">No hay canchas disponibles.</div>';
+                return;
+            }
+            cont.innerHTML = CANCHAS_DATA.map((c, i) => `
+                <div class="col-6 col-md-3">
+                    <div class="cancha-card text-center" id="cancha-${i}" onclick="seleccionarCancha(${i})" data-id="${c.id}">
+                        <i class="bi bi-dribbble fs-2 mb-1" style="color:#62ff00;"></i>
+                        <div class="fw-bold small">${c.nombre}</div>
+                        <div class="text-muted" style="font-size:0.75rem;">${c.tipo}</div>
+                        <div class="fw-bold mt-1" style="color:#03045e;">$${c.precio.toLocaleString('es-CO')}/h</div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Preseleccionar si hay ID
+            if (PRESELECCIONAR_ID) {
+                const idx = CANCHAS_DATA.findIndex(c => c.id === PRESELECCIONAR_ID);
+                if (idx !== -1) {
+                    seleccionarCancha(idx);
+                    document.getElementById('seccionReserva').scrollIntoView({ behavior: 'smooth' });
+                }
             }
         }
-    }
 
-    function seleccionarCancha(i) {
-        canchaSeleccionada = CANCHAS_DATA[i];
-        document.querySelectorAll('.cancha-card').forEach(el => el.classList.remove('seleccionada'));
-        document.getElementById(`cancha-${i}`).classList.add('seleccionada');
-        horasSeleccionadas = [];
-        renderHorarios();
-        actualizarResumen();
-    }
-
-    // ── HORARIOS (formulario principal) ────────────────────────
-    function getOcupadas(cancha, fecha, idExcluir = null) {
-        if (!cancha || !fecha) return [];
-        return RESERVAS_BD
-            .filter(r => r.cancha === cancha.nombre && r.fecha === fecha && r.id !== idExcluir)
-            .map(r => r.hora.substring(0, 5));
-    }
-
-    function renderHorarios() {
-        const cont = document.getElementById('contenedorHorarios');
-        const fecha = document.getElementById('fechaSeleccionada').value;
-
-        if (!fecha) {
-            cont.innerHTML = '<span class="text-muted small">Selecciona una fecha para ver disponibilidad.</span>';
-            return;
-        }
-        if (!canchaSeleccionada) {
-            cont.innerHTML = '<span class="text-muted small">Primero selecciona una cancha.</span>';
-            return;
+        function seleccionarCancha(i) {
+            canchaSeleccionada = CANCHAS_DATA[i];
+            document.querySelectorAll('.cancha-card').forEach(el => el.classList.remove('seleccionada'));
+            document.getElementById(`cancha-${i}`).classList.add('seleccionada');
+            horasSeleccionadas = [];
+            renderHorarios();
+            actualizarResumen();
         }
 
-        const ocupadas = getOcupadas(canchaSeleccionada, fecha);
-
-        cont.innerHTML = HORAS.map(h => {
-            const estaOcupada = ocupadas.includes(h);
-            const seleccionada = horasSeleccionadas.includes(h);
-            let cls = 'hora-btn';
-            if (estaOcupada) cls += ' ocupada';
-            if (seleccionada && !estaOcupada) cls += ' seleccionada';
-            const titulo = estaOcupada ? 'Hora no disponible' : `Seleccionar ${h}`;
-            return `<button class="${cls}" ${estaOcupada ? 'disabled' : ''} title="${titulo}"
-                onclick="seleccionarHora('${h}')">${h}</button>`;
-        }).join('');
-    }
-
-    function seleccionarHora(h) {
-        const idx = horasSeleccionadas.indexOf(h);
-        if (idx === -1) {
-            horasSeleccionadas.push(h);
-        } else {
-            horasSeleccionadas.splice(idx, 1);
+        // ── HORARIOS ──────────────────────────────────────────────
+        function getOcupadas(cancha, fecha, idExcluir = null) {
+            if (!cancha || !fecha) return [];
+            return RESERVAS_BD
+                .filter(r => r.cancha === cancha.nombre && r.fecha === fecha && r.id !== idExcluir)
+                .map(r => r.hora.substring(0, 5));
         }
-        renderHorarios();
-        actualizarResumen();
-    }
 
-    // ── RESUMEN (formulario principal) ─────────────────────────
-    function actualizarResumen() {
-        const fecha = document.getElementById('fechaSeleccionada').value;
-        const nombre = document.getElementById('nombre').value.trim();
+        function renderHorarios() {
+            const cont = document.getElementById('contenedorHorarios');
+            const fecha = document.getElementById('fechaSeleccionada').value;
 
-        document.getElementById('resumenCancha').textContent = canchaSeleccionada ? canchaSeleccionada.nombre : 'No seleccionada';
-        document.getElementById('resumenFecha').textContent = fecha ? formatearFecha(fecha) : '-- / -- / ----';
+            if (!fecha) {
+                cont.innerHTML = '<span class="text-muted small">Selecciona una fecha para ver disponibilidad.</span>';
+                return;
+            }
+            if (!canchaSeleccionada) {
+                cont.innerHTML = '<span class="text-muted small">Primero selecciona una cancha.</span>';
+                return;
+            }
 
-        const horasOrdenadas = [...horasSeleccionadas].sort();
-        document.getElementById('resumenHora').textContent = horasOrdenadas.length ? horasOrdenadas.join(', ') : 'Por elegir';
+            const ocupadas = getOcupadas(canchaSeleccionada, fecha);
 
-        document.getElementById('resumenDuracion').textContent = calcularDuracionTexto(horasSeleccionadas.length);
-        document.getElementById('resumenNombre').textContent = nombre || '—';
-
-        if (canchaSeleccionada && horasSeleccionadas.length > 0) {
-            const total = canchaSeleccionada.precio * horasSeleccionadas.length;
-            document.getElementById('resumenPrecio').textContent = '$ ' + total.toLocaleString('es-CO');
-        } else {
-            document.getElementById('resumenPrecio').textContent = '$ 0';
+            cont.innerHTML = HORAS.map(h => {
+                const estaOcupada = ocupadas.includes(h);
+                const seleccionada = horasSeleccionadas.includes(h);
+                let cls = 'hora-btn';
+                if (estaOcupada) cls += ' ocupada';
+                if (seleccionada && !estaOcupada) cls += ' seleccionada';
+                const titulo = estaOcupada ? 'Hora no disponible' : `Seleccionar ${h}`;
+                return `<button class="${cls}" ${estaOcupada ? 'disabled' : ''} title="${titulo}"
+                    onclick="seleccionarHora('${h}')">${h}</button>`;
+            }).join('');
         }
-    }
 
-    function calcularDuracionTexto(n) {
-        if (n === 0) return '—';
-        if (n === 1) return '1 Hora';
-        return `${n} Horas`;
-    }
+        function seleccionarHora(h) {
+            const idx = horasSeleccionadas.indexOf(h);
+            if (idx === -1) {
+                horasSeleccionadas.push(h);
+            } else {
+                horasSeleccionadas.splice(idx, 1);
+            }
+            renderHorarios();
+            actualizarResumen();
+        }
 
-    function formatearFecha(f) {
-        const [y, m, d] = f.split('-');
-        return `${d} / ${m} / ${y}`;
-    }
+        // ── RESUMEN ────────────────────────────────────────────────
+        function actualizarResumen() {
+            const fecha = document.getElementById('fechaSeleccionada').value;
+            const nombre = document.getElementById('nombre').value.trim();
 
-    // ── CONFIRMAR RESERVA ──────────────────────────────────────
-    function confirmarReserva() {
-        const nombre = document.getElementById('nombre').value.trim();
-        const correo = document.getElementById('correo').value.trim();
-        const telefono = document.getElementById('telefono').value.trim();
-        const fecha = document.getElementById('fechaSeleccionada').value;
+            document.getElementById('resumenCancha').textContent = canchaSeleccionada ? canchaSeleccionada.nombre : 'No seleccionada';
+            document.getElementById('resumenFecha').textContent = fecha ? formatearFecha(fecha) : '-- / -- / ----';
 
-        if (!canchaSeleccionada) { alert('Selecciona una cancha.'); return; }
-        if (!fecha) { alert('Selecciona una fecha.'); return; }
-        if (horasSeleccionadas.length === 0) { alert('Selecciona al menos una hora.'); return; }
-        if (!nombre) { alert('Ingresa tu nombre.'); return; }
-        if (!correo) { alert('Ingresa tu correo.'); return; }
+            const horasOrdenadas = [...horasSeleccionadas].sort();
+            document.getElementById('resumenHora').textContent = horasOrdenadas.length ? horasOrdenadas.join(', ') : 'Por elegir';
 
-        const btn = document.getElementById('btnConfirmarReserva');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registrando reserva...';
+            document.getElementById('resumenDuracion').textContent = calcularDuracionTexto(horasSeleccionadas.length);
+            document.getElementById('resumenNombre').textContent = nombre || '—';
 
-        const horasOrdenadas = [...horasSeleccionadas].sort();
+            if (canchaSeleccionada && horasSeleccionadas.length > 0) {
+                const total = canchaSeleccionada.precio * horasSeleccionadas.length;
+                document.getElementById('resumenPrecio').textContent = '$ ' + total.toLocaleString('es-CO');
+            } else {
+                document.getElementById('resumenPrecio').textContent = '$ 0';
+            }
+        }
 
-        fetch("{% url 'crear_reserva' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRF(),
-            },
-            body: JSON.stringify({
-                nombre, correo, telefono, fecha,
-                hora: horasOrdenadas[0],
-                horas: horasOrdenadas,
-                cancha: canchaSeleccionada.nombre,
-                duracion: calcularDuracionTexto(horasSeleccionadas.length),
+        function calcularDuracionTexto(n) {
+            if (n === 0) return '—';
+            if (n === 1) return '1 Hora';
+            return `${n} Horas`;
+        }
+
+        function formatearFecha(f) {
+            const [y, m, d] = f.split('-');
+            return `${d} / ${m} / ${y}`;
+        }
+
+        // ── CONFIRMAR RESERVA ──────────────────────────────────────
+        function confirmarReserva() {
+            if (!LOGUEADO) {
+                window.location.href = "{% url 'login' %}";
+                return;
+            }
+
+            const nombre = document.getElementById('nombre').value.trim();
+            const correo = document.getElementById('correo').value.trim();
+            const telefono = document.getElementById('telefono').value.trim();
+            const fecha = document.getElementById('fechaSeleccionada').value;
+
+            if (!canchaSeleccionada) { alert('Selecciona una cancha.'); return; }
+            if (!fecha) { alert('Selecciona una fecha.'); return; }
+            if (horasSeleccionadas.length === 0) { alert('Selecciona al menos una hora.'); return; }
+
+            const btn = document.getElementById('btnConfirmarReserva');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registrando reserva...';
+
+            const horasOrdenadas = [...horasSeleccionadas].sort();
+
+            fetch("{% url 'crear_reserva' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRF(),
+                },
+                body: JSON.stringify({
+                    nombre, correo, telefono, fecha,
+                    hora: horasOrdenadas[0],
+                    horas: horasOrdenadas,
+                    cancha: canchaSeleccionada.nombre,
+                    duracion: calcularDuracionTexto(horasSeleccionadas.length),
+                })
             })
-        })
-            .then(r => r.json())
-            .then(data => {
-                if (data.status === 'ok') {
-                    window.location.href = "{% url 'pago' %}";
-                } else {
-                    alert(data.mensaje || 'Error al registrar la reserva.');
+                .then(r => {
+                    if (r.status === 401) {
+                        window.location.href = "{% url 'login' %}";
+                        return null;
+                    }
+                    return r.json();
+                })
+                .then(data => {
+                    if (!data) return;
+                    if (data.status === 'ok') {
+                        window.location.href = "{% url 'pago' %}";
+                    } else {
+                        alert(data.mensaje || 'Error al registrar la reserva.');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar';
+                    }
+                })
+                .catch(() => {
+                    alert('Error de conexión. Intenta de nuevo.');
                     btn.disabled = false;
                     btn.innerHTML = '<i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar';
+                });
+        }
+
+        // ── EDITAR ──────────────────────────────────────────────────
+        function poblarSelectCanchasEdit() {
+            const sel = document.getElementById('editCancha');
+            sel.innerHTML = CANCHAS_DATA.map(c =>
+                `<option value="${c.nombre}">${c.nombre} ($${c.precio.toLocaleString('es-CO')}/h)</option>`
+            ).join('');
+        }
+
+        function obtenerPrecioCancha(nombre) {
+            const c = CANCHAS_DATA.find(x => x.nombre === nombre);
+            return c ? c.precio : 0;
+        }
+
+        function renderHorariosEdicion() {
+            const cont = document.getElementById('editContenedorHorarios');
+            const fecha = document.getElementById('editFecha').value;
+            const canchaNombre = document.getElementById('editCancha').value;
+
+            if (!fecha || !canchaNombre) {
+                cont.innerHTML = '<span class="text-muted small">Selecciona cancha y fecha.</span>';
+                return;
+            }
+
+            const ocupadas = getOcupadasParaEdicion(canchaNombre, fecha, editIdActual);
+
+            cont.innerHTML = HORAS.map(h => {
+                const estaOcupada = ocupadas.includes(h);
+                const seleccionada = editHorasSeleccionadas.includes(h);
+                let cls = 'hora-btn';
+                if (estaOcupada) cls += ' ocupada';
+                if (seleccionada && !estaOcupada) cls += ' seleccionada';
+                const titulo = estaOcupada ? 'Hora no disponible' : `Seleccionar ${h}`;
+                return `<button type="button" class="${cls}" ${estaOcupada ? 'disabled' : ''} title="${titulo}"
+                    onclick="toggleHoraEdicion('${h}')">${h}</button>`;
+            }).join('');
+
+            actualizarResumenPrecioEdicion();
+        }
+
+        function getOcupadasParaEdicion(canchaNombre, fecha, idExcluir) {
+            return RESERVAS_BD
+                .filter(r => r.cancha === canchaNombre && r.fecha === fecha && r.id !== idExcluir)
+                .map(r => r.hora.substring(0, 5));
+        }
+
+        function toggleHoraEdicion(h) {
+            const idx = editHorasSeleccionadas.indexOf(h);
+            if (idx === -1) {
+                editHorasSeleccionadas.push(h);
+            } else {
+                editHorasSeleccionadas.splice(idx, 1);
+            }
+            renderHorariosEdicion();
+        }
+
+        function onCambioCanchaEdit() {
+            editHorasSeleccionadas = [];
+            renderHorariosEdicion();
+        }
+
+        function onCambioFechaEdit() {
+            editHorasSeleccionadas = [];
+            renderHorariosEdicion();
+        }
+
+        function actualizarResumenPrecioEdicion() {
+            const canchaNombre = document.getElementById('editCancha').value;
+            const precioHora = obtenerPrecioCancha(canchaNombre);
+            const nuevoTotal = precioHora * editHorasSeleccionadas.length;
+            const diferencia = nuevoTotal - editPrecioOriginalTotal;
+
+            let mensaje = 'Sin cambios en el valor de la reserva.';
+            let colorClass = 'text-muted';
+            let icono = 'bi-check-circle';
+
+            if (diferencia > 0) {
+                mensaje = `Al agregar horas, deberás realizar un pago adicional de $${diferencia.toLocaleString('es-CO')}.`;
+                colorClass = 'text-danger';
+                icono = 'bi-exclamation-triangle-fill';
+            } else if (diferencia < 0) {
+                mensaje = `Al quitar horas, se devolverá $${Math.abs(diferencia).toLocaleString('es-CO')} a tu cuenta registrada.`;
+                colorClass = 'text-success';
+                icono = 'bi-arrow-return-left';
+            }
+
+            document.getElementById('editContenedorPrecio').innerHTML = `
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="text-muted">Precio actual de la reserva:</span>
+                    <span class="fw-bold">$${editPrecioOriginalTotal.toLocaleString('es-CO')}</span>
+                </div>
+                <div class="d-flex justify-content-between small mb-2">
+                    <span class="text-muted">Nuevo precio (${editHorasSeleccionadas.length} h seleccionada${editHorasSeleccionadas.length === 1 ? '' : 's'}):</span>
+                    <span class="fw-bold">$${nuevoTotal.toLocaleString('es-CO')}</span>
+                </div>
+                <div class="${colorClass} small fw-semibold d-flex align-items-start gap-1">
+                    <i class="bi ${icono} mt-1"></i><span>${mensaje}</span>
+                </div>
+            `;
+        }
+
+        function abrirEdicion(id, nombre, correo, telefono, fecha, hora, cancha, duracion) {
+            editIdActual = parseInt(id);
+            document.getElementById('editId').value = id;
+            document.getElementById('editNombre').value = nombre;
+            document.getElementById('editCorreo').value = correo;
+            document.getElementById('editTelefono').value = telefono;
+
+            document.getElementById('editFecha').value =
+                (fecha && fecha !== "None") ? fecha.substring(0, 10) : new Date().toISOString().split('T')[0];
+
+            poblarSelectCanchasEdit();
+            document.getElementById('editCancha').value = cancha;
+
+            const match = (duracion || '').match(/\d+/);
+            const horasOriginalesCount = match ? parseInt(match[0]) : 1;
+            const precioHoraOriginal = obtenerPrecioCancha(cancha);
+            editPrecioOriginalTotal = precioHoraOriginal * horasOriginalesCount;
+
+            const horaBase = (hora && hora !== "None") ? hora.substring(0, 5) : HORAS[0];
+            editHorasSeleccionadas = [horaBase];
+            const idxBase = HORAS.indexOf(horaBase);
+            for (let k = 1; k < horasOriginalesCount; k++) {
+                if (idxBase + k < HORAS.length) {
+                    editHorasSeleccionadas.push(HORAS[idxBase + k]);
                 }
+            }
+
+            renderHorariosEdicion();
+            new bootstrap.Modal(document.getElementById('modalEditarReserva')).show();
+        }
+
+        function guardarEdicion() {
+            const id = document.getElementById('editId').value;
+            const fecha = document.getElementById('editFecha').value;
+            const cancha = document.getElementById('editCancha').value;
+
+            if (!id || !fecha) { alert('Completa los campos requeridos.'); return; }
+            if (editHorasSeleccionadas.length === 0) { alert('Selecciona al menos una hora.'); return; }
+
+            const horasOrdenadas = [...editHorasSeleccionadas].sort();
+            const precioHora = obtenerPrecioCancha(cancha);
+            const nuevoTotal = precioHora * horasOrdenadas.length;
+            const diferencia = nuevoTotal - editPrecioOriginalTotal;
+
+            let confirmMsg = '¿Guardar los cambios de esta reserva?';
+            if (diferencia > 0) {
+                confirmMsg = `El nuevo total es $${nuevoTotal.toLocaleString('es-CO')} (antes $${editPrecioOriginalTotal.toLocaleString('es-CO')}).\n\nSe requiere un pago adicional de $${diferencia.toLocaleString('es-CO')}. ¿Deseas continuar?`;
+            } else if (diferencia < 0) {
+                confirmMsg = `El nuevo total es $${nuevoTotal.toLocaleString('es-CO')} (antes $${editPrecioOriginalTotal.toLocaleString('es-CO')}).\n\nSe devolverá $${Math.abs(diferencia).toLocaleString('es-CO')} a tu cuenta registrada. ¿Deseas continuar?`;
+            }
+            if (!confirm(confirmMsg)) return;
+
+            fetch(`/reservas/editar/${id}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+                body: JSON.stringify({
+                    nombre: document.getElementById('editNombre').value,
+                    correo: document.getElementById('editCorreo').value,
+                    telefono: document.getElementById('editTelefono').value,
+                    fecha,
+                    hora: horasOrdenadas[0],
+                    horas: horasOrdenadas,
+                    cancha,
+                    duracion: calcularDuracionTexto(horasOrdenadas.length),
+                    diferencia_pago: diferencia,
+                })
             })
-            .catch(() => {
-                alert('Error de conexión. Intenta de nuevo.');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar';
-            });
-    }
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        if (diferencia > 0) {
+                            window.location.href = "{% url 'pago' %}";
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        alert(data.mensaje || 'Error al actualizar.');
+                    }
+                });
+        }
 
-    // ── EDITAR (sin cambios, solo asegurar que usa CANCHAS_DATA) ──
-    function poblarSelectCanchasEdit() {
-        const sel = document.getElementById('editCancha');
-        sel.innerHTML = CANCHAS_DATA.map(c =>
-            `<option value="${c.nombre}">${c.nombre} ($${c.precio.toLocaleString('es-CO')}/h)</option>`
-        ).join('');
-    }
+        // ── UTILS ──────────────────────────────────────────────────
+        function getCSRF() {
+            const c = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
+            return c ? decodeURIComponent(c.split('=')[1]) : '';
+        }
 
-    function obtenerPrecioCancha(nombre) {
-        const c = CANCHAS_DATA.find(x => x.nombre === nombre);
-        return c ? c.precio : 0;
-    }
+        function mostrarModal(titulo, cuerpo) {
+            document.getElementById('modalNotiTitulo').textContent = titulo;
+            document.getElementById('modalNotiCuerpo').textContent = cuerpo;
+            new bootstrap.Modal(document.getElementById('modalNotificacion')).show();
+        }
 
-    // ... resto de funciones de edición (onCambioCanchaEdit, renderHorariosEdicion, etc.)
-    // Deben permanecer igual, solo asegurar que usan CANCHAS_DATA.
-    // No los repito por brevedad, pero están en tu código original.
-    // Solo cambia la referencia de CANCHAS a CANCHAS_DATA en esas funciones.
+        // ── EVENTOS ────────────────────────────────────────────────
+        document.getElementById('fechaSeleccionada').addEventListener('change', () => {
+            horasSeleccionadas = [];
+            renderHorarios();
+            actualizarResumen();
+        });
+        document.getElementById('fechaSeleccionada').min = new Date().toISOString().split('T')[0];
 
-    // ── UTILS ──────────────────────────────────────────────────
-    function getCSRF() {
-        const c = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
-        return c ? decodeURIComponent(c.split('=')[1]) : '';
-    }
-
-    function mostrarModal(titulo, cuerpo) {
-        document.getElementById('modalNotiTitulo').textContent = titulo;
-        document.getElementById('modalNotiCuerpo').textContent = cuerpo;
-        new bootstrap.Modal(document.getElementById('modalNotificacion')).show();
-    }
-
-    // ── EVENTOS ────────────────────────────────────────────────
-    document.getElementById('fechaSeleccionada').addEventListener('change', () => {
-        horasSeleccionadas = [];
-        renderHorarios();
+        // ── INICIO ─────────────────────────────────────────────────
+        renderCanchas();
         actualizarResumen();
-    });
-    document.getElementById('fechaSeleccionada').min = new Date().toISOString().split('T')[0];
-
-    // ── INICIO ─────────────────────────────────────────────────
-    renderCanchas();
-</script>
-
+    </script>
 </body>
 
 </html>

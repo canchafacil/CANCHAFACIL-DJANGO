@@ -1,6 +1,8 @@
 from urllib import request
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Usuario
+from reservas.models import Reserva
+from contacto.models import Resena
 import random
 from django.core.mail import send_mail
 from django.conf import settings
@@ -213,6 +215,7 @@ def login_admin(request):
             request.session['usuario_id'] = usuario.id
             request.session['rol'] = usuario.rol
             request.session['nombre'] = usuario.first_name
+            request.session['correo'] = usuario.email
 
             if usuario.rol == 'SUPERADMIN':
                 return redirect('lista_usuarios')
@@ -231,6 +234,10 @@ def login_admin(request):
             )
 
     return render(request, 'usuarios/login_admin.html')
+
+def logout_view(request):
+    request.session.flush()
+    return redirect('inicio')
 
 def lista_usuarios(request):
 
@@ -296,3 +303,106 @@ def habilitar_usuario(request, id):
     usuario.save()
 
     return redirect('lista_usuarios')
+
+
+# ---------------------------------------------------------------------
+# ÍCONOS DISPONIBLES PARA AVATAR
+# ---------------------------------------------------------------------
+
+ICONOS_JUGADORES = [
+    {'nombre': 'Jugador 1', 'ruta': 'img/jugador1.jpg'},
+    {'nombre': 'Jugador 2', 'ruta': 'img/jugador2.jpg'},
+    {'nombre': 'Jugador 3', 'ruta': 'img/jugador3.jpg'},
+    {'nombre': 'Jugador 4', 'ruta': 'img/jugador4.jpg'},
+]
+
+ICONOS_BANDERAS = [
+
+    {'nombre': 'Colombia', 'ruta': 'img/colombia.jpg'},
+    {'nombre': 'Argentina', 'ruta': 'img/argentina.jpg'},
+    {'nombre': 'Brasil', 'ruta': 'img/brasil.jpg'},
+]
+
+
+# ---------------------------------------------------------------------
+# PERFIL del usuario logueado
+# ---------------------------------------------------------------------
+
+def perfil(request):
+    usuario_id = request.session.get('usuario_id')
+    if not usuario_id:
+        return redirect('login_admin')
+
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+
+    # Historial vinculado por correo (Reserva y Resena no tienen FK a Usuario)
+    reservas = Reserva.objects.filter(correo=usuario.email).order_by('-fecha', '-hora')
+    resenas = Resena.objects.filter(correo=usuario.email, archivada=False).order_by('-fecha')
+
+    return render(
+        request,
+        'usuarios/perfil.html',
+        {
+            'usuario': usuario,
+            'reservas': reservas,
+            'resenas': resenas,
+            'iconos_jugadores': ICONOS_JUGADORES,
+            'iconos_banderas': ICONOS_BANDERAS,
+        }
+    )
+
+
+def editar_perfil(request):
+    usuario_id = request.session.get('usuario_id')
+    if not usuario_id:
+        return redirect('login_admin')
+
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+
+    if request.method == 'POST':
+        nuevo_email = request.POST.get('email', usuario.email).strip()
+
+        # Si cambia el correo, hay que verificar que no choque con otro usuario
+        if nuevo_email != usuario.email and Usuario.objects.filter(email=nuevo_email).exists():
+            reservas = Reserva.objects.filter(correo=usuario.email).order_by('-fecha', '-hora')
+            resenas = Resena.objects.filter(correo=usuario.email, archivada=False).order_by('-fecha')
+            return render(
+                request,
+                'usuarios/perfil.html',
+                {
+                    'usuario': usuario,
+                    'reservas': reservas,
+                    'resenas': resenas,
+                    'iconos_jugadores': ICONOS_JUGADORES,
+                    'iconos_banderas': ICONOS_BANDERAS,
+                    'error': 'Ese correo ya está en uso por otra cuenta',
+                }
+            )
+
+        # first_name y last_name NO se tocan: no se leen del POST a propósito,
+        # así aunque alguien manipule el HTML no se pueden modificar.
+        usuario.phone = request.POST.get('phone', usuario.phone).strip()
+        usuario.email = nuevo_email
+
+        nueva_password = request.POST.get('password', '').strip()
+        if nueva_password:
+            usuario.password = nueva_password
+
+        # Foto de perfil: si sube una, tiene prioridad y borra el ícono elegido
+        if 'foto' in request.FILES:
+            usuario.foto = request.FILES['foto']
+            usuario.avatar_icono = None
+        else:
+            icono_elegido = request.POST.get('avatar_icono', '').strip()
+            if icono_elegido:
+                usuario.avatar_icono = icono_elegido
+                usuario.foto = None
+
+        usuario.save()
+
+        # Mantenemos la sesión sincronizada con los datos nuevos
+        request.session['nombre'] = usuario.first_name
+
+        return redirect('perfil')
+
+    return redirect('perfil')

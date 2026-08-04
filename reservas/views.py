@@ -6,32 +6,45 @@ from django.template.loader import render_to_string
 from django.conf import settings
 import json
 from .models import Reserva
-from gestion_canchas.models import Cancha  # <-- Import correcto
+from usuarios.models import Usuario
+from gestion_canchas.models import Cancha
 
 
 def pagina_reservas(request):
     return render(request, "reservas/reservas.html")
 
 
-def reservas(request, cancha_id=None):
-    """Vista del formulario de reservas con lista de canchas disponibles."""
+def reservas(request, cancha_id=None):  # <-- Acepta cancha_id para preselección
     todas = Reserva.objects.all().order_by('-id')
-    canchas = Cancha.objects.filter(disponible=True)  # Solo disponibles
+    # Solo canchas disponibles
+    canchas = Cancha.objects.filter(disponible=True)
+
+    usuario = None
+    usuario_id = request.session.get('usuario_id')
+    if usuario_id:
+        usuario = Usuario.objects.filter(id=usuario_id).first()
+
     return render(request, "reservas/formulario.html", {
         "reservas": todas,
-        "canchas": canchas,
-        "cancha_id": cancha_id,
+        "canchas": canchas,           # <-- Agregado para mostrar canchas
+        "usuario": usuario,
+        "cancha_id": cancha_id,       # <-- Para preselección
     })
 
 
 @require_POST
 def crear_reserva(request):
+    usuario_id = request.session.get('usuario_id')
+    if not usuario_id:
+        return JsonResponse({"status": "error", "mensaje": "Debes iniciar sesión", "redirect": "login"}, status=401)
+
     try:
+        usuario = Usuario.objects.get(id=usuario_id)
         data = json.loads(request.body.decode("utf-8"))
         reserva = Reserva.objects.create(
-            nombre   = data["nombre"],
-            correo   = data["correo"],
-            telefono = data["telefono"],
+            nombre   = f"{usuario.first_name} {usuario.last_name}".strip(),
+            correo   = usuario.email,
+            telefono = usuario.phone,
             fecha    = data["fecha"],
             hora     = data["hora"],
             cancha   = data["cancha"],
@@ -67,7 +80,7 @@ def editar_reserva(request, id):
 def eliminar_reserva(request, id):
     reserva = get_object_or_404(Reserva, id=id)
     reserva.delete()
-    return redirect("reservas")  # Ojo: esta URL debe existir en tus rutas
+    return redirect("reservas")
 
 
 def pago(request):
@@ -83,12 +96,18 @@ def pago(request):
 
 @require_POST
 def confirmar_pago(request):
+    """
+    Vista de PRUEBA: simula que el pago fue exitoso.
+    Cuando integres la pasarela real, esta lógica va en el webhook/callback
+    de confirmación de esa pasarela (reemplazando el simulado por la real).
+    """
     reserva_id = request.session.get("reserva_pendiente_id")
     if not reserva_id:
         return JsonResponse({"status": "error", "mensaje": "No hay reserva pendiente"}, status=400)
 
     reserva = get_object_or_404(Reserva, id=reserva_id)
 
+    # --- Datos simulados de pago (acá irían los reales de la pasarela) ---
     data = json.loads(request.body.decode("utf-8")) if request.body else {}
     reserva.metodo_pago = data.get("metodo_pago", "Simulado")
     reserva.precio_total = reserva.calcular_total()
@@ -98,6 +117,7 @@ def confirmar_pago(request):
 
     enviar_correo_confirmacion(reserva)
 
+    # Limpiamos la sesión: ya no queda pendiente
     del request.session["reserva_pendiente_id"]
 
     return JsonResponse({"status": "ok", "mensaje": "Pago confirmado y correo enviado"})
@@ -131,3 +151,45 @@ def enviar_correo_confirmacion(reserva):
         email.send(fail_silently=False)
     except Exception as e:
         print(f"Error enviando correo de confirmación: {e}")
+
+
+# ---------------------------------------------------------------------
+# Vistas para el PERFIL del usuario (editar/eliminar sus propias reservas)
+# ---------------------------------------------------------------------
+
+@require_POST
+def editar_reserva_perfil(request, id):
+    usuario_id = request.session.get('usuario_id')
+    if not usuario_id:
+        return redirect('login_admin')
+
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+    reserva = get_object_or_404(Reserva, id=id)
+
+    # Verificación de dueño: solo quien hizo la reserva puede editarla
+    if reserva.correo != usuario.email:
+        return redirect('perfil')
+
+    reserva.fecha    = request.POST.get('fecha', reserva.fecha)
+    reserva.hora     = request.POST.get('hora', reserva.hora)
+    reserva.cancha   = request.POST.get('cancha', reserva.cancha)
+    reserva.duracion = request.POST.get('duracion', reserva.duracion)
+    reserva.save()
+
+    return redirect('perfil')
+
+
+@require_POST
+def eliminar_reserva_perfil(request, id):
+    usuario_id = request.session.get('usuario_id')
+    if not usuario_id:
+        return redirect('login_admin')
+
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+    reserva = get_object_or_404(Reserva, id=id)
+
+    # Verificación de dueño: solo quien hizo la reserva puede eliminarla
+    if reserva.correo == usuario.email:
+        reserva.delete()
+
+    return redirect('perfil')

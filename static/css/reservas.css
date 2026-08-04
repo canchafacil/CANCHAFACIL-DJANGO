@@ -1,12 +1,14 @@
- body {
-            font-family: 'Nunito', sans-serif;
-            background-color: var(--gris-fondo);
-        }
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+body {
+    background-color: var(--gris-fondo);
+    font-family: 'Bebas Neue', sans-serif;
+}
 
 .title {
     font-size: 4rem;
     font-weight: 800;
-    color: #62ff00  ;
+    color: #62ff00;
 }
 
 
@@ -19,9 +21,10 @@
     font-weight: 600;
 }
 
-.btn-custom:hover{
-   background:#03045e; /* color al pasar el mouse */
-    color:white;
+.btn-custom:hover {
+    background: #03045e;
+    /* color al pasar el mouse */
+    color: white;
 }
 
 .stats-box {
@@ -43,7 +46,7 @@
 }
 
 .image-frame {
-    background:  #03045E    ;
+    background: #03045E;
     padding: 35px;
 }
 

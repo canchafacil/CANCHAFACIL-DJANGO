@@ -14,4 +14,7 @@ urlpatterns = [
     path('recuperar_contra/', views.recuperar_contra, name='recuperar_contra'),
     path('verificar_codigo/', views.verificar_codigo, name='verificar_codigo'),
     path('cambiar_contra/', views.cambiar_contra, name='cambiar_contra'),
+    path('perfil/', views.perfil, name='perfil'),
+    path('perfil/editar/', views.editar_perfil, name='editar_perfil'),
+    path('logout/', views.logout_view, name='logout'),
 ]
