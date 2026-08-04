@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&family=Roboto+Condensed:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
 
 :root {
     --primary-color: #62FF00;
@@ -12,6 +12,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    font-family: 'Bebas Neue', sans-serif;
 }
 
 body{
@@ -22,7 +23,6 @@ body{
     background-repeat: no-repeat;
     background-attachment: fixed;
     color: var(--text-white);
-    font-family: 'Nunito', sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
 }
@@ -75,7 +75,6 @@ body{
 }
 
 .logo-text {
-    font-family: 'Nunito', sans-serif;
     font-weight: 800;
     font-size: 2rem;
     color: var(--text-white) !important;
@@ -87,7 +86,6 @@ body{
     background-color: transparent;
     color: var(--text-white);
     border: 2px solid transparent;
-    font-family: 'Nunito', sans-serif;
     font-weight: 700;
     padding: 8px 24px;
     transition: all 0.3s ease-in-out;
