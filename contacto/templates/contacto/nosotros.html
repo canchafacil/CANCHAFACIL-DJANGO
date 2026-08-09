@@ -142,18 +142,12 @@
                 <div class="collapse mt-2" id="editar-resena-{{ r.id }}">
                     <form method="post" action="{% url 'editar_resena_perfil' r.id %}" class="text-start">
                         {% csrf_token %}
+                        <!-- La cancha ya no se edita: queda fija a la reserva original -->
+                        <p class="small text-muted mb-1">Cancha: <strong>{{ r.cancha }}</strong> (no editable)</p>
                         <select name="jugador" class="form-select form-select-sm mb-1">
                             <option value="Amateur" {% if r.jugador == "Amateur" %}selected{% endif %}>Amateur</option>
                             <option value="Semi-profesional" {% if r.jugador == "Semi-profesional" %}selected{% endif %}>Semi-profesional</option>
                             <option value="Profesional" {% if r.jugador == "Profesional" %}selected{% endif %}>Profesional</option>
-                        </select>
-                        <select name="cancha" class="form-select form-select-sm mb-1">
-                            {% for c in canchas_disponibles_resena %}
-                            <option value="{{ c }}" {% if r.cancha == c %}selected{% endif %}>{{ c }}</option>
-                            {% endfor %}
-                            {% if r.cancha not in canchas_disponibles_resena %}
-                            <option value="{{ r.cancha }}" selected>{{ r.cancha }}</option>
-                            {% endif %}
                         </select>
                         <input type="number" name="estrellas" class="form-control form-control-sm mb-1" min="1" max="5" value="{{ r.estrellas }}">
                         <textarea name="texto" class="form-control form-control-sm mb-1" rows="2">{{ r.texto }}</textarea>
@@ -171,7 +165,7 @@
             {% if request.session.usuario_id %}
             <p class="rf-form-sub">Publicando como <strong>{{ request.session.nombre }}</strong></p>
 
-            {% if canchas_disponibles_resena %}
+            {% if reservas_reseñables %}
             <form method="post">
             {% csrf_token %}
             <div class="rf-form-grid">
@@ -185,14 +179,14 @@
                     </select>
                 </div>
                 <div class="rf-field">
-                    <label class="rf-label" for="f-cancha">Cancha reservada</label>
-                    <select class="rf-select" id="f-cancha" name="cancha">
+                    <label class="rf-label" for="f-reserva">Reserva jugada</label>
+                    <select class="rf-select" id="f-reserva" name="reserva_id">
                         <option value="">Selecciona...</option>
-                        {% for c in canchas_disponibles_resena %}
-                        <option value="{{ c }}">{{ c }}</option>
+                        {% for res in reservas_reseñables %}
+                        <option value="{{ res.id }}">{{ res.cancha }} — {{ res.fecha|date:"d/m/Y" }}</option>
                         {% endfor %}
                     </select>
-                    <small class="text-muted d-block mt-1">Solo podés reseñar canchas donde tengas una reserva confirmada.</small>
+                    <small class="text-muted d-block mt-1">Solo podés reseñar reservas que ya jugaste y que no hayas reseñado todavía.</small>
                 </div>
                 <div class="rf-field">
                     <label class="rf-label">Calificación</label>
@@ -221,7 +215,7 @@
             </div>
             </form>
             {% else %}
-            <p class="rf-form-sub">Todavía no tenés reservas confirmadas. Necesitás haber jugado en una cancha para poder reseñarla.</p>
+            <p class="rf-form-sub">Todavía no tenés reservas jugadas pendientes de reseñar. Necesitás haber completado una reserva (y no haberla reseñado ya) para poder opinar.</p>
             <a href="{% url 'reservas' %}" class="rf-submit d-inline-block text-decoration-none">
                 Hacer una reserva →
             </a>
@@ -300,14 +294,14 @@ function setStar(v) {
 
 function enviarResena() {
     const jugadorEl = document.getElementById("f-jugador");
-    const canchaEl  = document.getElementById("f-cancha");
+    const reservaEl = document.getElementById("f-reserva");
     const textoEl   = document.getElementById("f-texto");
 
     const jugador = jugadorEl.value;
-    const cancha  = canchaEl.value;
+    const reservaId = reservaEl.value;
     const texto   = textoEl.value.trim();
 
-    if (!jugador || !cancha || !texto || estrellaActual === 0) {
+    if (!jugador || !reservaId || !texto || estrellaActual === 0) {
         alert("Completa todos los campos.");
         return;
     }

@@ -10,7 +10,9 @@ class Cancha(models.Model):
     nombre = models.CharField(max_length=100)
     tipo = models.CharField(max_length=20, choices=TIPOS, default='Fútbol 5')
     descripcion = models.TextField(blank=True)
-    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    # Pesos colombianos: no se manejan centavos, por eso es un entero positivo
+    # en vez de DecimalField. Ej: 120000 se muestra como "$120.000".
+    precio = models.PositiveIntegerField(help_text="Valor por hora en pesos colombianos (COP), sin decimales")
     imagen = models.ImageField(upload_to='canchas/', blank=True, null=True)
     disponible = models.BooleanField(default=True)
     creada = models.DateTimeField(auto_now_add=True)

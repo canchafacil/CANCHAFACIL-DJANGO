@@ -18,7 +18,7 @@ def cancha_admin(request):
     canchas = Cancha.objects.all().order_by('-creada')
     return render(request,
                   'gestion_canchas/cancha_admin.html',
-                  {'canchas': canchas})
+                  {'canchas': canchas, 'form_agregar': CanchaForm()})
 
 def agregar_cancha(request):
     """Vista para agregar una nueva cancha."""
@@ -27,6 +27,18 @@ def agregar_cancha(request):
         if form.is_valid():
             form.save()
             return redirect('gestion_canchas:cancha_admin')
+        else:
+            # Antes: se hacía redirect silencioso y el error se perdía.
+            # Ahora: volvemos a renderizar el panel mostrando los errores
+            # del formulario y reabriendo el modal automáticamente.
+            canchas = Cancha.objects.all().order_by('-creada')
+            return render(request,
+                          'gestion_canchas/cancha_admin.html',
+                          {
+                              'canchas': canchas,
+                              'form_agregar': form,
+                              'abrir_modal_agregar': True,
+                          })
     return redirect('gestion_canchas:cancha_admin')
 
 def editar_cancha(request, id):
@@ -38,8 +50,11 @@ def editar_cancha(request, id):
         if form.is_valid():
             form.save()
             return redirect('gestion_canchas:cancha_admin')
-    
-    form = CanchaForm(instance=cancha)
+        # Si el formulario no es válido, seguimos abajo y volvemos a
+        # renderizar editar.html con los errores (antes se perdían).
+    else:
+        form = CanchaForm(instance=cancha)
+
     return render(request,
                   'gestion_canchas/editar.html',
                   {'form': form, 'cancha': cancha})

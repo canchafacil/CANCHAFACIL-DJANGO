@@ -4,10 +4,9 @@ from . import views
 app_name = 'gestion_canchas'
 
 urlpatterns = [
-    # URLs públicas
     path('', views.canchas, name='canchas'),
-    
-    # URLs de administración (CRUD)
+
+    # URLs de administración
     path('admin/', views.cancha_admin, name='cancha_admin'),
     path('admin/agregar/', views.agregar_cancha, name='agregar_cancha'),
     path('admin/editar/<int:id>/', views.editar_cancha, name='editar_cancha'),

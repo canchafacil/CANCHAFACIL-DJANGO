@@ -16,6 +16,10 @@
             outline: 3px solid #62ff00;
             outline-offset: 2px;
         }
+        .badge-estado {
+            font-size: 0.75rem;
+            padding: 0.35em 0.65em;
+        }
     </style>
 </head>
 
@@ -160,6 +164,18 @@
 
         <!-- HISTORIAL DE RESERVAS -->
         <h4 class="mb-3">Mis reservas</h4>
+
+        {% if tiene_reserva_activa %}
+        <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <span><i class="bi bi-exclamation-triangle-fill me-2"></i>Tienes una reserva activa (pendiente o confirmada). No puedes crear otra hasta que se complete o se cancele.</span>
+        </div>
+        {% else %}
+        <div class="alert alert-success d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <span><i class="bi bi-check-circle-fill me-2"></i>No tienes reservas activas. Ya puedes crear una nueva.</span>
+            <a href="{% url 'reservas' %}" class="btn btn-sm text-white" style="background-color: #03045e;">Nueva reserva</a>
+        </div>
+        {% endif %}
+
         {% if reservas %}
             {% for reserva in reservas %}
             <div class="card mb-3 shadow-sm">
@@ -168,21 +184,56 @@
                         <div>
                             <strong>{{ reserva.cancha }}</strong> — {{ reserva.fecha }} a las {{ reserva.hora }}
                             <br>
-                            <small class="text-muted">Duración: {{ reserva.duracion }} · Estado: {{ reserva.estado }}</small>
+                            <small class="text-muted">
+                                Duración: {{ reserva.duracion }} ·
+                                {% if reserva.estado == 'pendiente' %}
+                                    <span class="badge bg-warning text-dark badge-estado">Pendiente</span>
+                                {% elif reserva.estado == 'confirmada' %}
+                                    <span class="badge bg-info text-dark badge-estado">Confirmada</span>
+                                {% elif reserva.estado == 'completada' %}
+                                    <span class="badge bg-success badge-estado">Completada</span>
+                                {% elif reserva.estado == 'cancelada' %}
+                                    <span class="badge bg-secondary badge-estado">Cancelada</span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark badge-estado">{{ reserva.estado }}</span>
+                                {% endif %}
+                            </small>
                         </div>
-                        <div>
-                            <button class="btn btn-sm btn-outline-secondary" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#editar-reserva-{{ reserva.id }}">
-                                Editar
-                            </button>
-                            <form method="post" action="{% url 'eliminar_reserva_perfil' reserva.id %}" class="d-inline"
-                                  onsubmit="return confirm('¿Eliminar esta reserva?');">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
-                            </form>
+                        <div class="d-flex flex-column align-items-end gap-2">
+                            <div>
+                                {% if reserva.puede_editarse %}
+                                <button class="btn btn-sm btn-outline-secondary" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#editar-reserva-{{ reserva.id }}">
+                                    Editar
+                                </button>
+                                <form method="post" action="{% url 'cancelar_reserva_perfil' reserva.id %}" class="d-inline"
+                                    onsubmit="return confirm('¿Seguro que quieres cancelar esta reserva? Esta acción no se puede deshacer.');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Cancelar reserva</button>
+                                </form>
+                                {% else %}
+                                <span class="text-muted small" title="Esta reserva ya no se puede editar ni cancelar">
+                                    <i class="bi bi-lock-fill me-1"></i>No editable
+                                </span>
+                                {% endif %}
+                                <!-- El botón "Eliminar" se quitó a propósito: ninguna reserva se puede borrar -->
+                            </div>
+
+                            {% if reserva.estado == 'completada' %}
+                                <a href="{% url 'nosotros' %}?reserva_id={{ reserva.id }}" class="btn btn-sm text-white" style="background-color: #62ff00; color:#03045e !important;">
+                                    <i class="bi bi-star-fill me-1"></i>Dejar reseña
+                                </a>
+                            {% elif reserva.estado == 'cancelada' %}
+                                <span class="text-muted small"><i class="bi bi-x-circle me-1"></i>Reserva cancelada, no se puede reseñar</span>
+                            {% else %}
+                                <span class="text-muted small" title="Podrás reseñar cuando la reserva se marque como completada">
+                                    <i class="bi bi-lock-fill me-1"></i>Disponible al finalizar
+                                </span>
+                            {% endif %}
                         </div>
                     </div>
 
+                    {% if reserva.puede_editarse %}
                     <div class="collapse mt-3" id="editar-reserva-{{ reserva.id }}">
                         <form method="post" action="{% url 'editar_reserva_perfil' reserva.id %}">
                             {% csrf_token %}
@@ -207,6 +258,7 @@
                             <button type="submit" class="btn btn-sm mt-2 text-white" style="background-color: #03045e;">Guardar</button>
                         </form>
                     </div>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}

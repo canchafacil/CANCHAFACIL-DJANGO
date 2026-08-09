@@ -1,4 +1,5 @@
 from django.db import models
+from reservas.models import Reserva
 
 
 class Resena(models.Model):
@@ -21,6 +22,16 @@ class Resena(models.Model):
     texto     = models.TextField()
     archivada = models.BooleanField(default=False)
     fecha     = models.DateTimeField(auto_now_add=True)
+
+    # Nuevo: vínculo directo a la reserva que originó la reseña.
+    # null=True porque puede haber reseñas legacy sin reserva asociada.
+    reserva = models.OneToOneField(
+        Reserva,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='resena',
+    )
 
     def __str__(self):
         return f'{self.nombre} - {self.cancha} ({self.estrellas}★)'

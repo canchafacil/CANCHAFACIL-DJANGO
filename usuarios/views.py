@@ -191,47 +191,61 @@ def cambiar_contra(request):
         request,
         'usuarios/cambiar_contra.html'
     )
-
 def login_admin(request):
 
     if request.method == 'POST':
 
-        email = request.POST.get('email')
-        password = request.POST.get('password')
+        email = request.POST.get('email', '').strip().lower()
+        password = request.POST.get('password', '')
 
-        try:
-            usuario = Usuario.objects.get(
-                email=email,
-                password=password
-            )
+        # Buscar el usuario sin importar mayúsculas/minúsculas en el correo
+        usuario = Usuario.objects.filter(email__iexact=email).first()
 
-            if not usuario.activo:
-                return render(
-                    request,
-                    'usuarios/login_admin.html',
-                    {'error': 'Tu cuenta está deshabilitada. Contacta con el Superadministrador.'}
-                )
-
-            request.session['usuario_id'] = usuario.id
-            request.session['rol'] = usuario.rol
-            request.session['nombre'] = usuario.first_name
-            request.session['correo'] = usuario.email
-
-            if usuario.rol == 'SUPERADMIN':
-                return redirect('lista_usuarios')
-
-            elif usuario.rol == 'ADMIN':
-                return redirect('panel_principal')
-
-            else:
-                return redirect('inicio')
-
-        except Usuario.DoesNotExist:
+        # Si no existe el correo
+        if usuario is None:
             return render(
                 request,
                 'usuarios/login_admin.html',
-                {'error': 'Correo o contraseña incorrectos'}
+                {
+                    'error': 'El correo no está registrado.'
+                }
             )
+
+        # Comprobar contraseña
+        if usuario.password != password:
+            return render(
+                request,
+                'usuarios/login_admin.html',
+                {
+                    'error': 'La contraseña es incorrecta.'
+                }
+            )
+
+        # Comprobar si está activo
+        if not usuario.activo:
+            return render(
+                request,
+                'usuarios/login_admin.html',
+                {
+                    'error': 'Tu cuenta está deshabilitada. Contacta con el Superadministrador.'
+                }
+            )
+
+        # Crear sesión
+        request.session['usuario_id'] = usuario.id
+        request.session['rol'] = usuario.rol
+        request.session['nombre'] = usuario.first_name
+        request.session['correo'] = usuario.email
+
+        # Redirección según rol
+        if usuario.rol == 'SUPERADMIN':
+            return redirect('lista_usuarios')
+
+        elif usuario.rol == 'ADMIN':
+            return redirect('panel_principal')
+
+        else:
+            return redirect('inicio')
 
     return render(request, 'usuarios/login_admin.html')
 
@@ -337,7 +351,16 @@ def perfil(request):
 
     # Historial vinculado por correo (Reserva y Resena no tienen FK a Usuario)
     reservas = Reserva.objects.filter(correo=usuario.email).order_by('-fecha', '-hora')
+
+    # Sincroniza estados vencidos (confirmada -> completada) antes de mostrar
+    for r in reservas:
+        r.sincronizar_estado()
+
     resenas = Resena.objects.filter(correo=usuario.email, archivada=False).order_by('-fecha')
+
+    tiene_reserva_activa = reservas.filter(
+        estado__in=[Reserva.ESTADO_PENDIENTE, Reserva.ESTADO_CONFIRMADA]
+    ).exists()
 
     return render(
         request,
@@ -346,6 +369,7 @@ def perfil(request):
             'usuario': usuario,
             'reservas': reservas,
             'resenas': resenas,
+            'tiene_reserva_activa': tiene_reserva_activa,
             'iconos_jugadores': ICONOS_JUGADORES,
             'iconos_banderas': ICONOS_BANDERAS,
         }

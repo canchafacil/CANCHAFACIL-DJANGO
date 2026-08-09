@@ -1,60 +1,62 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.utils import timezone
 import json
 from .models import Resena
 from usuarios.models import Usuario
 from reservas.models import Reserva
 
 
-def canchas_reservadas_por(usuario):
-    """Devuelve la lista de nombres de cancha únicos donde el usuario
-    tiene al menos una reserva Confirmada Y cuya fecha ya pasó
-    (se puede reseñar desde el día siguiente a la reserva, no antes)."""
-    hoy = timezone.localdate()
-    canchas = (
-        Reserva.objects
-        .filter(correo=usuario.email, estado='Confirmada', fecha__lt=hoy)
-        .values_list('cancha', flat=True)
-        .distinct()
+def reservas_reseñables_por(usuario):
+    """
+    Devuelve las reservas del usuario que:
+    - Ya están 'completada' (fecha ya pasó, sincronizado automáticamente).
+    - Todavía NO tienen una reseña asociada (gracias al OneToOneField).
+    Cada reserva completada solo se puede reseñar UNA vez.
+    """
+    reservas = Reserva.objects.filter(
+        correo=usuario.email,
+        estado=Reserva.ESTADO_COMPLETADA,
     )
-    return list(canchas)
+    # Sincroniza por si alguna todavía no se marcó como completada
+    for r in reservas:
+        r.sincronizar_estado()
+
+    # Solo las que no tienen reseña todavía (related_name='resena' del OneToOneField)
+    return [r for r in reservas if not hasattr(r, 'resena') or r.resena is None]
 
 
 def nosotros(request):
     if request.method == 'POST':
         usuario_id = request.session.get('usuario_id')
 
-        # Se exige sesión iniciada para publicar reseñas (no solo en el HTML,
-        # también acá, por si alguien manda el POST directo sin pasar por el form)
         if not usuario_id:
             return redirect('login')
 
         usuario = get_object_or_404(Usuario, id=usuario_id)
 
-        jugador   = request.POST.get('jugador', '').strip()
-        cancha    = request.POST.get('cancha', '').strip()
-        estrellas = int(request.POST.get('estrellas', 0))
-        texto     = request.POST.get('texto', '').strip()
+        reserva_id = request.POST.get('reserva_id', '').strip()
+        jugador    = request.POST.get('jugador', '').strip()
+        cancha     = request.POST.get('cancha', '').strip()
+        estrellas  = int(request.POST.get('estrellas', 0))
+        texto      = request.POST.get('texto', '').strip()
 
-        # Validación real: la cancha tiene que estar entre las que el usuario
-        # efectivamente reservó, confirmó y cuya fecha ya pasó (mínimo un día).
-        # Esto bloquea también intentos de mandar el POST manualmente con una
-        # cancha inventada o reseñar antes de haber jugado.
-        canchas_validas = canchas_reservadas_por(usuario)
-        if cancha not in canchas_validas:
+        # Validación real: la reserva tiene que ser del usuario, estar
+        # completada, y no tener ya una reseña asociada.
+        reservas_validas = reservas_reseñables_por(usuario)
+        reserva = next((r for r in reservas_validas if str(r.id) == reserva_id), None)
+
+        if reserva is None:
             resenas = Resena.objects.filter(archivada=False).order_by('-fecha')
             total = resenas.count()
             promedio = round(sum(r.estrellas for r in resenas) / total, 1) if total else '—'
             return render(request, 'contacto/nosotros.html', {
                 'resenas': resenas,
                 'promedio': promedio,
-                'canchas_disponibles_resena': canchas_validas,
-                'error': 'Solo podés reseñar canchas donde tengas una reserva confirmada y ya jugada (a partir del día siguiente a la reserva).',
+                'reservas_reseñables': reservas_validas,
+                'error': 'Solo podés reseñar una reserva propia que ya esté completada y que no hayas reseñado todavía.',
             })
 
-        # El nombre y correo se toman de la cuenta logueada, nunca del formulario
         nombre = f"{usuario.first_name} {usuario.last_name}".strip()
         correo = usuario.email
 
@@ -63,9 +65,10 @@ def nosotros(request):
                 nombre=nombre,
                 correo=correo,
                 jugador=jugador,
-                cancha=cancha,
+                cancha=reserva.cancha,  # se toma de la reserva real, no del form
                 estrellas=estrellas,
                 texto=texto,
+                reserva=reserva,
             )
         return redirect('nosotros')
 
@@ -73,22 +76,21 @@ def nosotros(request):
     total = resenas.count()
     promedio = round(sum(r.estrellas for r in resenas) / total, 1) if total else '—'
 
-    # Canchas que el usuario logueado puede reseñar (lista vacía si no hay sesión)
-    canchas_disponibles_resena = []
+    reservas_reseñables = []
     usuario_id = request.session.get('usuario_id')
     if usuario_id:
         usuario = Usuario.objects.filter(id=usuario_id).first()
         if usuario:
-            canchas_disponibles_resena = canchas_reservadas_por(usuario)
+            reservas_reseñables = reservas_reseñables_por(usuario)
 
     return render(request, 'contacto/nosotros.html', {
         'resenas': resenas,
         'promedio': promedio,
-        'canchas_disponibles_resena': canchas_disponibles_resena,
+        'reservas_reseñables': reservas_reseñables,
     })
 
 
-def contacto(request):  # ✅ vista propia para contacto
+def contacto(request):
     return render(request, 'contacto/contacto.html')
 
 
@@ -122,9 +124,9 @@ def resena_editar(request, id):
         data = json.loads(request.body)
         resena.nombre    = data.get('nombre', resena.nombre).strip()
         resena.jugador   = data.get('jugador', resena.jugador)
-        resena.cancha    = data.get('cancha', resena.cancha)
         resena.estrellas = int(data.get('estrellas', resena.estrellas))
         resena.texto     = data.get('texto', resena.texto).strip()
+        # 'cancha' ya NO se deja editar manualmente: viene fija de la reserva
         resena.save()
         return JsonResponse({
             'ok': True,
@@ -151,20 +153,12 @@ def editar_resena_perfil(request, id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     resena = get_object_or_404(Resena, id=id)
 
-    # Verificación de dueño: solo el autor puede editar su reseña
     if resena.correo != usuario.email:
         return redirect('perfil')
 
-    nueva_cancha = request.POST.get('cancha', resena.cancha)
-
-    # Misma validación: solo puede reasignar la reseña a una cancha
-    # que efectivamente reservó, confirmó y cuya fecha ya pasó
-    canchas_validas = canchas_reservadas_por(usuario)
-    if nueva_cancha not in canchas_validas:
-        return redirect('perfil')
-
+    # La cancha ya no se puede cambiar desde acá: queda fija a la reserva
+    # original (evita que alguien "mueva" su reseña a otra cancha inventada).
     resena.jugador   = request.POST.get('jugador', resena.jugador)
-    resena.cancha    = nueva_cancha
     resena.estrellas = int(request.POST.get('estrellas', resena.estrellas))
     resena.texto     = request.POST.get('texto', resena.texto).strip()
     resena.save()
@@ -181,8 +175,11 @@ def eliminar_resena_perfil(request, id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     resena = get_object_or_404(Resena, id=id)
 
-    # Verificación de dueño: solo el autor puede eliminar su reseña
     if resena.correo == usuario.email:
         resena.delete()
+        # Nota: al borrar la Resena, el OneToOneField libera la reserva
+        # automáticamente (queda con resena=None), así que el usuario
+        # podría volver a reseñarla si quiere. Si NO quieres permitir eso,
+        # dime y lo bloqueamos por separado.
 
     return redirect('perfil')
