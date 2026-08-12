@@ -152,3 +152,133 @@ body.adm-body {
   color: #ff8080;
   border-radius: 10px;
 }
+
+/* MODAL */
+
+.modal-overlay {
+    display: none;
+
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background: rgba(0, 0, 0, 0.65);
+
+    justify-content: center;
+    align-items: center;
+
+    z-index: 9999;
+}
+
+
+.modal-confirmacion {
+    width: 500px;
+    max-width: 90%;
+
+    background: white;
+
+    border-radius: 18px;
+
+    padding: 35px;
+
+    text-align: center;
+
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+
+    animation: aparecerModal 0.2s ease;
+}
+
+
+.modal-icono {
+    font-size: 50px;
+
+    margin-bottom: 15px;
+}
+
+
+.modal-confirmacion h2 {
+    color: #222;
+
+    font-weight: 800;
+
+    margin-bottom: 15px;
+}
+
+
+.modal-confirmacion p {
+    color: #666;
+
+    margin-bottom: 25px;
+}
+
+
+.modal-botones {
+    display: flex;
+
+    justify-content: center;
+
+    gap: 10px;
+}
+
+
+.btn-cancelar,
+.btn-confirmar {
+    border-radius: 25px;
+
+    padding: 10px 25px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    text-decoration: none;
+}
+
+
+.btn-cancelar {
+    background: white;
+
+    border: 1px solid #777;
+
+    color: #555;
+}
+
+
+.btn-confirmar {
+    background: #d32f2f;
+
+    border: 1px solid #d32f2f;
+
+    color: white;
+}
+
+
+.btn-cancelar:hover {
+    background: #eee;
+}
+
+
+.btn-confirmar:hover {
+    background: #b71c1c;
+
+    color: white;
+}
+
+
+@keyframes aparecerModal {
+
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+}
