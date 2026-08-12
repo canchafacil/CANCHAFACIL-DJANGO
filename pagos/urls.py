@@ -1,11 +1,9 @@
-# reservas/urls.py
+# pagos/urls.py
 from django.urls import path
 from . import views
 
 app_name = 'pagos'
 
 urlpatterns = [
-    # ... tus otras rutas existentes
-    path('pago/', views.vista_pago, name='pago'),
     path('factura/<int:reserva_id>/', views.descargar_factura, name='descargar_factura'),
 ]

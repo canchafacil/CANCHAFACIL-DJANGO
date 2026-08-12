@@ -21,13 +21,29 @@ class Reserva(models.Model):
     correo   = models.EmailField()
     telefono = models.CharField(max_length=20, blank=True)
     fecha    = models.DateField()
-    hora     = models.TimeField()
+    hora     = models.TimeField()  # primera hora de la reserva (compatibilidad / orden)
+
+    # NUEVO: todas las horas reservadas, ej: ["18:00", "19:00", "20:00"]
+    # Se guarda como JSON porque MariaDB no tiene ArrayField (eso es de Postgres).
+    horas = models.JSONField(default=list, blank=True)
+
     cancha   = models.CharField(max_length=100)
-    duracion = models.CharField(max_length=20)  # ej. "60 min", "2 horas"
+    duracion = models.CharField(max_length=20)  # ej. "60 min", "2 horas", "3 Horas"
     estado   = models.CharField(max_length=20, choices=ESTADO_CHOICES, default=ESTADO_PENDIENTE)
     metodo_pago = models.CharField(max_length=50, blank=True, null=True)
     precio_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     numero_factura = models.CharField(max_length=20, blank=True, null=True)
+
+    # ── ABONO / PAGO PARCIAL ──────────────────────────────────────
+    TIPO_PAGO_COMPLETO = 'completo'
+    TIPO_PAGO_ABONO = 'abono'
+    TIPO_PAGO_CHOICES = [
+        (TIPO_PAGO_COMPLETO, 'Pago completo'),
+        (TIPO_PAGO_ABONO, 'Abono (50%)'),
+    ]
+    tipo_pago = models.CharField(max_length=20, choices=TIPO_PAGO_CHOICES, blank=True, null=True)
+    monto_pagado = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    saldo_pendiente = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def __str__(self):
         return f"{self.nombre} - {self.cancha} - {self.fecha}"
@@ -55,22 +71,49 @@ class Reserva(models.Model):
         return precios.get(self.cancha, 50000)
 
     def calcular_total(self):
+        """
+        Si hay 'horas' explícitas, el total es precio_hora * cantidad_de_horas
+        (más preciso que calcular con duracion_minutos, sobre todo si algún
+        día las horas dejan de ser bloques de 60 min exactos).
+        """
+        precio_hora = Decimal(self.precio_por_hora())
+        if self.horas:
+            return precio_hora * Decimal(len(self.horas))
         minutos = self.duracion_minutos()
         horas = Decimal(minutos) / 60
-        precio_hora = Decimal(self.precio_por_hora())
         return precio_hora * horas
+
+    def calcular_abono_50(self):
+        """Valor del 50% del total, redondeado a peso entero."""
+        return (self.calcular_total() / 2).quantize(Decimal('1'))
+
+    @property
+    def esta_totalmente_pagada(self):
+        return self.saldo_pendiente <= 0 and self.estado in (self.ESTADO_CONFIRMADA, self.ESTADO_COMPLETADA)
+
+    def get_horas(self):
+        """
+        Devuelve siempre una lista de horas 'HH:MM', incluso para reservas
+        viejas creadas antes de que existiera el campo 'horas'.
+        """
+        if self.horas:
+            return self.horas
+        return [self.hora.strftime('%H:%M')]
 
     # ------------------------------------------------------------------
     # Lógica de estados
     # ------------------------------------------------------------------
     def fecha_hora_fin(self):
-        """Devuelve el datetime en que termina la reserva (fecha+hora+duración)."""
-        inicio = datetime.combine(self.fecha, self.hora)
-        inicio = timezone.make_aware(inicio) if timezone.is_naive(inicio) else inicio
-        return inicio + timedelta(minutes=self.duracion_minutos())
+        """Devuelve el datetime en que termina la reserva (fecha + última hora + 1h)."""
+        horas_lista = self.get_horas()
+        ultima_hora_str = sorted(horas_lista)[-1]
+        h, m = map(int, ultima_hora_str.split(':'))
+        inicio_ultima = datetime.combine(self.fecha, datetime.min.time().replace(hour=h, minute=m))
+        inicio_ultima = timezone.make_aware(inicio_ultima) if timezone.is_naive(inicio_ultima) else inicio_ultima
+        return inicio_ultima + timedelta(hours=1)
 
     def ya_paso(self):
-        """True si la fecha/hora de la reserva (+ duración) ya pasó."""
+        """True si la fecha/hora de la reserva (última hora reservada) ya pasó."""
         return timezone.now() >= self.fecha_hora_fin()
 
     def sincronizar_estado(self):

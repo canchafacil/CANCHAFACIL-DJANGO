@@ -367,22 +367,17 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+<script>
         // ── SESIÓN ─────────────────────────────────────────────────
         const LOGUEADO = {% if request.session.usuario_id %}true{% else %}false{% endif %};
 
         // ── RESTRICCIÓN: una reserva activa por cliente ─────────────
-        // IMPORTANTE: esta variable debe venir del contexto de la vista Django,
-        // calculada en el backend (ej: Reserva.objects.filter(usuario=..., estado__in=['pendiente','confirmada']).exists())
-        // La validación real y definitiva SIEMPRE debe hacerse también en el servidor,
-        // porque cualquiera puede editar este JS desde el navegador.
         const TIENE_RESERVA_ACTIVA = {% if tiene_reserva_activa %}true{% else %}false{% endif %};
 
         // ── LÍMITE DE HORAS POR RESERVA ──────────────────────────────
         const MAX_HORAS_POR_RESERVA = 12;
 
         // ── DATOS DESDE DJANGO ──────────────────────────────────────
-        // CANCHAS_DATA se llena desde la vista con las canchas disponibles
         const CANCHAS_DATA = [
             {% for c in canchas %}
             {
@@ -397,10 +392,17 @@
         // ID de la cancha a preseleccionar (si viene en la URL)
         const PRESELECCIONAR_ID = {{ cancha_id|default:"null" }};
 
-        // Reservas existentes desde Django
+        // ── RESERVAS EXISTENTES DESDE DJANGO ─────────────────────────
+        // CORREGIDO: antes solo se mandaba UNA hora por reserva (r.hora).
+        // Ahora se recorre r.horas (todas las horas de esa reserva) para
+        // que CADA hora quede marcada como ocupada en el calendario, no
+        // solo la primera. r.get_horas se usa desde el modelo como
+        // fallback para reservas viejas que no tengan el campo 'horas'.
         const RESERVAS_BD = [
             {% for r in reservas %}
-            { id: {{ r.id }}, cancha: "{{ r.cancha|escapejs }}", fecha: "{{ r.fecha|date:'Y-m-d' }}", hora: "{{ r.hora|time:'H:i' }}" },
+                {% for h in r.get_horas %}
+                { id: {{ r.id }}, cancha: "{{ r.cancha|escapejs }}", fecha: "{{ r.fecha|date:'Y-m-d' }}", hora: "{{ h }}" },
+                {% endfor %}
             {% endfor %}
         ];
 
@@ -437,7 +439,6 @@
                 </div>
             `).join('');
 
-            // Preseleccionar si hay ID
             if (PRESELECCIONAR_ID) {
                 const idx = CANCHAS_DATA.findIndex(c => c.id === PRESELECCIONAR_ID);
                 if (idx !== -1) {
@@ -493,7 +494,6 @@
                     onclick="seleccionarHora('${h}')">${h}</button>`;
             }).join('');
 
-            // Si todas las horas del día están ocupadas para esta cancha, avisamos en rojo
             if (ocupadas.length >= HORAS.length) {
                 avisoTodoOcupado.classList.remove('d-none');
             }
@@ -605,7 +605,6 @@
                     if (status === 200 && data.status === 'ok') {
                         window.location.href = "{% url 'pago' %}";
                     } else if (status === 409) {
-                        // Conflicto: ya tiene reserva activa o la hora se ocupó justo antes de confirmar
                         mostrarModal('No se pudo reservar', data.mensaje || 'Esa fecha/hora ya está ocupada o ya tienes una reserva activa.');
                         btn.disabled = false;
                         btn.innerHTML = '<i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar';
@@ -727,7 +726,11 @@
             `;
         }
 
-        function abrirEdicion(id, nombre, correo, telefono, fecha, hora, cancha, duracion) {
+        // CORREGIDO: ahora recibe 'horasReserva' (arreglo real desde Django,
+        // vía r.get_horas) en vez de intentar RECONSTRUIR las horas sumando
+        // a partir de la duración/hora inicial (eso fallaba si las horas
+        // seleccionadas no eran consecutivas, ej. 07:00 y 15:00).
+        function abrirEdicion(id, nombre, correo, telefono, fecha, horasReserva, cancha, duracion) {
             editIdActual = parseInt(id);
             document.getElementById('editId').value = id;
             document.getElementById('editNombre').value = nombre;
@@ -740,19 +743,10 @@
             poblarSelectCanchasEdit();
             document.getElementById('editCancha').value = cancha;
 
-            const match = (duracion || '').match(/\d+/);
-            const horasOriginalesCount = match ? parseInt(match[0]) : 1;
+            // horasReserva llega como array JSON real, ej: ["18:00","19:00"]
+            editHorasSeleccionadas = Array.isArray(horasReserva) ? [...horasReserva] : [horasReserva];
             const precioHoraOriginal = obtenerPrecioCancha(cancha);
-            editPrecioOriginalTotal = precioHoraOriginal * horasOriginalesCount;
-
-            const horaBase = (hora && hora !== "None") ? hora.substring(0, 5) : HORAS[0];
-            editHorasSeleccionadas = [horaBase];
-            const idxBase = HORAS.indexOf(horaBase);
-            for (let k = 1; k < horasOriginalesCount; k++) {
-                if (idxBase + k < HORAS.length) {
-                    editHorasSeleccionadas.push(HORAS[idxBase + k]);
-                }
-            }
+            editPrecioOriginalTotal = precioHoraOriginal * editHorasSeleccionadas.length;
 
             renderHorariosEdicion();
             new bootstrap.Modal(document.getElementById('modalEditarReserva')).show();
@@ -835,7 +829,7 @@
         // ── INICIO ─────────────────────────────────────────────────
         renderCanchas();
         actualizarResumen();
-    </script>
+    </script>   
 </body>
 
 </html>

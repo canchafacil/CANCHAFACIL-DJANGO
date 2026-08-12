@@ -16,6 +16,22 @@ def _sincronizar_todas(queryset):
         r.sincronizar_estado()
 
 
+def _horas_ocupadas(cancha, fecha, excluir_id=None):
+    """
+    Devuelve un set con TODAS las horas 'HH:MM' ocupadas para una cancha+fecha,
+    considerando el campo 'horas' (o 'hora' como fallback para reservas viejas).
+    Ignora reservas canceladas.
+    """
+    qs = Reserva.objects.filter(cancha=cancha, fecha=fecha).exclude(estado=Reserva.ESTADO_CANCELADA)
+    if excluir_id is not None:
+        qs = qs.exclude(id=excluir_id)
+
+    ocupadas = set()
+    for r in qs:
+        ocupadas.update(r.get_horas())
+    return ocupadas
+
+
 def pagina_reservas(request):
     return render(request, "reservas/reservas.html")
 
@@ -31,12 +47,14 @@ def reservas(request, cancha_id=None):
     if usuario_id:
         usuario = Usuario.objects.filter(id=usuario_id).first()
 
-    # Una reserva "activa" bloquea nuevas reservas (pendiente o confirmada, no vencida)
+    # Una reserva "activa" bloquea nuevas reservas: solo la CONFIRMADA (ya
+    # pagada) bloquea de verdad. Las PENDIENTES (nunca pagadas) ya no
+    # cuentan aquí porque crear_reserva las cancela automáticamente.
     tiene_reserva_activa = False
     if usuario:
         tiene_reserva_activa = Reserva.objects.filter(
             correo=usuario.email,
-            estado__in=[Reserva.ESTADO_PENDIENTE, Reserva.ESTADO_CONFIRMADA],
+            estado=Reserva.ESTADO_CONFIRMADA,
         ).exists()
 
     return render(request, "reservas/formulario.html", {
@@ -57,37 +75,54 @@ def crear_reserva(request):
     try:
         usuario = Usuario.objects.get(id=usuario_id)
 
-        # Bloqueo: no permitir una segunda reserva activa
-        ya_tiene_activa = Reserva.objects.filter(
+        # Bloqueo real: solo una reserva CONFIRMADA (ya pagada) impide
+        # crear una nueva. Las reservas PENDIENTES (carritos abandonados,
+        # nunca pagados) se cancelan automáticamente más abajo en vez de
+        # bloquear, para que no se queden atascadas para siempre.
+        ya_tiene_confirmada = Reserva.objects.filter(
             correo=usuario.email,
-            estado__in=[Reserva.ESTADO_PENDIENTE, Reserva.ESTADO_CONFIRMADA],
+            estado=Reserva.ESTADO_CONFIRMADA,
         ).exists()
-        if ya_tiene_activa:
+        if ya_tiene_confirmada:
             return JsonResponse(
-                {"status": "error", "mensaje": "Ya tienes una reserva activa."},
+                {"status": "error", "mensaje": "Ya tienes una reserva confirmada."},
                 status=409
             )
 
         data = json.loads(request.body.decode("utf-8"))
 
-        # Bloqueo: que la hora/fecha/cancha no se haya ocupado justo antes de confirmar
-        conflicto = Reserva.objects.filter(
-            cancha=data["cancha"],
-            fecha=data["fecha"],
-            hora=data["hora"],
-        ).exclude(estado=Reserva.ESTADO_CANCELADA).exists()
+        # Lista de horas seleccionadas (el JS manda "horas": [...]).
+        # Fallback a "hora" solo por compatibilidad si algo manda una sola.
+        horas_solicitadas = data.get("horas") or [data["hora"]]
+        if not isinstance(horas_solicitadas, list) or len(horas_solicitadas) == 0:
+            return JsonResponse({"status": "error", "mensaje": "Debes seleccionar al menos una hora."}, status=400)
+
+        # Bloqueo: si CUALQUIERA de las horas solicitadas ya está ocupada
+        ocupadas = _horas_ocupadas(data["cancha"], data["fecha"])
+        conflicto = any(h in ocupadas for h in horas_solicitadas)
         if conflicto:
             return JsonResponse(
-                {"status": "error", "mensaje": "Esa fecha/hora ya está ocupada."},
+                {"status": "error", "mensaje": "Una o más horas seleccionadas ya están ocupadas."},
                 status=409
             )
+
+        # Cancela automáticamente cualquier reserva PENDIENTE anterior de
+        # este usuario (carritos abandonados que nunca se pagaron), para
+        # que no queden atascados bloqueando la sesión de pago.
+        Reserva.objects.filter(
+            correo=usuario.email,
+            estado=Reserva.ESTADO_PENDIENTE,
+        ).update(estado=Reserva.ESTADO_CANCELADA)
+
+        horas_ordenadas = sorted(horas_solicitadas)
 
         reserva = Reserva.objects.create(
             nombre   = f"{usuario.first_name} {usuario.last_name}".strip(),
             correo   = usuario.email,
             telefono = usuario.phone,
             fecha    = data["fecha"],
-            hora     = data["hora"],
+            hora     = horas_ordenadas[0],
+            horas    = horas_ordenadas,
             cancha   = data["cancha"],
             duracion = data["duracion"],
         )
@@ -110,12 +145,32 @@ def editar_reserva(request, id):
             )
 
         data = json.loads(request.body.decode("utf-8"))
+
+        nueva_fecha  = data.get("fecha", str(reserva.fecha))
+        nueva_cancha = data.get("cancha", reserva.cancha)
+        horas_nuevas = data.get("horas") or [data.get("hora", reserva.hora.strftime('%H:%M'))]
+
+        if not isinstance(horas_nuevas, list) or len(horas_nuevas) == 0:
+            return JsonResponse({"status": "error", "mensaje": "Debes seleccionar al menos una hora."}, status=400)
+
+        # Bloqueo: verificar conflictos EXCLUYENDO esta misma reserva
+        ocupadas = _horas_ocupadas(nueva_cancha, nueva_fecha, excluir_id=reserva.id)
+        conflicto = any(h in ocupadas for h in horas_nuevas)
+        if conflicto:
+            return JsonResponse(
+                {"status": "error", "mensaje": "Una o más horas seleccionadas ya están ocupadas."},
+                status=409
+            )
+
+        horas_ordenadas = sorted(horas_nuevas)
+
         reserva.nombre   = data.get("nombre",   reserva.nombre)
         reserva.correo   = data.get("correo",   reserva.correo)
         reserva.telefono = data.get("telefono", reserva.telefono)
-        reserva.fecha    = data.get("fecha",    reserva.fecha)
-        reserva.hora     = data.get("hora",     reserva.hora)
-        reserva.cancha   = data.get("cancha",   reserva.cancha)
+        reserva.fecha    = nueva_fecha
+        reserva.hora     = horas_ordenadas[0]
+        reserva.horas    = horas_ordenadas
+        reserva.cancha   = nueva_cancha
         reserva.duracion = data.get("duracion", reserva.duracion)
         reserva.save()
         return JsonResponse({"status": "ok"})
@@ -171,8 +226,24 @@ def confirmar_pago(request):
     reserva = get_object_or_404(Reserva, id=reserva_id)
 
     data = json.loads(request.body.decode("utf-8")) if request.body else {}
+
+    # tipo_pago: "completo" o "abono" (viene de los botones que elige el usuario)
+    tipo_pago = data.get("tipo_pago", Reserva.TIPO_PAGO_COMPLETO)
+    if tipo_pago not in (Reserva.TIPO_PAGO_COMPLETO, Reserva.TIPO_PAGO_ABONO):
+        return JsonResponse({"status": "error", "mensaje": "Tipo de pago inválido"}, status=400)
+
+    total = reserva.calcular_total()
+
+    if tipo_pago == Reserva.TIPO_PAGO_ABONO:
+        monto_a_pagar = reserva.calcular_abono_50()
+    else:
+        monto_a_pagar = total
+
     reserva.metodo_pago = data.get("metodo_pago", "Simulado")
-    reserva.precio_total = reserva.calcular_total()
+    reserva.precio_total = total
+    reserva.tipo_pago = tipo_pago
+    reserva.monto_pagado = monto_a_pagar
+    reserva.saldo_pendiente = total - monto_a_pagar
     reserva.numero_factura = f"FAC-{reserva.id:06d}"
     reserva.estado = Reserva.ESTADO_CONFIRMADA
     reserva.save()
@@ -181,7 +252,13 @@ def confirmar_pago(request):
 
     del request.session["reserva_pendiente_id"]
 
-    return JsonResponse({"status": "ok", "mensaje": "Pago confirmado y correo enviado"})
+    return JsonResponse({
+        "status": "ok",
+        "mensaje": "Pago confirmado y correo enviado",
+        "tipo_pago": tipo_pago,
+        "monto_pagado": str(monto_a_pagar),
+        "saldo_pendiente": str(reserva.saldo_pendiente),
+    })
 
 
 def enviar_correo_confirmacion(reserva):
@@ -189,14 +266,23 @@ def enviar_correo_confirmacion(reserva):
     contexto = {"reserva": reserva}
 
     cuerpo_html = render_to_string("reservas/confirmacion_reserva.html", contexto)
+    horas_texto = ", ".join(reserva.get_horas())
+    linea_pago = f"Pagaste el total: ${reserva.precio_total}"
+    if reserva.tipo_pago == Reserva.TIPO_PAGO_ABONO:
+        linea_pago = (
+            f"Abonaste: ${reserva.monto_pagado} (50%)\n"
+            f"Saldo pendiente a pagar en la cancha: ${reserva.saldo_pendiente}"
+        )
+
     cuerpo_texto = (
         f"Hola {reserva.nombre},\n\n"
         f"Tu reserva ha sido confirmada:\n"
         f"Cancha: {reserva.cancha}\n"
         f"Fecha: {reserva.fecha}\n"
-        f"Hora: {reserva.hora}\n"
+        f"Hora(s): {horas_texto}\n"
         f"Duración: {reserva.duracion}\n"
-        f"Total pagado: ${reserva.precio_total}\n"
+        f"Valor total de la reserva: ${reserva.precio_total}\n"
+        f"{linea_pago}\n"
         f"N° de factura: {reserva.numero_factura}\n\n"
         f"Equipo {settings.EMPRESA_NOMBRE}"
     )
@@ -236,9 +322,14 @@ def editar_reserva_perfil(request, id):
         # No se puede editar: se ignora el intento y se vuelve al perfil.
         return redirect('perfil')
 
-    reserva.fecha    = request.POST.get('fecha', reserva.fecha)
-    reserva.hora     = request.POST.get('hora', reserva.hora)
-    reserva.cancha   = request.POST.get('cancha', reserva.cancha)
+    nueva_fecha  = request.POST.get('fecha', str(reserva.fecha))
+    nueva_hora   = request.POST.get('hora', reserva.hora.strftime('%H:%M'))
+    nueva_cancha = request.POST.get('cancha', reserva.cancha)
+
+    reserva.fecha    = nueva_fecha
+    reserva.hora     = nueva_hora
+    reserva.horas    = [nueva_hora]  # este formulario simple solo maneja una hora
+    reserva.cancha   = nueva_cancha
     reserva.duracion = request.POST.get('duracion', reserva.duracion)
     reserva.save()
 
