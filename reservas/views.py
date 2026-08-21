@@ -10,6 +10,37 @@ from usuarios.models import Usuario
 from gestion_canchas.models import Cancha
 
 
+# Debe coincidir exactamente con el arreglo HORAS del frontend (formulario.html).
+HORAS_VALIDAS = [
+    '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
+    '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
+    '18:00', '19:00', '20:00', '21:00', '22:00'
+]
+
+
+def _horas_son_consecutivas(horas):
+    """
+    Valida que una lista de horas 'HH:MM' sea un rango continuo dentro
+    de HORAS_VALIDAS, sin saltos (ej: ["10:00","11:00","12:00"] es válido,
+    ["10:00","13:00"] no lo es). También rechaza horas fuera de HORAS_VALIDAS
+    o listas con duplicados.
+    """
+    if not horas:
+        return False
+    if len(set(horas)) != len(horas):
+        return False  # duplicados
+
+    try:
+        indices = sorted(HORAS_VALIDAS.index(h) for h in horas)
+    except ValueError:
+        return False  # alguna hora no está en la lista permitida
+
+    for i in range(1, len(indices)):
+        if indices[i] != indices[i - 1] + 1:
+            return False
+    return True
+
+
 def _sincronizar_todas(queryset):
     """Recorre un queryset y sincroniza el estado de cada reserva (confirmada -> completada si ya pasó)."""
     for r in queryset:
@@ -97,6 +128,13 @@ def crear_reserva(request):
         if not isinstance(horas_solicitadas, list) or len(horas_solicitadas) == 0:
             return JsonResponse({"status": "error", "mensaje": "Debes seleccionar al menos una hora."}, status=400)
 
+        # NUEVO: las horas deben ser consecutivas, sin saltos.
+        if not _horas_son_consecutivas(horas_solicitadas):
+            return JsonResponse(
+                {"status": "error", "mensaje": "Las horas seleccionadas deben ser continuas, sin saltos."},
+                status=400
+            )
+
         # Bloqueo: si CUALQUIERA de las horas solicitadas ya está ocupada
         ocupadas = _horas_ocupadas(data["cancha"], data["fecha"])
         conflicto = any(h in ocupadas for h in horas_solicitadas)
@@ -152,6 +190,13 @@ def editar_reserva(request, id):
 
         if not isinstance(horas_nuevas, list) or len(horas_nuevas) == 0:
             return JsonResponse({"status": "error", "mensaje": "Debes seleccionar al menos una hora."}, status=400)
+
+        # NUEVO: las horas deben ser consecutivas, sin saltos.
+        if not _horas_son_consecutivas(horas_nuevas):
+            return JsonResponse(
+                {"status": "error", "mensaje": "Las horas seleccionadas deben ser continuas, sin saltos."},
+                status=400
+            )
 
         # Bloqueo: verificar conflictos EXCLUYENDO esta misma reserva
         ocupadas = _horas_ocupadas(nueva_cancha, nueva_fecha, excluir_id=reserva.id)
@@ -334,7 +379,6 @@ def editar_reserva_perfil(request, id):
     reserva.save()
 
     return redirect('perfil')
-
 
 # NOTA: eliminar_reserva_perfil se eliminó a propósito. Ya no existe forma
 # de borrar una reserva desde el perfil del usuario.
