@@ -50,13 +50,13 @@
 
         <select name="rol" class="form-select custom-input bg-dark text-white">
 
-          <option value="CLIENTE" {% if usuario.rol=='CLIENTE' %}selected{% endif %}>
+          <option value="CLIENTE" {% if usuario.rol == 'CLIENTE' %}selected{% endif %}>
             Cliente
           </option>
-          <option value="ADMIN" {% if usuario.rol=='ADMIN' %}selected{% endif %}>
+          <option value="ADMIN" {% if usuario.rol == 'ADMIN' %}selected{% endif %}>
             Administrador
           </option>
-          <option value="SUPERADMIN" {% if usuario.rol=='SUPERADMIN' %}selected{% endif %}>
+          <option value="SUPERADMIN" {% if usuario.rol == 'SUPERADMIN' %}selected{% endif %}>
             Superadministrador
           </option>
         </select>
@@ -73,7 +73,7 @@
       </button>
 
       <div class="login-links mt-3">
-        <a href="{% url 'lista_usuarios' %}" class="secondary-link text-decoration-none fw-semibold">Volver</a>
+        <a href="{% url 'lista_usuarios' %}" class="secondary-link text-decoration-none fw-semibold"><h6>Volver</h6></a>
       </div>
     </form>
   </div>

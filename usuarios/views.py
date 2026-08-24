@@ -46,45 +46,6 @@ def registro(request):
 
     return render(request, 'usuarios/registro.html')
 
-def registro_admin(request):
-
-    if request.method == 'POST':
-
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
-        phone = request.POST.get('phone')
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
-        rol='ADMIN'
-
-        if password != confirm_password:
-            return render(
-                request,
-                'usuarios/registro_admin.html',
-                {'error': 'Las contraseñas no coinciden'}
-            )
-
-        if Usuario.objects.filter(email=email).exists():
-            return render(
-            request,
-            'usuarios/registro_admin.html',
-            {'error': 'Este correo ya está registrado'}
-    )
-
-        Usuario.objects.create(
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            phone=phone,
-            password=password,
-            rol=rol
-        )
-
-        return redirect('login')
-
-    return render(request, 'usuarios/registro_admin.html')
-
 def login_view(request):
     """Renderiza la pantalla de inicio de sesión."""
     return render(request, 'usuarios/login.html')
