@@ -17,19 +17,15 @@ class Reserva(models.Model):
         (ESTADO_CANCELADA, 'Cancelada'),
     ]
 
-    nombre   = models.CharField(max_length=100)
-    correo   = models.EmailField()
+    nombre = models.CharField(max_length=100)
+    correo = models.EmailField()
     telefono = models.CharField(max_length=20, blank=True)
-    fecha    = models.DateField()
-    hora     = models.TimeField()  # primera hora de la reserva (compatibilidad / orden)
-
-    # NUEVO: todas las horas reservadas, ej: ["18:00", "19:00", "20:00"]
-    # Se guarda como JSON porque MariaDB no tiene ArrayField (eso es de Postgres).
-    horas = models.JSONField(default=list, blank=True)
-
-    cancha   = models.CharField(max_length=100)
+    fecha = models.DateField()
+    hora = models.TimeField()  # primera hora de la reserva (compatibilidad / orden)
+    horas = models.JSONField(default=list, blank=True)  # todas las horas reservadas
+    cancha = models.CharField(max_length=100)
     duracion = models.CharField(max_length=20)  # ej. "60 min", "2 horas", "3 Horas"
-    estado   = models.CharField(max_length=20, choices=ESTADO_CHOICES, default=ESTADO_PENDIENTE)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default=ESTADO_PENDIENTE)
     metodo_pago = models.CharField(max_length=50, blank=True, null=True)
     precio_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     numero_factura = models.CharField(max_length=20, blank=True, null=True)
@@ -44,6 +40,9 @@ class Reserva(models.Model):
     tipo_pago = models.CharField(max_length=20, choices=TIPO_PAGO_CHOICES, blank=True, null=True)
     monto_pagado = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     saldo_pendiente = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    # ── MERCADO PAGO ──────────────────────────────────────────────
+    mp_preference_id = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return f"{self.nombre} - {self.cancha} - {self.fecha}"
@@ -63,18 +62,21 @@ class Reserva(models.Model):
                 return 60
 
     def precio_por_hora(self):
-        precios = {
-            'Cancha A': 50000,
-            'Cancha B': 60000,
-            'Cancha C': 70000,
-        }
-        return precios.get(self.cancha, 50000)
+        """
+        Obtiene el precio por hora desde el modelo Cancha de gestion_canchas.
+        Si no existe, usa un valor por defecto.
+        """
+        from gestion_canchas.models import Cancha
+        try:
+            cancha = Cancha.objects.get(nombre=self.cancha)
+            return float(cancha.precio)
+        except Cancha.DoesNotExist:
+            return 50000.0
 
     def calcular_total(self):
         """
-        Si hay 'horas' explícitas, el total es precio_hora * cantidad_de_horas
-        (más preciso que calcular con duracion_minutos, sobre todo si algún
-        día las horas dejan de ser bloques de 60 min exactos).
+        Si hay 'horas' explícitas, el total es precio_hora * cantidad_de_horas.
+        Si no, usa duracion_minutos como fallback.
         """
         precio_hora = Decimal(self.precio_por_hora())
         if self.horas:
@@ -103,6 +105,7 @@ class Reserva(models.Model):
     # ------------------------------------------------------------------
     # Lógica de estados
     # ------------------------------------------------------------------
+
     def fecha_hora_fin(self):
         """Devuelve el datetime en que termina la reserva (fecha + última hora + 1h)."""
         horas_lista = self.get_horas()

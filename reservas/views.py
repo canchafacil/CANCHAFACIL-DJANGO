@@ -1,14 +1,20 @@
+import json
+import mercadopago
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
-import json
 from .models import Reserva
 from usuarios.models import Usuario
 from gestion_canchas.models import Cancha
 
+
+# =================================================================
+# CONSTANTES Y FUNCIONES AUXILIARES
+# =================================================================
 
 # Debe coincidir exactamente con el arreglo HORAS del frontend (formulario.html).
 HORAS_VALIDAS = [
@@ -62,6 +68,10 @@ def _horas_ocupadas(cancha, fecha, excluir_id=None):
         ocupadas.update(r.get_horas())
     return ocupadas
 
+
+# =================================================================
+# VISTAS PRINCIPALES (reservas, creación, edición, perfil)
+# =================================================================
 
 def pagina_reservas(request):
     return render(request, "reservas/reservas.html")
@@ -252,27 +262,37 @@ def cancelar_reserva_perfil(request, id):
 
 
 def pago(request):
+    """Vista que muestra el resumen de la reserva y el botón de Mercado Pago."""
     reserva_id = request.session.get("reserva_pendiente_id")
     reserva = None
+    total = 0
+    
     if reserva_id:
         try:
             reserva = Reserva.objects.get(id=reserva_id)
+            total = float(reserva.calcular_total())
         except Reserva.DoesNotExist:
             pass
-    return render(request, "pagos/pago.html", {"reserva": reserva})
+    
+    return render(request, "pagos/pago.html", {
+        "reserva": reserva,
+        "total": total,
+    })
 
 
 @require_POST
 def confirmar_pago(request):
+    """
+    Vista de confirmación de pago (simulada o para abonos).
+    Se mantiene por si se usa con la pasarela anterior.
+    """
     reserva_id = request.session.get("reserva_pendiente_id")
     if not reserva_id:
         return JsonResponse({"status": "error", "mensaje": "No hay reserva pendiente"}, status=400)
 
     reserva = get_object_or_404(Reserva, id=reserva_id)
-
     data = json.loads(request.body.decode("utf-8")) if request.body else {}
 
-    # tipo_pago: "completo" o "abono" (viene de los botones que elige el usuario)
     tipo_pago = data.get("tipo_pago", Reserva.TIPO_PAGO_COMPLETO)
     if tipo_pago not in (Reserva.TIPO_PAGO_COMPLETO, Reserva.TIPO_PAGO_ABONO):
         return JsonResponse({"status": "error", "mensaje": "Tipo de pago inválido"}, status=400)
@@ -364,7 +384,6 @@ def editar_reserva_perfil(request, id):
     reserva.sincronizar_estado()
 
     if not reserva.puede_editarse:
-        # No se puede editar: se ignora el intento y se vuelve al perfil.
         return redirect('perfil')
 
     nueva_fecha  = request.POST.get('fecha', str(reserva.fecha))
@@ -373,12 +392,179 @@ def editar_reserva_perfil(request, id):
 
     reserva.fecha    = nueva_fecha
     reserva.hora     = nueva_hora
-    reserva.horas    = [nueva_hora]  # este formulario simple solo maneja una hora
+    reserva.horas    = [nueva_hora]
     reserva.cancha   = nueva_cancha
     reserva.duracion = request.POST.get('duracion', reserva.duracion)
     reserva.save()
 
     return redirect('perfil')
 
-# NOTA: eliminar_reserva_perfil se eliminó a propósito. Ya no existe forma
-# de borrar una reserva desde el perfil del usuario.
+
+# =================================================================
+# VISTAS PARA MERCADO PAGO
+# =================================================================
+@csrf_exempt
+def crear_preferencia_mercadopago(request, reserva_id):
+    """
+    Crea una preferencia de pago en Mercado Pago y redirige al usuario.
+    """
+    if not request.session.get('usuario_id'):
+        return redirect('login')
+
+    reserva = get_object_or_404(Reserva, id=reserva_id)
+    usuario = get_object_or_404(Usuario, id=request.session['usuario_id'])
+
+    if reserva.correo != usuario.email:
+        return redirect('perfil')
+
+    if reserva.estado == 'confirmada':
+        return redirect('pago_exitoso_mp')
+
+    # Configurar SDK
+    sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
+
+    # 🔥 NUEVO: Obtener el monto a pagar desde el formulario
+    # Si viene 'monto_a_pagar', usamos ese. Si no, calculamos el total.
+    monto_a_pagar = request.POST.get('monto_a_pagar')
+    
+    if monto_a_pagar:
+        try:
+            total = float(monto_a_pagar)
+        except ValueError:
+            total = float(reserva.calcular_total())
+    else:
+        total = float(reserva.calcular_total())
+
+    # Obtener tipo de pago (completo o abono)
+    tipo_pago = request.POST.get('tipo_pago', 'completo')
+
+    # Construir URLs absolutas
+    dominio = request.build_absolute_uri('/').rstrip('/')
+    success_url = f"{dominio}/reservas/mp/exito/"
+    failure_url = f"{dominio}/reservas/mp/cancelado/"
+    pending_url = f"{dominio}/reservas/mp/cancelado/"
+
+    # Crear preferencia
+    preference_data = {
+        "items": [
+            {
+                "title": f"Reserva Cancha: {reserva.cancha}",
+                "description": f"Fecha: {reserva.fecha} - Horas: {', '.join(reserva.get_horas())} - Duración: {reserva.duracion}",
+                "quantity": 1,
+                "currency_id": "COP",
+                "unit_price": total,  # 🔥 Usa el monto calculado (total o 50%)
+            }
+        ],
+        "payer": {
+            "email": usuario.email,
+            "name": usuario.first_name or "Cliente",
+            "surname": usuario.last_name or "CanchaFácil",
+        },
+        "back_urls": {
+            "success": success_url,
+            "failure": failure_url,
+            "pending": pending_url,
+        },
+        "external_reference": str(reserva.id),
+        "metadata": {
+            "reserva_id": str(reserva.id),
+            "tipo_pago": tipo_pago,
+            "monto_pagado": str(total),
+        }
+    }
+
+    try:
+        result = sdk.preference().create(preference_data)
+        
+        if 'id' not in result.get('response', {}):
+            error_msg = result.get('response', {}).get('message', 'Error desconocido')
+            return HttpResponse(
+                f"Error de Mercado Pago: {error_msg}<br><br>"
+                f"Respuesta completa: <pre>{json.dumps(result, indent=2, default=str)}</pre>",
+                status=400
+            )
+        
+        preference = result["response"]
+        reserva.mp_preference_id = preference["id"]
+        reserva.save()
+
+        return redirect(preference["init_point"])
+
+    except Exception as e:
+        return HttpResponse(f"Error al crear preferencia: {e}", status=400)
+
+def pago_exitoso_mp(request):
+    """
+    Vista a la que redirige Mercado Pago después de un pago exitoso.
+    Actualiza la reserva a Confirmada y muestra el éxito.
+    """
+    reserva_id = request.session.get("reserva_pendiente_id")
+    
+    if reserva_id:
+        try:
+            reserva = Reserva.objects.get(id=reserva_id)
+            # Si no está confirmada, la actualizamos aquí
+            if reserva.estado != 'confirmada':
+                reserva.estado = 'confirmada'
+                reserva.metodo_pago = 'Mercado Pago'
+                if not reserva.precio_total:
+                    reserva.precio_total = reserva.calcular_total()
+                reserva.numero_factura = f"FAC-{reserva.id:06d}"
+                reserva.save()
+        except Reserva.DoesNotExist:
+            pass
+
+    # Obtener la reserva actualizada para el template
+    reserva = None
+    if reserva_id:
+        try:
+            reserva = Reserva.objects.get(id=reserva_id)
+        except Reserva.DoesNotExist:
+            pass
+
+    return render(request, 'pagos/exito.html', {'reserva': reserva})
+
+
+def pago_cancelado_mp(request):
+    """
+    Vista a la que redirige Mercado Pago si el usuario cancela el pago.
+    """
+    return render(request, 'pagos/cancelado.html')
+
+
+@csrf_exempt
+def webhook_mercadopago(request):
+    """
+    Webhook para recibir notificaciones de Mercado Pago.
+    Actualiza la reserva a Confirmada cuando el pago es aprobado.
+    """
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    try:
+        data = json.loads(request.body)
+        # Mercado Pago envía un objeto con 'type' y 'data'
+        if data.get('type') == 'payment':
+            payment_id = data['data']['id']
+            sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
+            payment_info = sdk.payment().get(payment_id)
+            payment = payment_info["response"]
+            
+            if payment.get('status') == 'approved':
+                external_reference = payment.get('external_reference')
+                if external_reference:
+                    try:
+                        reserva = Reserva.objects.get(id=external_reference)
+                        # Solo actualizar si no está confirmada
+                        if reserva.estado != 'confirmada':
+                            reserva.estado = 'confirmada'
+                            reserva.metodo_pago = 'Mercado Pago'
+                            reserva.precio_total = payment['transaction_amount']
+                            reserva.numero_factura = f"FAC-{reserva.id:06d}"
+                            reserva.save()
+                    except Reserva.DoesNotExist:
+                        pass
+    except:
+        pass
+    
+    return HttpResponse(status=200)

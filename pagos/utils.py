@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from decimal import Decimal
 from io import BytesIO
+
 from django.conf import settings
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -58,14 +59,24 @@ def encontrar_logo():
     return None
 
 
+def obtener_precio_cancha(nombre_cancha):
+    """
+    Obtiene el precio por hora de una cancha desde la base de datos.
+    Si no existe, usa un valor por defecto.
+    """
+    from gestion_canchas.models import Cancha
+    try:
+        cancha = Cancha.objects.get(nombre=nombre_cancha)
+        return float(cancha.precio)
+    except Cancha.DoesNotExist:
+        return 50000.0  # fallback
+
+
 def generar_factura_pdf(reserva_id):
     """
     Genera un PDF de factura para la reserva con ID reserva_id.
-    Sin IVA. Usa SIEMPRE los datos reales guardados en la reserva
-    (precio_por_hora vía el modelo Cancha, horas reservadas, método
-    de pago, tipo de pago y saldo) en vez de recalcularlos con
-    valores hardcodeados, para que la factura nunca se desincronice
-    de lo que realmente se cobró.
+    Usa el precio_total guardado en la reserva (ya calculado después del pago).
+    Si no existe, lo calcula con calcular_total().
     """
     buffer = BytesIO()
     doc = SimpleDocTemplate(
@@ -82,29 +93,29 @@ def generar_factura_pdf(reserva_id):
     except Reserva.DoesNotExist:
         return None
 
-    # ========== CÁLCULOS (SIN IVA) ==========
-    # Precio por hora real, consultado desde el modelo Cancha (misma
-    # fuente que usa el formulario de reservas y el cálculo del total).
-    precio_hora = Decimal(reserva.precio_por_hora())
-
-    horas_reservadas = reserva.get_horas()  # ej. ["18:00", "19:00", "20:00"]
-    cantidad_horas = len(horas_reservadas) if horas_reservadas else Decimal(reserva.duracion_minutos()) / 60
-
-    # Si ya hay un precio_total guardado en la reserva (lo que realmente
-    # se cobró), usarlo. Si no, calcularlo con la misma lógica del modelo.
-    total = reserva.precio_total if reserva.precio_total else reserva.calcular_total()
-
-    # Reusa el número de factura ya guardado en la reserva si existe;
-    # solo genera uno nuevo como respaldo si nunca se asignó.
-    if reserva.numero_factura:
-        num_factura = reserva.numero_factura
+    # ========== CALCULAR TOTAL ==========
+    if reserva.precio_total:
+        total = float(reserva.precio_total)
     else:
-        anio = reserva.fecha.strftime('%Y')
-        mes = reserva.fecha.strftime('%m')
-        num_factura = f"FAC-{anio}-{mes}-{reserva.id:04d}"
+        total = float(reserva.calcular_total())
 
-    metodo_pago_texto = reserva.metodo_pago or "No especificado"
-    estado_texto = reserva.get_estado_display()
+    # Obtener lista de horas
+    horas_lista = reserva.get_horas()
+    horas_texto = ", ".join(horas_lista)
+
+    # Número de horas
+    cantidad_horas = len(horas_lista)
+
+    # Precio por hora (si se puede calcular)
+    if cantidad_horas > 0:
+        precio_hora = total / cantidad_horas
+    else:
+        precio_hora = 0
+
+    # ========== DATOS DE LA FACTURA ==========
+    anio = reserva.fecha.strftime('%Y')
+    mes = reserva.fecha.strftime('%m')
+    num_factura = f"FAC-{anio}-{mes}-{reserva.id:04d}"
 
     # ========== ESTILOS ==========
     styles = getSampleStyleSheet()
@@ -197,11 +208,19 @@ def generar_factura_pdf(reserva_id):
     elementos.append(Spacer(1, 0.1 * inch))
 
     # ----- DATOS DE LA FACTURA -----
+    estado_mostrar = {
+        'pendiente': 'Pendiente',
+        'confirmada': 'Confirmada',
+        'completada': 'Completada',
+        'cancelada': 'Cancelada',
+    }.get(reserva.estado, reserva.estado)
+
     datos_factura = [
         [Paragraph("<b>Número de factura:</b>", estilo_negrita), Paragraph(num_factura, estilo_normal)],
         [Paragraph("<b>Fecha de emisión:</b>", estilo_negrita), Paragraph(datetime.now().strftime("%d/%m/%Y %H:%M"), estilo_normal)],
-        [Paragraph("<b>Estado:</b>", estilo_negrita), Paragraph(estado_texto, estilo_normal)],
-        [Paragraph("<b>Método de pago:</b>", estilo_negrita), Paragraph(metodo_pago_texto, estilo_normal)],
+        [Paragraph("<b>Estado:</b>", estilo_negrita), Paragraph(estado_mostrar, estilo_normal)],
+        [Paragraph("<b>Método de pago:</b>", estilo_negrita), Paragraph(reserva.metodo_pago or "Mercado Pago", estilo_normal)],
+        [Paragraph("<b>Horas reservadas:</b>", estilo_negrita), Paragraph(horas_texto, estilo_normal)],
     ]
     tabla_datos = Table(datos_factura, colWidths=[1.5 * inch, 4 * inch])
     tabla_datos.setStyle(TableStyle([
@@ -237,10 +256,6 @@ def generar_factura_pdf(reserva_id):
     elementos.append(Spacer(1, 0.2 * inch))
 
     # ----- DETALLE DE LA RESERVA (TABLA) -----
-    # Muestra TODAS las horas reservadas (no solo la primera), tal como
-    # las guarda reserva.horas / reserva.get_horas().
-    horas_texto = ", ".join(horas_reservadas) if horas_reservadas else reserva.hora.strftime('%I:%M %p')
-
     data_tabla = [
         [
             Paragraph("<b>Cancha</b>", estilo_encabezado_tabla),
@@ -254,13 +269,13 @@ def generar_factura_pdf(reserva_id):
             Paragraph(reserva.cancha, estilo_celda_tabla),
             Paragraph(reserva.fecha.strftime("%d/%m/%Y"), estilo_celda_tabla),
             Paragraph(horas_texto, estilo_celda_tabla),
-            Paragraph(f"{cantidad_horas} h", estilo_celda_tabla),
-            Paragraph(f"${precio_hora:,.0f}", estilo_celda_tabla),
+            Paragraph(reserva.duracion, estilo_celda_tabla),
+            Paragraph(f"${precio_hora:,.0f}" if precio_hora > 0 else "$0", estilo_celda_tabla),
             Paragraph(f"${total:,.0f}", estilo_celda_tabla),
         ]
     ]
 
-    tabla_detalle = Table(data_tabla, colWidths=[1.6 * inch, 1.1 * inch, 1.3 * inch, 0.9 * inch, 1.1 * inch, 1.2 * inch])
+    tabla_detalle = Table(data_tabla, colWidths=[1.8 * inch, 1.0 * inch, 1.2 * inch, 1.0 * inch, 1.2 * inch, 1.5 * inch])
     tabla_detalle.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), COLOR_VERDE_OSCURO),
         ('TEXTCOLOR', (0, 0), (-1, 0), COLOR_BLANCO),
@@ -276,33 +291,10 @@ def generar_factura_pdf(reserva_id):
     elementos.append(tabla_detalle)
     elementos.append(Spacer(1, 0.2 * inch))
 
-    # ----- RESUMEN DE PAGO (SIN IVA) -----
-    # Si la reserva se pagó con abono (50%), lo refleja en vez de mostrar
-    # el total como si ya estuviera todo pagado.
+    # ----- RESUMEN (SIN IVA) -----
     resumen_data = [
-        [Paragraph("<b>Total de la reserva</b>", estilo_negrita), Paragraph(f"${total:,.0f}", estilo_normal)],
+        [Paragraph("<b>Total a pagar</b>", estilo_total), Paragraph(f"${total:,.0f}", estilo_total)],
     ]
-
-    if reserva.tipo_pago == reserva.TIPO_PAGO_ABONO:
-        resumen_data.append([
-            Paragraph("<b>Abono pagado (50%)</b>", estilo_negrita),
-            Paragraph(f"${reserva.monto_pagado:,.0f}", estilo_normal),
-        ])
-        resumen_data.append([
-            Paragraph("<b>Saldo pendiente</b>", estilo_negrita),
-            Paragraph(f"${reserva.saldo_pendiente:,.0f}", estilo_normal),
-        ])
-    else:
-        resumen_data.append([
-            Paragraph("<b>Monto pagado</b>", estilo_negrita),
-            Paragraph(f"${reserva.monto_pagado:,.0f}", estilo_normal),
-        ])
-
-    resumen_data.append([
-        Paragraph("<b>TOTAL A PAGAR</b>", estilo_total),
-        Paragraph(f"${total:,.0f}", estilo_total),
-    ])
-
     tabla_resumen = Table(resumen_data, colWidths=[4 * inch, 2 * inch])
     tabla_resumen.setStyle(TableStyle([
         ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
@@ -312,8 +304,8 @@ def generar_factura_pdf(reserva_id):
         ('FONTSIZE', (0, 0), (-1, -1), 10),
         ('LEFTPADDING', (0, 0), (-1, -1), 5),
         ('RIGHTPADDING', (0, 0), (-1, -1), 5),
-        ('LINEABOVE', (0, -1), (-1, -1), 1, colors.black),
-        ('BACKGROUND', (0, -1), (1, -1), COLOR_VERDE_CLARO),
+        ('LINEABOVE', (0, 0), (-1, 0), 1, colors.black),
+        ('BACKGROUND', (0, 0), (1, 0), COLOR_VERDE_CLARO),
     ]))
     elementos.append(tabla_resumen)
     elementos.append(Spacer(1, 0.3 * inch))

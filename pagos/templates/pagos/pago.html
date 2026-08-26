@@ -1,6 +1,7 @@
 {% load static %}
 <!doctype html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,7 +9,9 @@
     <link rel="icon" href="{% static 'img/logo-green.png' %}" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --navy: #03045e;
@@ -25,13 +28,22 @@
             color: #1c1e2b;
         }
 
-        h1, h2, h3, h4, h5, .fw-display {
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        .fw-display {
             font-family: 'Manrope', sans-serif;
         }
 
-        .navbar-pago { background: var(--navy); }
+        .navbar-pago {
+            background: var(--navy);
+        }
 
-        .pago-shell { max-width: 980px; }
+        .pago-shell {
+            max-width: 980px;
+        }
 
         .paso-eyebrow {
             font-size: 0.72rem;
@@ -48,8 +60,11 @@
             gap: 24px;
             align-items: start;
         }
+
         @media (max-width: 860px) {
-            .grid-pago { grid-template-columns: 1fr; }
+            .grid-pago {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* ── PANEL RESUMEN (izquierda) ── */
@@ -61,42 +76,54 @@
             position: sticky;
             top: 24px;
         }
+
         .panel-resumen .cancha-nombre {
             font-family: 'Manrope', sans-serif;
             font-weight: 800;
             font-size: 1.4rem;
             line-height: 1.15;
         }
+
         .fila-dato {
             display: flex;
             justify-content: space-between;
             gap: 10px;
             padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,.12);
+            border-bottom: 1px solid rgba(255, 255, 255, .12);
             font-size: 0.9rem;
         }
-        .fila-dato:last-of-type { border-bottom: none; }
+
+        .fila-dato:last-of-type {
+            border-bottom: none;
+        }
+
         .fila-dato .etiqueta {
-            color: rgba(255,255,255,.6);
+            color: rgba(255, 255, 255, .6);
             display: flex;
             align-items: center;
             gap: 6px;
         }
-        .fila-dato .valor { font-weight: 600; text-align: right; }
+
+        .fila-dato .valor {
+            font-weight: 600;
+            text-align: right;
+        }
 
         .total-box {
-            background: rgba(255,255,255,.08);
-            border: 1px solid rgba(255,255,255,.15);
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .15);
             border-radius: 12px;
             padding: 14px 16px;
             margin-top: 18px;
         }
+
         .total-box .label {
             font-size: 0.72rem;
             text-transform: uppercase;
             letter-spacing: .08em;
-            color: rgba(255,255,255,.6);
+            color: rgba(255, 255, 255, .6);
         }
+
         .total-box .monto {
             font-family: 'Manrope', sans-serif;
             font-weight: 800;
@@ -104,7 +131,7 @@
             color: var(--green);
         }
 
-        /* ── PANEL DERECHO (formularios) ── */
+        /* ── PANEL DERECHO ── */
         .panel-formulario {
             background: #fff;
             border-radius: 18px;
@@ -122,7 +149,10 @@
             gap: 8px;
             margin-bottom: 14px;
         }
-        .seccion-titulo i { color: var(--green-deep); }
+
+        .seccion-titulo i {
+            color: var(--green-deep);
+        }
 
         .opciones-monto {
             display: grid;
@@ -130,20 +160,27 @@
             gap: 12px;
             margin-bottom: 8px;
         }
+
         .opcion-pago {
             border: 2px solid var(--line);
             border-radius: 14px;
             padding: 16px;
             cursor: pointer;
-            transition: border-color .15s ease, background-color .15s ease, transform .1s ease;
+            transition: border-color .15s ease, background-color .15s ease;
         }
-        .opcion-pago:hover { border-color: #c9cfe6; transform: translateY(-1px); }
+
+        .opcion-pago:hover {
+            border-color: #c9cfe6;
+        }
+
         .opcion-pago.seleccionada {
             border-color: var(--navy);
-            background: linear-gradient(180deg, rgba(98,255,0,.08), rgba(3,4,94,.03));
+            background: linear-gradient(180deg, rgba(98, 255, 0, .08), rgba(3, 4, 94, .03));
         }
+
         .opcion-pago .check-dot {
-            width: 18px; height: 18px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             border: 2px solid #c9cfe6;
             display: inline-flex;
@@ -151,18 +188,31 @@
             justify-content: center;
             flex-shrink: 0;
         }
+
         .opcion-pago.seleccionada .check-dot {
             border-color: var(--navy);
             background: var(--navy);
         }
+
         .opcion-pago.seleccionada .check-dot::after {
             content: '';
-            width: 8px; height: 8px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: var(--green);
         }
-        .opcion-pago .titulo-opcion { font-weight: 700; font-size: 0.92rem; color: #1c1e2b; }
-        .opcion-pago .sub-opcion { font-size: 0.76rem; color: var(--text-muted); }
+
+        .opcion-pago .titulo-opcion {
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: #1c1e2b;
+        }
+
+        .opcion-pago .sub-opcion {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+        }
+
         .opcion-pago .monto-opcion {
             font-family: 'Manrope', sans-serif;
             font-weight: 800;
@@ -183,53 +233,60 @@
             align-items: flex-start;
         }
 
-        .metodo-tabs {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 18px;
-        }
-        .metodo-tab {
-            border: 1.5px solid var(--line);
-            border-radius: 10px;
-            padding: 10px 6px;
-            text-align: center;
-            cursor: pointer;
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            transition: all .15s ease;
-        }
-        .metodo-tab i { display: block; font-size: 1.15rem; margin-bottom: 4px; color: inherit; }
-        .metodo-tab:hover { border-color: #c9cfe6; }
-        .metodo-tab.activo { border-color: var(--navy); background: var(--navy); color: #fff; }
-        .metodo-tab.activo i { color: var(--green); }
-
-        .campos-metodo {
-            background: #f8f9fd;
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 18px;
-        }
-
-        .btn-pago {
-            background-color: var(--green);
-            color: var(--navy);
+        /* ── BOTÓN MERCADO PAGO ── */
+        .btn-mercadopago {
+            background: linear-gradient(135deg, #00aaff 0%, #0090dd 100%);
+            color: #fff;
             border: none;
             font-weight: 700;
+            font-size: 1.1rem;
+            padding: 14px 24px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-mercadopago:hover {
+            background: linear-gradient(135deg, #0099ee 0%, #0080cc 100%);
+            color: #fff;
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(0, 170, 255, 0.3);
+        }
+
+        .btn-mercadopago:disabled {
+            background: #a0ccee;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-mercadopago i {
+            font-size: 1.3rem;
+        }
+
+        .badge-mp {
+            background: #00aaff;
+            color: #fff;
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .factura-btn {
             transition: all 0.2s ease;
         }
-        .btn-pago:hover { background-color: var(--green-deep); color: var(--navy); transform: scale(1.01); }
-        .btn-pago:disabled { background-color: #cfe9bd; cursor: not-allowed; transform: none; }
-        .factura-btn { transition: all 0.2s ease; }
-        .factura-btn:hover { transform: scale(1.02); }
 
-        .oculto { display: none; }
-        .form-label { font-size: 0.82rem; font-weight: 600; color: #414356; }
-        .form-control, .form-select { border-color: var(--line); }
-        .form-control:focus, .form-select:focus {
-            border-color: var(--navy);
-            box-shadow: 0 0 0 3px rgba(3,4,94,.08);
+        .factura-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .oculto {
+            display: none;
         }
     </style>
 </head>
@@ -240,7 +297,8 @@
             <div class="d-flex align-items-center ms-4">
                 <img src="{% static 'img/logo-green.png' %}" style="height:70px;object-fit:contain;"
                     alt="Logo CanchaFácil">
-                <a class="navbar-brand fw-bold ms-2 m-0" href="#" style="font-size:1.6rem;color:#fff;font-family:'Manrope',sans-serif;">
+                <a class="navbar-brand fw-bold ms-2 m-0" href="#"
+                    style="font-size:1.6rem;color:#fff;font-family:'Manrope',sans-serif;">
                     Cancha<span style="color:#62ff00;">Fácil</span>
                 </a>
             </div>
@@ -249,6 +307,20 @@
 
     <div class="container pago-shell my-5">
         {% if reserva %}
+
+        <!-- ✅ Si la reserva ya está confirmada, mostrar mensaje y factura -->
+        {% if reserva.estado == 'confirmada' %}
+        <div class="alert alert-success text-center">
+            <i class="bi bi-check-circle-fill fs-3"></i>
+            <h4>¡Pago confirmado!</h4>
+            <p>Tu reserva ya está pagada. Disfruta tu partido.</p>
+            <a href="{% url 'inicio' %}" class="btn btn-primary">Volver al inicio</a>
+            <a href="{% url 'pagos:descargar_factura' reserva.id %}" class="btn btn-success" target="_blank">
+                <i class="bi bi-file-pdf me-2"></i>Descargar Factura
+            </a>
+        </div>
+        {% else %}
+
         <div class="paso-eyebrow mb-2"><i class="bi bi-lock-fill me-1"></i>Pago seguro</div>
         <h2 class="mb-4" style="color:var(--navy); font-weight:800;">Confirma y paga tu reserva</h2>
 
@@ -268,8 +340,8 @@
                         <span class="valor">{{ reserva.fecha|date:"d/m/Y" }}</span>
                     </div>
                     <div class="fila-dato">
-                        <span class="etiqueta"><i class="bi bi-clock"></i> Hora</span>
-                        <span class="valor">{{ reserva.hora|time:"h:i A" }}</span>
+                        <span class="etiqueta"><i class="bi bi-clock"></i> Hora(s)</span>
+                        <span class="valor">{{ reserva.get_horas|join:", " }}</span>
                     </div>
                     <div class="fila-dato">
                         <span class="etiqueta"><i class="bi bi-hourglass-split"></i> Duración</span>
@@ -277,7 +349,7 @@
                     </div>
                     <div class="fila-dato">
                         <span class="etiqueta"><i class="bi bi-cash-stack"></i> Valor total</span>
-                        <span class="valor">${{ reserva.calcular_total|floatformat:"0" }}</span>
+                        <span class="valor" id="valorTotalReserva">${{ total|floatformat:"0" }}</span>
                     </div>
                 </div>
 
@@ -287,10 +359,10 @@
                 </div>
             </div>
 
-            <!-- ── COLUMNA DERECHA: FORMULARIO ── -->
+            <!-- ── COLUMNA DERECHA: FORMULARIO DE PAGO ── -->
             <div class="panel-formulario">
 
-                <!-- Paso 1: tipo de pago -->
+                <!-- Paso 1: tipo de pago (Completo / Abono 50%) -->
                 <div class="seccion-titulo"><i class="bi bi-1-circle-fill"></i>¿Cómo deseas pagar?</div>
                 <div class="opciones-monto">
                     <div class="opcion-pago seleccionada" id="opcionCompleto" onclick="seleccionarTipoPago('completo')">
@@ -316,82 +388,53 @@
                 </div>
                 <div class="aviso-saldo mb-4" id="avisoSaldoPendiente" style="display:none;">
                     <i class="bi bi-info-circle-fill mt-1"></i>
-                    <div>Deberás cancelar el saldo restante de <strong><span id="saldoRestanteTexto">$0</span></strong> directamente en la cancha antes de jugar.</div>
+                    <div>Deberás cancelar el saldo restante de <strong><span id="saldoRestanteTexto">$0</span></strong>
+                        directamente en la cancha antes de jugar.</div>
                 </div>
 
-                <!-- Paso 2: método de pago -->
+                <!-- Paso 2: Método de pago (solo Mercado Pago) -->
                 <div class="seccion-titulo"><i class="bi bi-2-circle-fill"></i>Método de pago</div>
-                <form id="formPago">
+
+                <div class="text-center py-3">
+                    <div class="d-flex align-items-center justify-content-center gap-3 mb-2">
+                        <img src="https://www.mercadopago.com/org-img/MP3/home/logomp3.svg" alt="Mercado Pago"
+                            style="height:40px;">
+                        <span class="badge-mp">Pago seguro</span>
+                    </div>
+                    <p class="text-muted small">Paga con tarjeta de crédito, débito, PSE, Nequi o efectivo a través de
+                        Mercado Pago.</p>
+                </div>
+
+                <form action="{% url 'crear_preferencia_mercadopago' reserva.id %}" method="POST">
                     {% csrf_token %}
-                    <input type="hidden" id="metodoPago" value="Tarjeta">
+                    <input type="hidden" name="tipo_pago" id="tipoPagoInput" value="completo">
+                    <input type="hidden" name="monto_a_pagar" id="montoAPagarInput" value="{{ total|floatformat:"0" }}">
 
-                    <div class="metodo-tabs">
-                        <div class="metodo-tab activo" data-metodo="Tarjeta" onclick="elegirMetodo('Tarjeta')">
-                            <i class="bi bi-credit-card"></i>Tarjeta
-                        </div>
-                        <div class="metodo-tab" data-metodo="PSE" onclick="elegirMetodo('PSE')">
-                            <i class="bi bi-bank"></i>PSE
-                        </div>
-                        <div class="metodo-tab" data-metodo="Nequi" onclick="elegirMetodo('Nequi')">
-                            <i class="bi bi-phone"></i>Nequi
-                        </div>
-                        <div class="metodo-tab" data-metodo="Efectivo" onclick="elegirMetodo('Efectivo')">
-                            <i class="bi bi-cash"></i>Efectivo
-                        </div>
+                    <!-- Mostrar el monto que se va a cobrar -->
+                    <div class="alert alert-info text-center py-2 mb-3">
+                        <small class="text-muted">Monto a cobrar:</small>
+                        <strong id="montoACobrarMP" style="font-size:1.2rem;">$0</strong>
                     </div>
 
-                    <div id="camposTarjeta" class="campos-metodo mb-3">
-                        <div class="row g-2">
-                            <div class="col-12">
-                                <label class="form-label">Número de tarjeta</label>
-                                <input type="text" class="form-control" id="tarjetaNumero" maxlength="19" placeholder="0000 0000 0000 0000">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">Nombre del titular</label>
-                                <input type="text" class="form-control" id="tarjetaNombre" placeholder="Nombre como aparece en la tarjeta">
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label">Vencimiento</label>
-                                <input type="text" class="form-control" id="tarjetaVencimiento" maxlength="5" placeholder="MM/AA">
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label">CVV</label>
-                                <input type="text" class="form-control" id="tarjetaCVV" maxlength="4" placeholder="123">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">Correo para enviar la factura</label>
-                                <input type="email" class="form-control" id="tarjetaCorreo" placeholder="correo@ejemplo.com">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="camposPSE" class="campos-metodo mb-3 oculto">
-                        <label class="form-label">Selecciona tu banco</label>
-                        <select class="form-select" id="pseBanco">
-                            <option value="Bancolombia">Bancolombia</option>
-                            <option value="Davivienda">Davivienda</option>
-                            <option value="BBVA">BBVA</option>
-                            <option value="Banco de Bogotá">Banco de Bogotá</option>
-                            <option value="Nequi">Nequi</option>
-                        </select>
-                        <small class="text-muted d-block mt-2">Serás redirigido (simulado) a tu banco para autorizar el pago.</small>
-                    </div>
-
-                    <div id="camposEfectivo" class="mb-3 oculto">
-                        <div class="alert alert-info mb-0 small">
-                            <i class="bi bi-info-circle-fill me-2"></i>
-                            Con esta opción el pago se realiza directamente en el establecimiento al momento de tu reserva.
-                        </div>
-                    </div>
-
-                    <button type="button" id="btnConfirmarPago" class="btn btn-pago w-100 py-2 mt-1">
-                        <i class="bi bi-shield-check me-2"></i>Confirmar pago
+                    <button type="submit" class="btn-mercadopago" id="btnPagarMP">
+                        <i class="bi bi-credit-card"></i>
+                        <span id="btnTextoMP">Pagar con Mercado Pago</span>
                     </button>
                 </form>
 
+                <div class="mt-3 text-center">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-lock me-1"></i>
+                        Pago 100% seguro. No guardamos datos de tu tarjeta.
+                    </small>
+                </div>
+
+                <!-- Mensajes de resultado -->
                 <div id="resultadoPago" class="mt-3"></div>
             </div>
         </div>
+
+        {% endif %}
 
         {% else %}
         <div class="alert alert-warning">
@@ -405,8 +448,9 @@
 
     <script>
         {% if reserva %}
-        const TOTAL_RESERVA = {{ reserva.calcular_total|default:0 }};
-        const MONTO_ABONO_50 = {{ reserva.calcular_abono_50|default:0 }};
+        // Obtener el total de la reserva
+        const TOTAL_RESERVA = {{ total|default:0 }};
+        const MONTO_ABONO_50 = TOTAL_RESERVA / 2;
         let tipoPagoSeleccionado = 'completo';
 
         function formatoMoneda(n) {
@@ -414,199 +458,51 @@
         }
 
         function pintarMontosPago() {
+            const montoActual = (tipoPagoSeleccionado === 'abono') ? MONTO_ABONO_50 : TOTAL_RESERVA;
+            
+            // Actualizar resumen
+            document.getElementById('montoAPagarAhora').textContent = formatoMoneda(montoActual);
             document.getElementById('montoCompletoTexto').textContent = formatoMoneda(TOTAL_RESERVA);
             document.getElementById('montoAbonoTexto').textContent = formatoMoneda(MONTO_ABONO_50);
-            document.getElementById('saldoRestanteTexto').textContent = formatoMoneda(TOTAL_RESERVA - MONTO_ABONO_50);
+            
+            // Actualizar campo oculto con el monto a pagar
+            document.getElementById('montoAPagarInput').value = montoActual;
+            
+            // Actualizar el monto que se muestra
+            const montoMP = document.getElementById('montoACobrarMP');
+            if (montoMP) {
+                montoMP.textContent = formatoMoneda(montoActual);
+            }
+            
+            // Actualizar texto del botón
+            const btnTexto = document.getElementById('btnTextoMP');
+            if (btnTexto) {
+                btnTexto.textContent = `Pagar ${formatoMoneda(montoActual)} con Mercado Pago`;
+            }
         }
 
         function seleccionarTipoPago(tipo) {
             tipoPagoSeleccionado = tipo;
             document.getElementById('opcionCompleto').classList.toggle('seleccionada', tipo === 'completo');
             document.getElementById('opcionAbono').classList.toggle('seleccionada', tipo === 'abono');
-            document.getElementById('avisoSaldoPendiente').style.display = (tipo === 'abono') ? 'flex' : 'none';
-
-            const montoAhora = (tipo === 'abono') ? MONTO_ABONO_50 : TOTAL_RESERVA;
-            document.getElementById('montoAPagarAhora').textContent = formatoMoneda(montoAhora);
+            document.getElementById('tipoPagoInput').value = tipo;
+            
+            const avisoSaldo = document.getElementById('avisoSaldoPendiente');
+            if (tipo === 'abono') {
+                avisoSaldo.style.display = 'flex';
+                document.getElementById('saldoRestanteTexto').textContent = formatoMoneda(TOTAL_RESERVA - MONTO_ABONO_50);
+            } else {
+                avisoSaldo.style.display = 'none';
+            }
+            
+            pintarMontosPago();
         }
 
+        // Inicializar
         pintarMontosPago();
         seleccionarTipoPago('completo');
         {% endif %}
-
-        const camposTarjeta = document.getElementById("camposTarjeta");
-        const camposPSE = document.getElementById("camposPSE");
-        const camposEfectivo = document.getElementById("camposEfectivo");
-
-        function elegirMetodo(metodo) {
-            document.getElementById("metodoPago").value = metodo;
-
-            document.querySelectorAll(".metodo-tab").forEach(t => {
-                t.classList.toggle("activo", t.dataset.metodo === metodo);
-            });
-
-            camposTarjeta.classList.add("oculto");
-            camposPSE.classList.add("oculto");
-            camposEfectivo.classList.add("oculto");
-
-            if (metodo === "Tarjeta") {
-                camposTarjeta.classList.remove("oculto");
-            } else if (metodo === "PSE" || metodo === "Nequi") {
-                camposPSE.classList.remove("oculto");
-            } else if (metodo === "Efectivo") {
-                camposEfectivo.classList.remove("oculto");
-            }
-        }
-
-        document.getElementById("btnConfirmarPago")?.addEventListener("click", function() {
-            const btn = this;
-            const metodo = document.getElementById("metodoPago").value;
-            const csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-            const divResultado = document.getElementById("resultadoPago");
-
-            if (metodo === "Tarjeta") {
-                const numero = document.getElementById("tarjetaNumero").value.trim();
-                const nombre = document.getElementById("tarjetaNombre").value.trim();
-                const vencimiento = document.getElementById("tarjetaVencimiento").value.trim();
-                const cvv = document.getElementById("tarjetaCVV").value.trim();
-                const correo = document.getElementById("tarjetaCorreo").value.trim();
-
-                if (!numero || !nombre || !vencimiento || !cvv || !correo) {
-                    divResultado.innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            Completa todos los datos de la tarjeta antes de confirmar el pago.
-                        </div>
-                    `;
-                    return;
-                }
-            }
-
-            btn.disabled = true;
-            if (metodo === "Efectivo") {
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Confirmando reserva...';
-            } else if (metodo === "PSE" || metodo === "Nequi") {
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Conectando con tu banco...';
-            } else {
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando pago...';
-            }
-
-            fetch("{% url 'confirmar_pago' %}", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": csrftoken,
-                    },
-                    body: JSON.stringify({
-                        metodo_pago: metodo,
-                        reserva_id: {{ reserva.id }},
-                        tipo_pago: tipoPagoSeleccionado,
-                    }),
-                })
-                .then((res) => res.json())
-                .then((data) => {
-                    if (data.status === "ok") {
-                        let bloqueAbono = '';
-                        if (data.tipo_pago === 'abono') {
-                            bloqueAbono = `
-                                <div class="alert alert-warning">
-                                    <i class="bi bi-exclamation-circle-fill me-2"></i>
-                                    Abonaste $${Number(data.monto_pagado).toLocaleString('es-CO')}.
-                                    Recuerda pagar el saldo restante de
-                                    $${Number(data.saldo_pendiente).toLocaleString('es-CO')} en la cancha.
-                                </div>
-                            `;
-                        }
-
-                        if (metodo === "Efectivo") {
-                            divResultado.innerHTML = `
-                            <div class="alert alert-success">
-                                <i class="bi bi-check-circle-fill me-2"></i>
-                                <strong>✅ ${data.mensaje}</strong>
-                            </div>
-                            ${bloqueAbono}
-                            <div class="d-grid gap-2">
-                                <a href="{% url 'pagos:descargar_factura' reserva.id %}" 
-                                   class="btn btn-success btn-lg factura-btn" 
-                                   target="_blank">
-                                    <i class="bi bi-file-pdf me-2"></i>Descargar Factura
-                                </a>
-                                <a href="{% url 'inicio' %}" class="btn btn-outline-secondary">
-                                    <i class="bi bi-house me-2"></i>Volver al inicio
-                                </a>
-                            </div>
-                        `;
-                        } else if (metodo === "Tarjeta") {
-                            const correo = document.getElementById("tarjetaCorreo").value.trim();
-                            divResultado.innerHTML = `
-                                <div class="alert alert-success">
-                                    <i class="bi bi-check-circle-fill me-2"></i>
-                                    <strong>✅ ${data.mensaje}</strong>
-                                </div>
-                                ${bloqueAbono}
-                                <div class="alert alert-info">
-                                    <i class="bi bi-envelope-check-fill me-2"></i>
-                                    Enviamos la factura a <strong>${correo}</strong>.
-                                </div>
-                                <div class="d-grid gap-2">
-                                    <a id="linkFactura" href="{% url 'pagos:descargar_factura' reserva.id %}" 
-                                       class="btn btn-success btn-lg factura-btn" 
-                                       target="_blank">
-                                        <i class="bi bi-file-pdf me-2"></i>Descargar Factura
-                                    </a>
-                                    <a href="{% url 'inicio' %}" class="btn btn-outline-secondary">
-                                        <i class="bi bi-house me-2"></i>Volver al inicio
-                                    </a>
-                                </div>
-                            `;
-                            document.getElementById("linkFactura")?.click();
-                        } else {
-                            divResultado.innerHTML = `
-                                <div class="alert alert-success">
-                                    <i class="bi bi-check-circle-fill me-2"></i>
-                                    <strong>✅ ${data.mensaje}</strong>
-                                </div>
-                                ${bloqueAbono}
-                                <div class="d-grid gap-2">
-                                    <a href="{% url 'pagos:descargar_factura' reserva.id %}" 
-                                       class="btn btn-success btn-lg factura-btn" 
-                                       target="_blank">
-                                        <i class="bi bi-file-pdf me-2"></i>Descargar Factura
-                                    </a>
-                                    <a href="{% url 'inicio' %}" class="btn btn-outline-secondary">
-                                        <i class="bi bi-house me-2"></i>Volver al inicio
-                                    </a>
-                                </div>
-                            `;
-                        }
-                        document.getElementById("formPago").style.display = "none";
-                    } else {
-                        divResultado.innerHTML = `
-                            <div class="alert alert-danger">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                ❌ ${data.mensaje}
-                            </div>
-                            <button class="btn btn-outline-secondary btn-sm" onclick="location.reload()">
-                                <i class="bi bi-arrow-repeat me-2"></i>Reintentar
-                            </button>
-                        `;
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="bi bi-shield-check me-2"></i>Confirmar pago';
-                    }
-                })
-                .catch((err) => {
-                    divResultado.innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            Error al procesar el pago. Intenta de nuevo.
-                        </div>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="location.reload()">
-                            <i class="bi bi-arrow-repeat me-2"></i>Reintentar
-                        </button>
-                    `;
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-shield-check me-2"></i>Confirmar pago';
-                });
-        });
     </script>
 </body>
+
 </html>

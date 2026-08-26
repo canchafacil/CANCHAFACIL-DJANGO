@@ -5,5 +5,6 @@ from . import views
 app_name = 'pagos'
 
 urlpatterns = [
+    path('pago/', views.vista_pago, name='pago'),
     path('factura/<int:reserva_id>/', views.descargar_factura, name='descargar_factura'),
 ]
