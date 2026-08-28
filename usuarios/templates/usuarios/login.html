@@ -16,8 +16,14 @@
         <img src="{% static 'img/logo-green.png' %}" alt="Logo de CanchaFácil" class="mb-3 img-fluid" width="90" height="90">
         
         <h1 class="h3 mb-4 fw-bold text-white">Iniciar sesión</h1> 
-        
-        <form method="POST" action="{% url 'login_admin' %}">
+
+        {% if error %}
+        <div id="loginAlert" class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'login' %}">
             {% csrf_token %}
 
             <div class="mb-3 text-start">

@@ -47,7 +47,60 @@ def registro(request):
     return render(request, 'usuarios/registro.html')
 
 def login_view(request):
-    """Renderiza la pantalla de inicio de sesión."""
+
+    if request.method == 'POST':
+
+        email = request.POST.get('email', '').strip().lower()
+        password = request.POST.get('password', '')
+
+        # Buscar el usuario sin importar mayúsculas/minúsculas en el correo
+        usuario = Usuario.objects.filter(email__iexact=email).first()
+
+        # Si no existe el correo
+        if usuario is None:
+            return render(
+                request,
+                'usuarios/login.html',
+                {
+                    'error': 'El correo no está registrado.'
+                }
+            )
+
+        # Comprobar contraseña
+        if usuario.password != password:
+            return render(
+                request,
+                'usuarios/login.html',
+                {
+                    'error': 'La contraseña es incorrecta.'
+                }
+            )
+
+        # Comprobar si está activo
+        if not usuario.activo:
+            return render(
+                request,
+                'usuarios/login.html',
+                {
+                    'error': 'Tu cuenta está deshabilitada. Contacta con el Superadministrador.'
+                }
+            )
+
+        # Crear sesión
+        request.session['usuario_id'] = usuario.id
+        request.session['rol'] = usuario.rol
+        request.session['nombre'] = usuario.first_name
+        request.session['correo'] = usuario.email
+
+        # Redirección según rol
+        if usuario.rol == 'SUPERADMIN':
+            return redirect('lista_usuarios')
+
+        elif usuario.rol == 'ADMIN':
+            return redirect('panel_principal')
+
+        else:
+            return redirect('inicio')
     return render(request, 'usuarios/login.html')
 
 def recuperar_contra(request):
@@ -152,6 +205,7 @@ def cambiar_contra(request):
         request,
         'usuarios/cambiar_contra.html'
     )
+
 def login_admin(request):
 
     if request.method == 'POST':
