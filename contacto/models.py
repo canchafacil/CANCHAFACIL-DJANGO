@@ -23,8 +23,6 @@ class Resena(models.Model):
     archivada = models.BooleanField(default=False)
     fecha     = models.DateTimeField(auto_now_add=True)
 
-    # Nuevo: vínculo directo a la reserva que originó la reseña.
-    # null=True porque puede haber reseñas legacy sin reserva asociada.
     reserva = models.OneToOneField(
         Reserva,
         on_delete=models.SET_NULL,
@@ -35,3 +33,24 @@ class Resena(models.Model):
 
     def __str__(self):
         return f'{self.nombre} - {self.cancha} ({self.estrellas}★)'
+
+
+class MensajeContacto(models.Model):
+    """
+    Mensajes enviados desde el formulario público de Contáctanos.
+    Solo lectura desde el panel admin, salvo el campo 'respondido'.
+    """
+    nombre    = models.CharField(max_length=100)
+    apellido  = models.CharField(max_length=100, blank=True)
+    correo    = models.EmailField()
+    telefono  = models.CharField(max_length=20, blank=True)
+    asunto    = models.CharField(max_length=100)
+    mensaje   = models.TextField()
+    fecha     = models.DateTimeField(auto_now_add=True)
+    respondido = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f'{self.nombre} {self.apellido} - {self.asunto}'

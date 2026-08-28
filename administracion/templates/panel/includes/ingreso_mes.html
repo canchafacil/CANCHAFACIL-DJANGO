@@ -1,55 +1,96 @@
 <div class="tab-pane fade show active" id="sec-ingreso-mes" role="tabpanel">
     <div class="container p-0">
         <h1 class="text-white mb-4 fw-bold text-center text-md-start">Ingresos del Mes</h1>
-        <div class="row g-4">
-            <div class="col-12 col-lg-8 d-flex flex-column gap-3">
 
-                <div class="tarjeta-reserva p-4 shadow-sm rounded-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h3 class="text-white m-0 fw-bold fs-4">Esteban Diaz</h3>
-                        <span class="badge text-bg-verde px-3 py-2 rounded-pill fw-bold">Activa</span>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-12 col-sm-4"><span class="text-white-50 small d-block">Fecha de reserva</span><strong class="text-white">23 de Septiembre</strong></div>
-                        <div class="col-6 col-sm-4"><span class="text-white-50 small d-block">Hora</span><strong class="text-white">1:30 PM</strong></div>
-                        <div class="col-6 col-sm-4"><span class="text-white-50 small d-block">Tiempo de reserva</span><strong class="text-white">2 Horas</strong></div>
-                    </div>
-                </div>
-
-                <div class="tarjeta-reserva p-4 shadow-sm rounded-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h3 class="text-white m-0 fw-bold fs-4">Juan Romero</h3>
-                        <span class="badge text-bg-verde px-3 py-2 rounded-pill fw-bold">Activa</span>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-12 col-sm-4"><span class="text-white-50 small d-block">Fecha de reserva</span><strong class="text-white">23 de Septiembre</strong></div>
-                        <div class="col-6 col-sm-4"><span class="text-white-50 small d-block">Hora</span><strong class="text-white">3:30 PM</strong></div>
-                        <div class="col-6 col-sm-4"><span class="text-white-50 small d-block">Tiempo de reserva</span><strong class="text-white">1 Hora</strong></div>
-                    </div>
-                </div>
-
-                <div class="tarjeta-reserva p-4 shadow-sm rounded-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h3 class="text-white m-0 fw-bold fs-4">Daniel Muñoz</h3>
-                        <span class="badge text-bg-verde px-3 py-2 rounded-pill fw-bold">Activa</span>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-12 col-sm-4"><span class="text-white-50 small d-block">Fecha de reserva</span><strong class="text-white">23 de Septiembre</strong></div>
-                        <div class="col-6 col-sm-4"><span class="text-white-50 small d-block">Hora</span><strong class="text-white">4:30 PM</strong></div>
-                        <div class="col-6 col-sm-4"><span class="text-white-50 small d-block">Tiempo de reserva</span><strong class="text-white">2 Horas</strong></div>
-                    </div>
-                </div>
-
-            </div>
-            <div class="col-12 col-lg-4">
-                <div class="panel-lateral p-4 rounded-4 shadow-sm text-center">
+        <div class="row g-4 mb-4">
+            <div class="col-12 col-lg-5">
+                <div class="panel-lateral p-4 rounded-4 shadow-sm text-center h-100">
                     <h4 class="text-white mb-3 fw-bold">Panel Contable</h4>
-                    <p class="text-white-50 small mb-4">Verifica el balance total de las reservas registradas y los cierres de caja en tiempo real.</p>
-                    <a href="{% url 'ingresos' %}" class="btn btn-panel-action w-100 py-3 rounded-3 fw-bold">
+                    <p class="text-white-50 small mb-3">Distribución real de reservas por estado.</p>
+
+                    <div style="position:relative; height:280px; width:100%;">
+                        <canvas id="graficaEstados"></canvas>
+                    </div>
+
+                    <button type="button"
+                            class="btn btn-panel-action w-100 py-3 rounded-3 fw-bold mt-4"
+                            onclick="document.getElementById('ingresos-tab').click()">
                         Ver Reporte de Ingresos
-                    </a>
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="p-3 rounded-4 h-100 d-flex flex-column justify-content-center" style="background:#1a1a1a;">
+                            <span class="text-white-50 small">Confirmadas</span>
+                            <h2 class="m-0 fw-bold" style="color:#62ff00;">{{ total_confirmadas }}</h2>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-4 h-100 d-flex flex-column justify-content-center" style="background:#1a1a1a;">
+                            <span class="text-white-50 small">Pendientes</span>
+                            <h2 class="m-0 fw-bold text-warning">{{ total_pendientes }}</h2>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-4 h-100 d-flex flex-column justify-content-center" style="background:#1a1a1a;">
+                            <span class="text-white-50 small">Completadas</span>
+                            <h2 class="m-0 fw-bold text-info">{{ total_completadas }}</h2>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-4 h-100 d-flex flex-column justify-content-center" style="background:#1a1a1a;">
+                            <span class="text-white-50 small">Canceladas</span>
+                            <h2 class="m-0 fw-bold text-danger">{{ total_canceladas }}</h2>
+                        </div>
+                    </div>
+
+                    <!-- Cancha más reservada y cliente más frecuente -->
+                    <div class="col-6">
+                        <div class="p-3 rounded-4 h-100 d-flex flex-column justify-content-center" style="background:#1a1a1a;border:1px solid #62ff0033;">
+                            <span class="text-white-50 small"><i class="bi bi-trophy-fill me-1" style="color:#62ff00;"></i>Cancha más reservada</span>
+                            <h4 class="m-0 fw-bold text-white">{{ cancha_top_nombre }}</h4>
+                            <span class="text-white-50" style="font-size:0.75rem;">{{ cancha_top_total }} reserva{{ cancha_top_total|pluralize }}</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-4 h-100 d-flex flex-column justify-content-center" style="background:#1a1a1a;border:1px solid #62ff0033;">
+                            <span class="text-white-50 small"><i class="bi bi-star-fill me-1" style="color:#62ff00;"></i>Cliente frecuente</span>
+                            <h4 class="m-0 fw-bold text-white">{{ cliente_top_nombre }}</h4>
+                            <span class="text-white-50" style="font-size:0.75rem;">{{ cliente_top_total }} reserva{{ cliente_top_total|pluralize }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <div class="row g-4">
+            <div class="col-12">
+                {% for r in reservas_activas %}
+                <div class="tarjeta-reserva p-4 shadow-sm rounded-4 mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="text-white m-0 fw-bold fs-4">{{ r.nombre }}</h3>
+                        <span class="badge text-bg-verde px-3 py-2 rounded-pill fw-bold">Activa</span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-4"><span class="text-white-50 small d-block">Fecha de reserva</span><strong class="text-white">{{ r.fecha|date:"d \d\e F" }}</strong></div>
+                        <div class="col-6 col-sm-4"><span class="text-white-50 small d-block">Hora</span><strong class="text-white">{{ r.hora|time:"g:i A" }}</strong></div>
+                        <div class="col-6 col-sm-4"><span class="text-white-50 small d-block">Tiempo de reserva</span><strong class="text-white">{{ r.duracion }}</strong></div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="tarjeta-reserva p-4 shadow-sm rounded-4 text-center">
+                    <p class="text-white-50 m-0">No hay reservas activas próximas.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {{ total_confirmadas|json_script:"data-confirmadas" }}
+        {{ total_pendientes|json_script:"data-pendientes" }}
+        {{ total_completadas|json_script:"data-completadas" }}
+        {{ total_canceladas|json_script:"data-canceladas" }}
     </div>
 </div>

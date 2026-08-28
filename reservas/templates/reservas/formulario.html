@@ -21,6 +21,20 @@
             cursor: not-allowed !important;
             opacity: 0.9;
         }
+
+        /* Bloqueo visual de los pasos 1 y 2 cuando el usuario no ha iniciado sesión */
+        .paso-bloqueado {
+            pointer-events: none;
+            opacity: 0.5;
+            position: relative;
+        }
+        .paso-bloqueado::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: transparent;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 
@@ -98,6 +112,13 @@
             </div>
         </section>
 
+        {% if not request.session.usuario_id %}
+        <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2 shadow-sm" id="alertaLoginTop">
+            <span><i class="bi bi-exclamation-triangle me-2"></i>Debes iniciar sesión para poder reservar una cancha.</span>
+            <a href="{% url 'login' %}" class="btn btn-sm text-white" style="background-color: #03045e;">Iniciar sesión</a>
+        </div>
+        {% endif %}
+
         <div class="row g-4" id="seccionReserva">
 
             <!-- RESUMEN -->
@@ -142,8 +163,9 @@
                             class="btn btn-lg w-100 py-3 fw-bold text-uppercase shadow-sm"
                             style="background-color:#62ff00;color:#03045e;border-radius:8px;"
                             onclick="confirmarReserva()"
-                            {% if tiene_reserva_activa %}disabled{% endif %}>
-                            <i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar
+                            {% if not request.session.usuario_id or tiene_reserva_activa %}disabled{% endif %}>
+                            <i class="bi bi-credit-card me-2"></i>
+                            {% if not request.session.usuario_id %}Inicia Sesión para Reservar{% else %}Confirmar e Ir a Pagar{% endif %}
                         </button>
                         <div class="text-center mt-2">
                             <small class="text-white-50" style="font-size:0.72rem;">
@@ -158,7 +180,7 @@
             <div class="col-12 col-lg-8 order-2 order-lg-1">
 
                 <!-- PASO 1: Canchas -->
-                <div class="card p-4 shadow-sm bg-white mb-4">
+                <div class="card p-4 shadow-sm bg-white mb-4 {% if not request.session.usuario_id %}paso-bloqueado{% endif %}">
                     <h5 class="text-uppercase fw-bold mb-3" style="color:#03045e;">
                         <i class="bi bi-dribbble me-2" style="color:#62ff00;"></i>1. Selecciona la Cancha
                     </h5>
@@ -168,7 +190,7 @@
                 </div>
 
                 <!-- PASO 2: Fecha y horarios -->
-                <div class="card p-4 shadow-sm bg-white mb-4">
+                <div class="card p-4 shadow-sm bg-white mb-4 {% if not request.session.usuario_id %}paso-bloqueado{% endif %}">
                     <h5 class="text-uppercase fw-bold mb-3" style="color:#03045e;">
                         <i class="bi bi-calendar3 me-2" style="color:#62ff00;"></i>2. Agenda tu Encuentro
                     </h5>
@@ -439,7 +461,8 @@
                 </div>
             `).join('');
 
-            if (PRESELECCIONAR_ID) {
+            // Solo preseleccionar cancha desde la URL si el usuario ya inició sesión
+            if (PRESELECCIONAR_ID && LOGUEADO) {
                 const idx = CANCHAS_DATA.findIndex(c => c.id === PRESELECCIONAR_ID);
                 if (idx !== -1) {
                     seleccionarCancha(idx);
@@ -449,6 +472,11 @@
         }
 
         function seleccionarCancha(i) {
+            // Bloqueo: no se puede elegir cancha sin haber iniciado sesión
+            if (!LOGUEADO) {
+                mostrarModal('Inicia sesión', 'Debes iniciar sesión para poder reservar una cancha.');
+                return;
+            }
             canchaSeleccionada = CANCHAS_DATA[i];
             document.querySelectorAll('.cancha-card').forEach(el => el.classList.remove('seleccionada'));
             document.getElementById(`cancha-${i}`).classList.add('seleccionada');
@@ -500,6 +528,11 @@
         }
 
         function seleccionarHora(h) {
+            // Bloqueo: no se puede elegir hora sin haber iniciado sesión
+            if (!LOGUEADO) {
+                mostrarModal('Inicia sesión', 'Debes iniciar sesión para poder reservar una cancha.');
+                return;
+            }
             const idx = horasSeleccionadas.indexOf(h);
             if (idx === -1) {
                 if (horasSeleccionadas.length >= MAX_HORAS_POR_RESERVA) {
@@ -820,6 +853,11 @@
 
         // ── EVENTOS ────────────────────────────────────────────────
         document.getElementById('fechaSeleccionada').addEventListener('change', () => {
+            if (!LOGUEADO) {
+                mostrarModal('Inicia sesión', 'Debes iniciar sesión para poder reservar una cancha.');
+                document.getElementById('fechaSeleccionada').value = '';
+                return;
+            }
             horasSeleccionadas = [];
             renderHorarios();
             actualizarResumen();

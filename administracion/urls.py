@@ -11,4 +11,8 @@ urlpatterns = [
     path('panel/reservas/<int:id>/aprobar/',  views.aprobar_reserva,       name='aprobar_reserva_admin'),
     path('panel/reservas/<int:id>/eliminar/', views.eliminar_reserva_admin, name='eliminar_reserva_admin'),
     path('panel/reservas/<int:id>/editar/', views.editar_reserva_admin, name='editar_reserva_admin'),
+    path('panel/ingresos/data/', views.ingresos_chart_data, name='ingresos_chart_data'),
+    path('panel/mensajes/<int:id>/respondido/', views.marcar_mensaje_respondido, name='marcar_mensaje_respondido'),
+    path('panel/reportes/general/', views.generar_reporte_general, name='reporte_general_pdf'),
+path('panel/reportes/mensual/', views.generar_reporte_mes_actual, name='reporte_mensual_pdf'),
 ]

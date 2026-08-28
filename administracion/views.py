@@ -1,24 +1,150 @@
+from datetime import timedelta
+from calendar import monthrange
+
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.core.serializers.json import DjangoJSONEncoder
+from django.utils import timezone
+from django.db.models import Sum, Count
+
 from usuarios.models import Usuario
 from gestion_canchas.models import Cancha
-from contacto.models import Resena
+from contacto.models import Resena, MensajeContacto
 from reservas.models import Reserva
+from .reportes import generar_reporte_general, generar_reporte_mes_actual
 import json
 
 
+ESTADOS_PAGADOS = [Reserva.ESTADO_CONFIRMADA, Reserva.ESTADO_COMPLETADA]
+DIAS_SEMANA = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+
+
+def _contexto_ingresos_mes():
+    hoy = timezone.localdate()
+    inicio_mes = hoy.replace(day=1)
+    ultimo_dia = monthrange(hoy.year, hoy.month)[1]
+    fin_mes = hoy.replace(day=ultimo_dia)
+
+    reservas_mes = Reserva.objects.filter(
+        fecha__range=(inicio_mes, fin_mes),
+        estado__in=ESTADOS_PAGADOS,
+    )
+
+    total_mes = reservas_mes.aggregate(total=Sum('monto_pagado'))['total'] or 0
+    cantidad_pagadas = reservas_mes.count()
+    dias_transcurridos = hoy.day
+    promedio_diario = round(total_mes / dias_transcurridos) if dias_transcurridos else 0
+
+    ingresos_por_dia_semana = {i: 0 for i in range(7)}
+    for r in reservas_mes:
+        ingresos_por_dia_semana[r.fecha.weekday()] += float(r.monto_pagado)
+    mejor_dia = DIAS_SEMANA[max(ingresos_por_dia_semana, key=ingresos_por_dia_semana.get)] if total_mes else '—'
+
+    reservas_activas = Reserva.objects.filter(
+        estado=Reserva.ESTADO_CONFIRMADA,
+        fecha__gte=hoy,
+    ).order_by('fecha', 'hora')[:10]
+
+    transacciones = Reserva.objects.all().order_by('-fecha', '-hora')[:15]
+
+    return {
+        'total_mes': total_mes,
+        'cantidad_pagadas': cantidad_pagadas,
+        'promedio_diario': promedio_diario,
+        'mejor_dia': mejor_dia,
+        'reservas_activas': reservas_activas,
+        'transacciones': transacciones,
+    }
+
+
+def _contexto_mensajes_contacto():
+    return {
+        'mensajes_contacto': MensajeContacto.objects.all().order_by('respondido', '-fecha'),
+        'mensajes_sin_responder': MensajeContacto.objects.filter(respondido=False).count(),
+    }
+
+
+def _contexto_estados_reservas():
+    """Conteo real de reservas por estado, para la tarjeta 'Panel Contable'."""
+    conteo = Reserva.objects.values('estado').annotate(total=Count('id'))
+    mapa = {c['estado']: c['total'] for c in conteo}
+
+    return {
+        'total_confirmadas': mapa.get(Reserva.ESTADO_CONFIRMADA, 0),
+        'total_pendientes': mapa.get(Reserva.ESTADO_PENDIENTE, 0),
+        'total_completadas': mapa.get(Reserva.ESTADO_COMPLETADA, 0),
+        'total_canceladas': mapa.get(Reserva.ESTADO_CANCELADA, 0),
+    }
+
+
+def _contexto_cancha_top():
+    """Cancha con más reservas (excluyendo canceladas) y el cliente más frecuente."""
+    top_cancha = (
+        Reserva.objects
+        .exclude(estado=Reserva.ESTADO_CANCELADA)
+        .values('cancha')
+        .annotate(total=Count('id'))
+        .order_by('-total')
+        .first()
+    )
+
+    top_cliente = (
+        Reserva.objects
+        .exclude(estado=Reserva.ESTADO_CANCELADA)
+        .values('nombre')
+        .annotate(total=Count('id'))
+        .order_by('-total')
+        .first()
+    )
+
+    return {
+        'cancha_top_nombre': top_cancha['cancha'] if top_cancha else '—',
+        'cancha_top_total': top_cancha['total'] if top_cancha else 0,
+        'cliente_top_nombre': top_cliente['nombre'] if top_cliente else '—',
+        'cliente_top_total': top_cliente['total'] if top_cliente else 0,
+    }
+
+
+def ingresos_chart_data(request):
+    hoy = timezone.localdate()
+
+    inicio_semana = hoy - timedelta(days=hoy.weekday())
+    labels_semana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+    valores_semana = [0] * 7
+    for r in Reserva.objects.filter(
+        fecha__range=(inicio_semana, inicio_semana + timedelta(days=6)),
+        estado__in=ESTADOS_PAGADOS,
+    ):
+        valores_semana[r.fecha.weekday()] += float(r.monto_pagado)
+
+    ultimo_dia = monthrange(hoy.year, hoy.month)[1]
+    labels_mes = [str(d) for d in range(1, ultimo_dia + 1)]
+    valores_mes = [0] * ultimo_dia
+    for r in Reserva.objects.filter(fecha__year=hoy.year, fecha__month=hoy.month, estado__in=ESTADOS_PAGADOS):
+        valores_mes[r.fecha.day - 1] += float(r.monto_pagado)
+
+    labels_año = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+    valores_año = [0] * 12
+    for r in Reserva.objects.filter(fecha__year=hoy.year, estado__in=ESTADOS_PAGADOS):
+        valores_año[r.fecha.month - 1] += float(r.monto_pagado)
+
+    return JsonResponse({
+        'semana': {'labels': labels_semana, 'valores': valores_semana},
+        'mes': {'labels': labels_mes, 'valores': valores_mes},
+        'año': {'labels': labels_año, 'valores': valores_año},
+    })
+
+
 def panel_principal(request):
+    # Sincroniza estados: cualquier reserva 'confirmada' cuya fecha/hora
+    # ya pasó se marca automáticamente como 'completada'.
+    for r in Reserva.objects.filter(estado=Reserva.ESTADO_CONFIRMADA):
+        r.sincronizar_estado()
+
     reservas = Reserva.objects.all().order_by('-id')
     canchas = Cancha.objects.all()
 
-    # NUEVO: se serializan canchas y reservas a JSON para que el
-    # modal de "Editar Reserva" (JS) pueda usarlas como CANCHAS y
-    # RESERVAS_BD sin necesidad de otra llamada al backend.
-    #
-    # AJUSTA los nombres de campo (c.nombre, c.precio, r.cancha,
-    # r.fecha, r.hora) si en tus modelos reales se llaman distinto.
     canchas_json = json.dumps([
         {'nombre': c.nombre, 'precio': c.precio}
         for c in canchas
@@ -34,24 +160,31 @@ def panel_principal(request):
         for r in reservas
     ], cls=DjangoJSONEncoder)
 
-    return render(request, 'panel/panel_base.html', {
+    context = {
         'canchas':            canchas,
         'resenas_activas':    Resena.objects.filter(archivada=False).order_by('-fecha'),
         'resenas_archivadas': Resena.objects.filter(archivada=True).order_by('-fecha'),
         'reservas':           reservas,
         'total_reservas':     reservas.count(),
-        'confirmadas':        reservas.filter(estado='Confirmada').count(),
-        'pendientes':         reservas.filter(estado='Pendiente').count(),
+        'confirmadas':        reservas.filter(estado=Reserva.ESTADO_CONFIRMADA).count(),
+        'pendientes':         reservas.filter(estado=Reserva.ESTADO_PENDIENTE).count(),
         'canchas_json':       canchas_json,
         'reservas_json':      reservas_json,
-    })
+    }
+
+    context.update(_contexto_ingresos_mes())
+    context.update(_contexto_mensajes_contacto())
+    context.update(_contexto_estados_reservas())
+    context.update(_contexto_cancha_top())
+
+    return render(request, 'panel/panel_base.html', context)
 
 
 @require_POST
 def aprobar_reserva(request, id):
     try:
         reserva = Reserva.objects.get(id=id)
-        reserva.estado = 'Confirmada'
+        reserva.estado = Reserva.ESTADO_CONFIRMADA
         reserva.save()
         return JsonResponse({'status': 'ok'})
     except Reserva.DoesNotExist:
@@ -67,9 +200,6 @@ def eliminar_reserva_admin(request, id):
         return JsonResponse({'status': 'error'}, status=404)
 
 
-# FIX: le faltaba @require_POST (las otras dos vistas del panel sí lo
-# tienen). Sin esto, la vista aceptaba GET y podía romperse al intentar
-# parsear request.body como JSON vacío.
 @require_POST
 def editar_reserva_admin(request, id):
     try:
@@ -84,9 +214,6 @@ def editar_reserva_admin(request, id):
             reserva.hora = data["hora"]
         reserva.cancha   = data.get("cancha",   reserva.cancha)
         reserva.duracion = data.get("duracion", reserva.duracion)
-        # Campo exclusivo de administrador: el usuario final no tiene
-        # acceso a este endpoint (namespace /panel_admin/...), así que
-        # solo el admin puede llegar hasta aquí y cambiar el estado.
         reserva.estado   = data.get("estado",   reserva.estado)
         reserva.save()
         return JsonResponse({'status': 'ok'})
@@ -94,3 +221,14 @@ def editar_reserva_admin(request, id):
         return JsonResponse({'status': 'error'}, status=404)
     except Exception as e:
         return JsonResponse({'status': 'error', 'mensaje': str(e)}, status=400)
+
+
+@require_POST
+def marcar_mensaje_respondido(request, id):
+    try:
+        msg = MensajeContacto.objects.get(id=id)
+        msg.respondido = True
+        msg.save()
+        return JsonResponse({'status': 'ok'})
+    except MensajeContacto.DoesNotExist:
+        return JsonResponse({'status': 'error'}, status=404)

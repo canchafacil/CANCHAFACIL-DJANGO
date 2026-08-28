@@ -64,3 +64,9 @@ def eliminar_cancha(request, id):
     cancha = get_object_or_404(Cancha, id=id)
     cancha.delete()
     return redirect('gestion_canchas:cancha_admin')
+
+from django.http import JsonResponse
+
+def debug_canchas(request):
+    data = list(Cancha.objects.all().values('id', 'nombre', 'disponible'))
+    return JsonResponse({'canchas': data}, safe=False)

@@ -1,57 +1,139 @@
 <script>
-/* ── GRÁFICA DE INGRESOS ── */
-const ctxIngresos = document.getElementById('graficaIngresos').getContext('2d');
-new Chart(ctxIngresos, {
-    type: 'bar',
-    data: {
-        labels: ['Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Sep (actual)'],
-        datasets: [{
-            label: 'Ingresos ($)',
-            data: [7200000, 10500000, 5100000, 6900000, 4400000, 5400000],
-            backgroundColor: [
-                'rgba(98,255,0,0.7)',
-                'rgba(98,255,0,0.7)',
-                'rgba(98,255,0,0.7)',
-                'rgba(98,255,0,0.7)',
-                'rgba(98,255,0,0.7)',
-                'rgba(98,255,1)'
-            ],
-            borderColor: '#62ff00',
-            borderWidth: 2,
-            borderRadius: 8,
-            borderSkipped: false
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                backgroundColor: '#121212',
-                titleColor: '#62ff00',
-                bodyColor: '#fff',
-                borderColor: '#62ff00',
-                borderWidth: 1,
-                callbacks: {
-                    label: ctx => ' $' + ctx.raw.toLocaleString('es-CO')
+(function () {
+    let grafica;
+    let datosCache = null;
+
+    async function obtenerDatos() {
+        if (datosCache) return datosCache;
+        const resp = await fetch("{% url 'ingresos_chart_data' %}");
+        datosCache = await resp.json();
+        return datosCache;
+    }
+
+    function crearGrafica(periodo, datos) {
+        const ctx = document.getElementById('graficaIngresos').getContext('2d');
+        const d = datos[periodo];
+
+        if (grafica) grafica.destroy();
+
+        grafica = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: d.labels,
+                datasets: [{
+                    label: 'Ingresos ($)',
+                    data: d.valores,
+                    backgroundColor: d.valores.map(v => v > 0 ? 'rgba(98,255,0,0.7)' : 'rgba(255,255,255,0.05)'),
+                    borderColor: '#62ff00',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                    hoverBackgroundColor: '#62ff00',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#121212',
+                        titleColor: '#62ff00',
+                        bodyColor: '#fff',
+                        borderColor: '#62ff00',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: ctx => ' $' + ctx.raw.toLocaleString('es-CO')
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#fff', font: { family: 'Nunito', weight: '700' } },
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    },
+                    y: {
+                        ticks: {
+                            color: '#aaa',
+                            callback: val => '$' + (val / 1000000).toFixed(1) + 'M'
+                        },
+                        grid: { color: 'rgba(255,255,255,0.07)' },
+                        beginAtZero: true
+                    }
                 }
             }
-        },
-        scales: {
-            x: {
-                ticks: { color: '#fff', font: { family: 'Nunito', weight: '700' } },
-                grid: { color: 'rgba(255,255,255,0.05)' }
-            },
-            y: {
-                ticks: {
-                    color: '#aaa',
-                    callback: val => '$' + (val / 1000000).toFixed(1) + 'M'
-                },
-                grid: { color: 'rgba(255,255,255,0.07)' },
-                beginAtZero: true
-            }
+        });
+    }
+
+    window.actualizarGrafica = async function () {
+        const periodo = document.getElementById('filtro-periodo').value;
+        const datos = await obtenerDatos();
+        crearGrafica(periodo, datos);
+    };
+
+    function init() {
+        if (typeof Chart !== 'undefined' && document.getElementById('graficaIngresos')) {
+            window.actualizarGrafica();
+        } else {
+            setTimeout(init, 100);
         }
     }
-});
+    init();
+})();
+</script>
+
+<script>
+(function () {
+    function initGraficaEstados() {
+        const canvas = document.getElementById('graficaEstados');
+        if (!canvas || typeof Chart === 'undefined') {
+            setTimeout(initGraficaEstados, 100);
+            return;
+        }
+
+        const dataConfirmadas = document.getElementById('data-confirmadas');
+        const dataPendientes  = document.getElementById('data-pendientes');
+        const dataCompletadas = document.getElementById('data-completadas');
+        const dataCanceladas  = document.getElementById('data-canceladas');
+
+        if (!dataConfirmadas || !dataPendientes || !dataCompletadas || !dataCanceladas) {
+            return; // el tab de estados no está en esta página
+        }
+
+        const confirmadas = JSON.parse(dataConfirmadas.textContent);
+        const pendientes  = JSON.parse(dataPendientes.textContent);
+        const completadas = JSON.parse(dataCompletadas.textContent);
+        const canceladas  = JSON.parse(dataCanceladas.textContent);
+
+        new Chart(canvas.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Confirmadas', 'Pendientes', 'Completadas', 'Canceladas'],
+                datasets: [{
+                    data: [confirmadas, pendientes, completadas, canceladas],
+                    backgroundColor: ['#62ff00', '#ffc107', '#0dcaf0', '#dc3545'],
+                    borderColor: '#111',
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#ccc', font: { family: 'Nunito', size: 11 } }
+                    },
+                    tooltip: {
+                        backgroundColor: '#121212',
+                        titleColor: '#62ff00',
+                        bodyColor: '#fff',
+                        borderColor: '#62ff00',
+                        borderWidth: 1,
+                    }
+                }
+            }
+        });
+    }
+    initGraficaEstados();
+})();
 </script>

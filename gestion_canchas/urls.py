@@ -11,4 +11,5 @@ urlpatterns = [
     path('admin/agregar/', views.agregar_cancha, name='agregar_cancha'),
     path('admin/editar/<int:id>/', views.editar_cancha, name='editar_cancha'),
     path('admin/eliminar/<int:id>/', views.eliminar_cancha, name='eliminar_cancha'),
+    path('debug/canchas/', views.debug_canchas, name='debug_canchas'),
 ]
