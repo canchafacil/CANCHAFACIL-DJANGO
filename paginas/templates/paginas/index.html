@@ -93,49 +93,58 @@
     </section>
 
     <div class="container">
-        <section class=" seccion-porque">
+        <section class="seccion-porque">
+    <h1 class="titulo-sec">¿POR QUÉ ELEGIRNOS?</h1>
+    <p class="subtitulo-seccion">La mejor experiencia de fútbol en un solo lugar</p>
 
-                <h1 class="titulo-sec">¿POR QUÉ ELEGIRNOS?</h1>
-                <p class="subtitulo-seccion">La mejor experiencia de fútbol en un solo lugar</p>
+    <div class="row g-4 justify-content-center px-3 mt-2">
 
-                <div class="row g-4 justify-content-center px-3 mt-2">
-
-                    <div class="col-12 col-sm-6 col-lg-3">
-                        <div class="porque-card">
-                            <span class="porque-icono"><i class="bi bi-rocket-takeoff"></i></span>
-                            <div class="porque-titulo">Reserva rápida</div>
-                            <p class="porque-texto">Encuentra la cancha ideal y agenda tu horario fácilmente.</p>
-                        </div>
-                    </div>
-
-                    <div class="col-12 col-sm-6 col-lg-3">
-                        <div class="porque-card">
-                            <span class="porque-icono"><i class="bi bi-hourglass-split"></i></span>
-                            <div class="porque-titulo"> Disponibilidad</div>
-                            <p class="porque-texto">Consulta en tiempo real las canchas libres y evita esperas.</p>
-                        </div>
-                    </div>
-
-                    <div class="col-12 col-sm-6 col-lg-3">
-                        <div class="porque-card">
-                            <span class="porque-icono"><i class="bi bi-lock"></i></span>
-                            <div class="porque-titulo">Pagos seguros</div>
-                            <p class="porque-texto">Realiza tu reserva con métodos de pago rápidos y confiables.</p>
-                        </div>
-                    </div>
-
-                    <div class="col-12 col-sm-6 col-lg-3">
-                        <div class="porque-card">
-                            <span class="porque-icono"><i class="bi bi-patch-check"></i></span>
-                            <div class="porque-titulo">Experiencia fácil</div>
-                            <p class="porque-texto">Gestiona reservas, horarios y partidos desde una sola plataforma.
-                            </p>
-                        </div>
-                    </div>
-
+        <!-- Tarjeta 1 -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <a href="{% url 'gestion_canchas:canchas' %}" class="text-decoration-none">
+                <div class="porque-card">
+                    <span class="porque-icono"><i class="bi bi-rocket-takeoff"></i></span>
+                    <div class="porque-titulo">Reserva rápida</div>
+                    <p class="porque-texto">Encuentra la cancha ideal y agenda tu horario fácilmente.</p>
                 </div>
+            </a>
+        </div>
 
-        </section>
+        <!-- Tarjeta 2 -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <a href="{% url 'gestion_canchas:canchas' %}" class="text-decoration-none">
+                <div class="porque-card">
+                    <span class="porque-icono"><i class="bi bi-hourglass-split"></i></span>
+                    <div class="porque-titulo">Disponibilidad</div>
+                    <p class="porque-texto">Consulta en tiempo real las canchas libres y evita esperas.</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tarjeta 3 -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <a href="{% url 'reservas' %}" class="text-decoration-none">
+                <div class="porque-card">
+                    <span class="porque-icono"><i class="bi bi-lock"></i></span>
+                    <div class="porque-titulo">Pagos seguros</div>
+                    <p class="porque-texto">Realiza tu reserva con métodos de pago rápidos y confiables.</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tarjeta 4 -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <a href="{% url 'reservas' %}" class="text-decoration-none">
+                <div class="porque-card">
+                    <span class="porque-icono"><i class="bi bi-patch-check"></i></span>
+                    <div class="porque-titulo">Experiencia fácil</div>
+                    <p class="porque-texto">Gestiona reservas, horarios y partidos desde una sola plataforma.</p>
+                </div>
+            </a>
+        </div>
+
+    </div>
+</section>
     </div>
 
     <div class="container">

@@ -16,5 +16,3 @@ db.sqlite3
 .DS_Store
 
 # Archivos de medios y estáticos (generalmente no se versionan)
-media/
-staticfiles/
