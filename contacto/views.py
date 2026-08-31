@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.core.mail import send_mail
+from django.conf import settings
 import json
-from .models import Resena
+from .models import Resena, MensajeContacto
 from usuarios.models import Usuario
 from reservas.models import Reserva
 
@@ -91,6 +93,47 @@ def nosotros(request):
 
 
 def contacto(request):
+    if request.method == 'POST':
+        nombre   = request.POST.get('nombre', '').strip()
+        apellido = request.POST.get('apellido', '').strip()
+        correo   = request.POST.get('correo', '').strip()
+        telefono = request.POST.get('telefono', '').strip()
+        asunto   = request.POST.get('asunto', '').strip()
+        mensaje  = request.POST.get('mensaje', '').strip()
+
+        if not (nombre and correo and asunto and mensaje):
+            return render(request, 'contacto/contacto.html', {
+                'error': 'Completa nombre, correo, asunto y mensaje.',
+            })
+
+        MensajeContacto.objects.create(
+            nombre=nombre,
+            apellido=apellido,
+            correo=correo,
+            telefono=telefono,
+            asunto=asunto,
+            mensaje=mensaje,
+        )
+
+        send_mail(
+            'Hemos recibido tu mensaje - CanchaFácil',
+            f'''
+Hola {nombre}
+
+Gracias por escribirnos. Recibimos tu mensaje sobre "{asunto}" y pronto nos comunicaremos contigo.
+
+Tu mensaje:
+{mensaje}
+            ''',
+            settings.DEFAULT_FROM_EMAIL,
+            [correo],
+            fail_silently=False,
+        )
+
+        return render(request, 'contacto/contacto.html', {
+            'enviado': True,
+        })
+
     return render(request, 'contacto/contacto.html')
 
 
@@ -148,7 +191,7 @@ def resena_editar(request, id):
 def editar_resena_perfil(request, id):
     usuario_id = request.session.get('usuario_id')
     if not usuario_id:
-        return redirect('login_admin')
+        return redirect('login')
 
     usuario = get_object_or_404(Usuario, id=usuario_id)
     resena = get_object_or_404(Resena, id=id)
@@ -170,7 +213,7 @@ def editar_resena_perfil(request, id):
 def eliminar_resena_perfil(request, id):
     usuario_id = request.session.get('usuario_id')
     if not usuario_id:
-        return redirect('login_admin')
+        return redirect('login')
 
     usuario = get_object_or_404(Usuario, id=usuario_id)
     resena = get_object_or_404(Resena, id=id)

@@ -14,6 +14,8 @@ from contacto.models import Resena, MensajeContacto
 from reservas.models import Reserva
 from .reportes import generar_reporte_general, generar_reporte_mes_actual
 import json
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 ESTADOS_PAGADOS = [Reserva.ESTADO_CONFIRMADA, Reserva.ESTADO_COMPLETADA]
@@ -232,3 +234,38 @@ def marcar_mensaje_respondido(request, id):
         return JsonResponse({'status': 'ok'})
     except MensajeContacto.DoesNotExist:
         return JsonResponse({'status': 'error'}, status=404)
+    
+
+@require_POST
+def responder_mensaje(request, id):
+    try:
+        msg = MensajeContacto.objects.get(id=id)
+    except MensajeContacto.DoesNotExist:
+        return JsonResponse({'status': 'error'}, status=404)
+ 
+    respuesta = request.POST.get('respuesta', '').strip()
+    if not respuesta:
+        return JsonResponse({'status': 'error', 'mensaje': 'La respuesta no puede estar vacía'}, status=400)
+ 
+    send_mail(
+        f'Respuesta a tu mensaje: {msg.asunto} - CanchaFácil',
+        f'''
+Hola {msg.nombre}
+ 
+Este es un mensaje de nuestro equipo de CanchaFácil en respuesta a tu consulta:
+ 
+"{msg.mensaje}"
+ 
+Nuestra respuesta:
+{respuesta}
+        ''',
+        settings.DEFAULT_FROM_EMAIL,
+        [msg.correo],
+        fail_silently=False,
+    )
+ 
+    msg.respondido = True
+    msg.save()
+ 
+    return JsonResponse({'status': 'ok'})
+ 

@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     path('nosotros/', views.nosotros, name='nosotros'),
-    path('contacto/', views.contacto, name='contacto'),  # ✅ vista propia
+    path('contacto/', views.contacto, name='contacto'),  # vista propia
 
     # Acciones admin para reseñas
     path('resena/<int:id>/archivar/',  views.resena_archivar,  name='resena_archivar'),

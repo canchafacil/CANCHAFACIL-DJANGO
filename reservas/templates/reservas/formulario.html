@@ -179,14 +179,23 @@
             <!-- COLUMNA PRINCIPAL -->
             <div class="col-12 col-lg-8 order-2 order-lg-1">
 
-                <!-- PASO 1: Canchas -->
+                <!-- PASO 1: Cancha elegida -->
                 <div class="card p-4 shadow-sm bg-white mb-4 {% if not request.session.usuario_id %}paso-bloqueado{% endif %}">
                     <h5 class="text-uppercase fw-bold mb-3" style="color:#03045e;">
-                        <i class="bi bi-dribbble me-2" style="color:#62ff00;"></i>1. Selecciona la Cancha
+                        <i class="bi bi-dribbble me-2" style="color:#62ff00;"></i>1. Cancha Seleccionada
                     </h5>
-                    <div class="row g-3" id="contenedorListaCanchas">
-                        <!-- Se llena con JS -->
-                    </div>
+
+                    {% if cancha_id %}
+                        <!-- Cancha ya elegida desde el catálogo: se muestra fija, no editable -->
+                        <div id="cardCanchaFija"></div>
+                        <a href="{% url 'inicio' %}" class="small text-muted d-inline-block mt-2">
+                            <i class="bi bi-arrow-left-short"></i> Elegir otra cancha
+                        </a>
+                    {% else %}
+                        <div class="row g-3" id="contenedorListaCanchas">
+                            <!-- Se llena con JS solo si no viene una cancha ya elegida -->
+                        </div>
+                    {% endif %}
                 </div>
 
                 <!-- PASO 2: Fecha y horarios -->
@@ -443,9 +452,11 @@
         let editHorasSeleccionadas = [];
         let editPrecioOriginalTotal = 0;
 
-        // ── RENDERIZAR CANCHAS ─────────────────────────────────────
+        // ── RENDERIZAR CANCHAS (lista completa, cuando NO hay cancha fija) ──
         function renderCanchas() {
             const cont = document.getElementById('contenedorListaCanchas');
+            if (!cont) return;
+
             if (CANCHAS_DATA.length === 0) {
                 cont.innerHTML = '<div class="col-12 text-muted">No hay canchas disponibles.</div>';
                 return;
@@ -471,6 +482,39 @@
             }
         }
 
+        // ── RENDERIZAR CANCHA FIJA (cuando el usuario ya eligió desde el catálogo) ──
+        function renderCanchaFija() {
+            const cont = document.getElementById('cardCanchaFija');
+            if (!cont) return; // el template no está en modo "cancha fija"
+
+            if (!PRESELECCIONAR_ID) {
+                cont.innerHTML = '<div class="alert alert-warning small mb-0">No se encontró la cancha seleccionada.</div>';
+                return;
+            }
+
+            const c = CANCHAS_DATA.find(x => x.id === PRESELECCIONAR_ID);
+            if (!c) {
+                cont.innerHTML = '<div class="alert alert-warning small mb-0">Esa cancha ya no está disponible.</div>';
+                return;
+            }
+
+            cont.innerHTML = `
+                <div class="cancha-card seleccionada d-flex align-items-center gap-3 p-3" style="cursor:default;">
+                    <i class="bi bi-dribbble fs-1" style="color:#62ff00;"></i>
+                    <div>
+                        <div class="fw-bold">${c.nombre}</div>
+                        <div class="text-muted small">${c.tipo}</div>
+                        <div class="fw-bold" style="color:#03045e;">$${c.precio.toLocaleString('es-CO')}/h</div>
+                    </div>
+                </div>
+            `;
+
+            if (LOGUEADO) {
+                canchaSeleccionada = c;
+                actualizarResumen();
+            }
+        }
+
         function seleccionarCancha(i) {
             // Bloqueo: no se puede elegir cancha sin haber iniciado sesión
             if (!LOGUEADO) {
@@ -479,7 +523,8 @@
             }
             canchaSeleccionada = CANCHAS_DATA[i];
             document.querySelectorAll('.cancha-card').forEach(el => el.classList.remove('seleccionada'));
-            document.getElementById(`cancha-${i}`).classList.add('seleccionada');
+            const el = document.getElementById(`cancha-${i}`);
+            if (el) el.classList.add('seleccionada');
             horasSeleccionadas = [];
             renderHorarios();
             actualizarResumen();
@@ -865,7 +910,11 @@
         document.getElementById('fechaSeleccionada').min = new Date().toISOString().split('T')[0];
 
         // ── INICIO ─────────────────────────────────────────────────
-        renderCanchas();
+        if (PRESELECCIONAR_ID) {
+            renderCanchaFija();
+        } else {
+            renderCanchas();
+        }
         actualizarResumen();
     </script>   
 </body>

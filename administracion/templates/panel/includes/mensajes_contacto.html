@@ -1,0 +1,148 @@
+{% load static %}
+
+<div class="tab-pane fade" id="mensajes-contacto" role="tabpanel">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Mensajes de contacto</h4>
+        <span class="badge bg-danger">{{ mensajes_sin_responder }} sin responder</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Asunto</th>
+                    <th>Mensaje</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for msg in mensajes_contacto %}
+                <tr>
+                    <td>{{ msg.fecha|date:"d/m/Y H:i" }}</td>
+                    <td>{{ msg.nombre }} {{ msg.apellido }}</td>
+                    <td>{{ msg.correo }}</td>
+                    <td>{{ msg.asunto }}</td>
+                    <td class="text-truncate" style="max-width: 250px;">{{ msg.mensaje }}</td>
+                    <td>
+                        {% if msg.respondido %}
+                            <span class="badge bg-success">Respondido</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Pendiente</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button
+                            class="btn btn-sm btn-primary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalResponder"
+                            data-id="{{ msg.id }}"
+                            data-nombre="{{ msg.nombre }} {{ msg.apellido }}"
+                            data-correo="{{ msg.correo }}"
+                            data-asunto="{{ msg.asunto }}"
+                            data-mensaje="{{ msg.mensaje }}"
+                            {% if msg.respondido %}disabled{% endif %}
+                        >
+                            Responder
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">No hay mensajes de contacto.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- Modal para responder -->
+<div class="modal fade" id="modalResponder" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Responder mensaje</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>De:</strong> <span id="mr-nombre"></span> (<span id="mr-correo"></span>)</p>
+                <p><strong>Asunto:</strong> <span id="mr-asunto"></span></p>
+                <p><strong>Mensaje:</strong></p>
+                <p id="mr-mensaje" class="border rounded p-2 bg-light"></p>
+
+                <label for="mr-respuesta" class="form-label mt-3">Tu respuesta</label>
+                <textarea id="mr-respuesta" class="form-control" rows="5" placeholder="Escribe la respuesta que se enviará por correo..."></textarea>
+                <div id="mr-error" class="text-danger mt-2 d-none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="mr-enviar">Enviar respuesta</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    let mensajeIdActual = null;
+    const modal = document.getElementById('modalResponder');
+
+    modal.addEventListener('show.bs.modal', function (event) {
+        const btn = event.relatedTarget;
+        mensajeIdActual = btn.getAttribute('data-id');
+
+        document.getElementById('mr-nombre').textContent = btn.getAttribute('data-nombre');
+        document.getElementById('mr-correo').textContent = btn.getAttribute('data-correo');
+        document.getElementById('mr-asunto').textContent = btn.getAttribute('data-asunto');
+        document.getElementById('mr-mensaje').textContent = btn.getAttribute('data-mensaje');
+        document.getElementById('mr-respuesta').value = '';
+        document.getElementById('mr-error').classList.add('d-none');
+    });
+
+    document.getElementById('mr-enviar').addEventListener('click', function () {
+        const respuesta = document.getElementById('mr-respuesta').value.trim();
+        const errorBox = document.getElementById('mr-error');
+
+        if (!respuesta) {
+            errorBox.textContent = 'Escribe una respuesta antes de enviar.';
+            errorBox.classList.remove('d-none');
+            return;
+        }
+
+        fetch(`/administracion/mensajes/responder/${mensajeIdActual}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `respuesta=${encodeURIComponent(respuesta)}`,
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                location.reload();
+            } else {
+                errorBox.textContent = data.mensaje || 'Ocurrió un error al enviar la respuesta.';
+                errorBox.classList.remove('d-none');
+            }
+        })
+        .catch(() => {
+            errorBox.textContent = 'Error de conexión.';
+            errorBox.classList.remove('d-none');
+        });
+    });
+})();
+</script>

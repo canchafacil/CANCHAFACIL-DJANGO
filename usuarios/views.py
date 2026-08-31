@@ -86,7 +86,7 @@ def login_view(request):
                 }
             )
 
-        # Crear sesión
+        # Crear sesión de USUARIO (namespace propio, independiente del admin)
         request.session['usuario_id'] = usuario.id
         request.session['rol'] = usuario.rol
         request.session['nombre'] = usuario.first_name
@@ -246,31 +246,48 @@ def login_admin(request):
                 }
             )
 
-        # Crear sesión
-        request.session['usuario_id'] = usuario.id
-        request.session['rol'] = usuario.rol
-        request.session['nombre'] = usuario.first_name
-        request.session['correo'] = usuario.email
+        # Solo ADMIN o SUPERADMIN pueden entrar por aquí
+        if usuario.rol not in ('ADMIN', 'SUPERADMIN'):
+            return render(
+                request,
+                'usuarios/login_admin.html',
+                {
+                    'error': 'Esta cuenta no tiene permisos de administrador.'
+                }
+            )
 
-        # Redirección según rol
+        # Crear sesión de ADMIN (namespace propio, independiente del usuario)
+        request.session['admin_id'] = usuario.id
+        request.session['admin_rol'] = usuario.rol
+        request.session['admin_nombre'] = usuario.first_name
+        request.session['admin_correo'] = usuario.email
+
         if usuario.rol == 'SUPERADMIN':
             return redirect('lista_usuarios')
 
-        elif usuario.rol == 'ADMIN':
-            return redirect('panel_principal')
-
-        else:
-            return redirect('inicio')
+        return redirect('panel_principal')
 
     return render(request, 'usuarios/login_admin.html')
 
 def logout_view(request):
-    request.session.flush()
+    # Solo cierra la sesión de USUARIO, no toca la del admin
+    request.session.pop('usuario_id', None)
+    request.session.pop('rol', None)
+    request.session.pop('nombre', None)
+    request.session.pop('correo', None)
     return redirect('inicio')
+
+def logout_admin(request):
+    # Solo cierra la sesión de ADMIN, no toca la del usuario
+    request.session.pop('admin_id', None)
+    request.session.pop('admin_rol', None)
+    request.session.pop('admin_nombre', None)
+    request.session.pop('admin_correo', None)
+    return redirect('login_admin')
 
 def lista_usuarios(request):
 
-    if request.session.get('rol') != 'SUPERADMIN':
+    if request.session.get('admin_rol') != 'SUPERADMIN':
         return redirect('inicio')
 
     usuarios = Usuario.objects.all()
@@ -313,7 +330,7 @@ def editar_usuario(request, id):
 
 def deshabilitar_usuario(request, id):
 
-    if request.session.get('rol') != 'SUPERADMIN':
+    if request.session.get('admin_rol') != 'SUPERADMIN':
         return redirect('inicio')
 
     usuario = Usuario.objects.get(id=id)
@@ -324,7 +341,7 @@ def deshabilitar_usuario(request, id):
 
 def habilitar_usuario(request, id):
 
-    if request.session.get('rol') != 'SUPERADMIN':
+    if request.session.get('admin_rol') != 'SUPERADMIN':
         return redirect('inicio')
 
     usuario = Usuario.objects.get(id=id)
@@ -360,7 +377,7 @@ ICONOS_BANDERAS = [
 def perfil(request):
     usuario_id = request.session.get('usuario_id')
     if not usuario_id:
-        return redirect('login_admin')
+        return redirect('login')
 
     usuario = get_object_or_404(Usuario, id=usuario_id)
 
@@ -394,7 +411,7 @@ def perfil(request):
 def editar_perfil(request):
     usuario_id = request.session.get('usuario_id')
     if not usuario_id:
-        return redirect('login_admin')
+        return redirect('login')
 
     usuario = get_object_or_404(Usuario, id=usuario_id)
 

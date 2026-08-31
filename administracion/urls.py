@@ -14,5 +14,6 @@ urlpatterns = [
     path('panel/ingresos/data/', views.ingresos_chart_data, name='ingresos_chart_data'),
     path('panel/mensajes/<int:id>/respondido/', views.marcar_mensaje_respondido, name='marcar_mensaje_respondido'),
     path('panel/reportes/general/', views.generar_reporte_general, name='reporte_general_pdf'),
-path('panel/reportes/mensual/', views.generar_reporte_mes_actual, name='reporte_mensual_pdf'),
+    path('panel/reportes/mensual/', views.generar_reporte_mes_actual, name='reporte_mensual_pdf'),
+    path('mensajes/responder/<int:id>/', views.responder_mensaje, name='responder_mensaje'),
 ]
