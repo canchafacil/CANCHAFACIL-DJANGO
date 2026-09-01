@@ -1,22 +1,31 @@
 <script>
 (function () {
-    let grafica;
-    let datosCache = null;
+    let graficaIngresos;
+    let graficaEstados;
 
-    async function obtenerDatos() {
-        if (datosCache) return datosCache;
-        const resp = await fetch("{% url 'ingresos_chart_data' %}");
-        datosCache = await resp.json();
-        return datosCache;
+    // --- 1. OBTENCIÓN DE DATOS EN TIEMPO REAL ---
+    async function obtenerDatosIngresos() {
+        try {
+            // Agregamos Date.now() para ignorar el caché del navegador HTTP
+            const resp = await fetch("{% url 'ingresos_chart_data' %}?_=" + Date.now());
+            return await resp.json();
+        } catch (error) {
+            console.error("Error al obtener ingresos:", error);
+            return null;
+        }
     }
 
-    function crearGrafica(periodo, datos) {
-        const ctx = document.getElementById('graficaIngresos').getContext('2d');
+    // --- 2. GRÁFICA DE INGRESOS ---
+    function crearGraficaIngresos(periodo, datos) {
+        const canvas = document.getElementById('graficaIngresos');
+        if (!canvas || !datos || !datos[periodo]) return;
+        
+        const ctx = canvas.getContext('2d');
         const d = datos[periodo];
 
-        if (grafica) grafica.destroy();
+        if (graficaIngresos) graficaIngresos.destroy();
 
-        grafica = new Chart(ctx, {
+        graficaIngresos = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: d.labels,
@@ -66,30 +75,17 @@
     }
 
     window.actualizarGrafica = async function () {
-        const periodo = document.getElementById('filtro-periodo').value;
-        const datos = await obtenerDatos();
-        crearGrafica(periodo, datos);
+        const filtro = document.getElementById('filtro-periodo');
+        if (!filtro) return;
+        const periodo = filtro.value;
+        const datos = await obtenerDatosIngresos();
+        if (datos) crearGraficaIngresos(periodo, datos);
     };
 
-    function init() {
-        if (typeof Chart !== 'undefined' && document.getElementById('graficaIngresos')) {
-            window.actualizarGrafica();
-        } else {
-            setTimeout(init, 100);
-        }
-    }
-    init();
-})();
-</script>
-
-<script>
-(function () {
-    function initGraficaEstados() {
+    // --- 3. GRÁFICA DE ESTADOS ---
+    function actualizarGraficaEstados() {
         const canvas = document.getElementById('graficaEstados');
-        if (!canvas || typeof Chart === 'undefined') {
-            setTimeout(initGraficaEstados, 100);
-            return;
-        }
+        if (!canvas) return;
 
         const dataConfirmadas = document.getElementById('data-confirmadas');
         const dataPendientes  = document.getElementById('data-pendientes');
@@ -97,7 +93,7 @@
         const dataCanceladas  = document.getElementById('data-canceladas');
 
         if (!dataConfirmadas || !dataPendientes || !dataCompletadas || !dataCanceladas) {
-            return; // el tab de estados no está en esta página
+            return;
         }
 
         const confirmadas = JSON.parse(dataConfirmadas.textContent);
@@ -105,7 +101,9 @@
         const completadas = JSON.parse(dataCompletadas.textContent);
         const canceladas  = JSON.parse(dataCanceladas.textContent);
 
-        new Chart(canvas.getContext('2d'), {
+        if (graficaEstados) graficaEstados.destroy();
+
+        graficaEstados = new Chart(canvas.getContext('2d'), {
             type: 'doughnut',
             data: {
                 labels: ['Confirmadas', 'Pendientes', 'Completadas', 'Canceladas'],
@@ -134,6 +132,24 @@
             }
         });
     }
-    initGraficaEstados();
+
+    // --- 4. INICIALIZACIÓN Y AUTO-REFRESCO ---
+    function init() {
+        if (typeof Chart !== 'undefined') {
+            // Carga inicial
+            window.actualizarGrafica();
+            actualizarGraficaEstados();
+
+            // Polling: Actualiza automáticamente cada 30 segundos (30000ms)
+            setInterval(() => {
+                window.actualizarGrafica();
+                actualizarGraficaEstados();
+            }, 30000);
+        } else {
+            setTimeout(init, 100);
+        }
+    }
+
+    init();
 })();
 </script>

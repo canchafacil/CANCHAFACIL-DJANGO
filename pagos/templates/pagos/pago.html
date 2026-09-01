@@ -54,6 +54,23 @@
             opacity: .55;
         }
 
+        .volver-link {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--navy);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            opacity: .75;
+            transition: opacity .15s ease;
+        }
+
+        .volver-link:hover {
+            opacity: 1;
+            color: var(--navy);
+        }
+
         .grid-pago {
             display: grid;
             grid-template-columns: 1.1fr 1.4fr;
@@ -315,13 +332,21 @@
             <h4>¡Pago confirmado!</h4>
             <p>Tu reserva ya está pagada. Disfruta tu partido.</p>
             <a href="{% url 'inicio' %}" class="btn btn-primary">Volver al inicio</a>
+            <a href="{% url 'reservas' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Volver a reservas
+            </a>
             <a href="{% url 'pagos:descargar_factura' reserva.id %}" class="btn btn-success" target="_blank">
                 <i class="bi bi-file-pdf me-2"></i>Descargar Factura
             </a>
         </div>
         {% else %}
 
-        <div class="paso-eyebrow mb-2"><i class="bi bi-lock-fill me-1"></i>Pago seguro</div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="paso-eyebrow"><i class="bi bi-lock-fill me-1"></i>Pago seguro</div>
+            <a href="{% url 'reservas' %}" class="volver-link">
+                <i class="bi bi-arrow-left"></i>Volver a reservas
+            </a>
+        </div>
         <h2 class="mb-4" style="color:var(--navy); font-weight:800;">Confirma y paga tu reserva</h2>
 
         <div class="grid-pago">
@@ -427,6 +452,12 @@
                         <i class="bi bi-shield-lock me-1"></i>
                         Pago 100% seguro. No guardamos datos de tu tarjeta.
                     </small>
+                </div>
+
+                <div class="mt-3 text-center">
+                    <a href="{% url 'reservas' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i>Volver a reservas
+                    </a>
                 </div>
 
                 <!-- Mensajes de resultado -->

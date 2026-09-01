@@ -1,7 +1,13 @@
 <!-- ===== PANEL RESERVAS ===== -->
 <div class="tab-pane fade" id="sec-panel-reservas" role="tabpanel">
     <div class="container p-0">
-        <h3 class="mb-4 text-white fw-bold">Panel de Reservas</h3>
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h3 class="m-0 text-white fw-bold">Panel de Reservas</h3>
+            <button class="btn fw-bold" style="background:#62ff00;color:#03045e;" onclick="abrirNuevaReserva()">
+                <i class="bi bi-plus-circle me-1"></i>Nueva reserva
+            </button>
+        </div>
+
         <div class="row g-4 mb-4">
             <div class="col-md-4">
                 <div class="card p-3 shadow text-dark bg-light rounded-4">
@@ -38,18 +44,15 @@
                             <td>{{ r.hora }}</td>
                             <td>{{ r.duracion }}</td>
                             <td>
-                                <span class="badge {% if r.estado == 'Confirmada' %}bg-success{% else %}bg-warning text-dark{% endif %}">
-                                    {{ r.estado }}
+                                <span class="badge {% if r.estado == 'confirmada' %}bg-success{% elif r.estado == 'completada' %}bg-primary{% elif r.estado == 'cancelada' %}bg-secondary{% else %}bg-warning text-dark{% endif %}">
+                                    {{ r.estado|capfirst }}
                                 </span>
                             </td>
                             <td>
-                                <!-- FIX: se llamaba a abrirEditarReserva(...) pero la función
-                                     definida se llamaba abrirEdicion(...). Ahora ambas coinciden
-                                     y se agrega el estado como parámetro extra para el admin. -->
                                 <button class="btn btn-warning btn-sm me-1"
-                                    onclick="abrirEditarReserva({{ r.id }},'{{ r.nombre }}','{{ r.correo }}','{{ r.telefono }}','{{ r.fecha|date:"Y-m-d" }}','{{ r.hora }}','{{ r.cancha }}','{{ r.duracion }}','{{ r.estado }}')"
+                                    onclick="abrirEditarReserva({{ r.id }},'{{ r.nombre|escapejs }}','{{ r.correo|escapejs }}','{{ r.telefono|escapejs }}','{{ r.fecha|date:"Y-m-d" }}','{{ r.hora|time:"H:i" }}','{{ r.cancha|escapejs }}','{{ r.duracion|escapejs }}','{{ r.estado }}')"
                                     title="Editar">✏</button>
-                                {% if r.estado == 'Pendiente' %}
+                                {% if r.estado == 'pendiente' %}
                                 <button class="btn btn-success btn-sm me-1"
                                     onclick="pedirAprobarReserva({{ r.id }})" title="Confirmar">✔</button>
                                 {% endif %}
@@ -68,85 +71,101 @@
         </div>
     </div>
 
-   <!-- Modal Editar -->
+   <!-- Modal Editar / Crear -->
     <div class="modal fade" id="modalEditarReserva" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Editar Reserva</h5>
+                    <h5 class="modal-title fw-bold" id="modalReservaTitulo">Editar Reserva</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="editId">
 
                     <div class="row g-3 mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label small fw-bold text-secondary">Nombre</label>
                             <input class="form-control" id="editNombre" placeholder="Nombre">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label small fw-bold text-secondary">Teléfono</label>
                             <input class="form-control" id="editTelefono" placeholder="Teléfono">
                         </div>
-                        <div class="col-md-12">
+                        <div class="col-md-4">
                             <label class="form-label small fw-bold text-secondary">Correo</label>
                             <input class="form-control" id="editCorreo" placeholder="Correo">
                         </div>
 
-                        <!-- NUEVO: campo exclusivo de administrador. El usuario final
-                             no tiene acceso a este panel ni puede cambiar el estado
-                             de su propia reserva; solo el admin ve y edita este selector. -->
-                        <div class="col-md-12">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Cancha</label>
+                            <select class="form-select" id="editCancha" onchange="onCambioCanchaEdit()"></select>
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label small fw-bold text-secondary d-flex align-items-center gap-2">
                                 Estado
                                 <span class="badge bg-dark" style="font-size:0.65rem;">Solo administrador</span>
                             </label>
                             <select class="form-select" id="editEstado">
-                                <option value="Pendiente">Pendiente</option>
-                                <option value="Confirmada">Confirmada</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="confirmada">Confirmada</option>
+                                <option value="completada">Completada</option>
+                                <option value="cancelada">Cancelada</option>
                             </select>
                         </div>
                     </div>
 
                     <hr>
 
-                    <div class="row g-3">
+                    <div class="row g-4">
+                        <!-- ── CALENDARIO ── -->
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-secondary">Cancha</label>
-                            <select class="form-select" id="editCancha" onchange="onCambioCanchaEdit()"></select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-secondary">Fecha del partido</label>
-                            <input type="date" class="form-control" id="editFecha" onchange="onCambioFechaEdit()">
-                        </div>
-                    </div>
-
-                    <div class="mt-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label small fw-bold text-secondary text-uppercase m-0">Horarios
-                                disponibles</label>
-                            <div class="d-flex gap-2 align-items-center" style="font-size:0.72rem;">
-                                <span class="leyenda-dot" style="background:#62ff00;border:2px solid #4fd400;"></span>
-                                Libre
-                                <span class="leyenda-dot ms-2"
-                                    style="background:#ffe5e5;border:2px solid #f5c2c2;"></span> Ocupada
+                            <label class="form-label small fw-bold text-secondary text-uppercase mb-2">Fecha del partido</label>
+                            <div class="mini-calendario">
+                                <div class="mc-header">
+                                    <button type="button" class="mc-nav" onclick="cambiarMesCalendario(-1)">‹</button>
+                                    <span id="mcMesAnio" class="mc-mes-anio"></span>
+                                    <button type="button" class="mc-nav" onclick="cambiarMesCalendario(1)">›</button>
+                                </div>
+                                <div class="mc-dias-semana">
+                                    <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+                                </div>
+                                <div class="mc-grid" id="mcGrid"></div>
+                                <div class="mc-leyenda">
+                                    <span class="mc-dot mc-dot-activo"></span> Con reservas
+                                    <span class="mc-dot mc-dot-hoy ms-3"></span> Hoy
+                                    <span class="mc-dot mc-dot-sel ms-3"></span> Seleccionado
+                                </div>
                             </div>
                         </div>
-                        <div id="editContenedorHorarios"
-                            class="d-flex flex-wrap gap-2 p-3 rounded bg-light border"
-                            style="max-height:190px; overflow-y:auto;">
-                            <span class="text-muted small">Selecciona cancha y fecha.</span>
-                        </div>
-                        <span class="text-muted small d-block mt-2">Puedes seleccionar o quitar varias horas.</span>
-                    </div>
 
-                    <div class="rounded p-3 mt-3 border" style="background-color:#f4f6fb;" id="editContenedorPrecio">
-                        <!-- Se llena dinámicamente con JS -->
+                        <!-- ── HORARIOS ── -->
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label small fw-bold text-secondary text-uppercase m-0">Horarios
+                                    disponibles</label>
+                                <div class="d-flex gap-2 align-items-center" style="font-size:0.72rem;">
+                                    <span class="leyenda-dot" style="background:#62ff00;border:2px solid #4fd400;"></span>
+                                    Libre
+                                    <span class="leyenda-dot ms-2"
+                                        style="background:#ffe5e5;border:2px solid #f5c2c2;"></span> Ocupada
+                                </div>
+                            </div>
+                            <div id="editContenedorHorarios"
+                                class="d-flex flex-wrap gap-2 p-3 rounded bg-light border"
+                                style="max-height:230px; overflow-y:auto;">
+                                <span class="text-muted small">Selecciona cancha y fecha.</span>
+                            </div>
+                            <span class="text-muted small d-block mt-2" id="editHorasEstadoTexto">Puedes seleccionar o quitar varias horas.</span>
+
+                            <div class="rounded p-3 mt-3 border" style="background-color:#f4f6fb;" id="editContenedorPrecio">
+                                <!-- Se llena dinámicamente con JS -->
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button class="btn btn-success" onclick="guardarEdicion()">Guardar cambios</button>
+                    <button class="btn btn-success" id="btnGuardarReserva" onclick="guardarEdicion()">Guardar cambios</button>
                 </div>
             </div>
         </div>
@@ -177,15 +196,131 @@
     </div>
 </div>
 
+<style>
+.mini-calendario {
+    background: #fff;
+    border: 1px solid #e3e6f0;
+    border-radius: 14px;
+    padding: 16px;
+}
+.mc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.mc-mes-anio {
+    font-weight: 800;
+    color: #03045e;
+    text-transform: capitalize;
+    font-size: 0.95rem;
+}
+.mc-nav {
+    background: #f3f5fb;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: #03045e;
+    cursor: pointer;
+    transition: background .15s ease;
+}
+.mc-nav:hover { background: #e3e6f0; }
+.mc-dias-semana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #9aa0b4;
+    margin-bottom: 4px;
+}
+.mc-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+.mc-dia {
+    position: relative;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1c1e2b;
+    cursor: pointer;
+    border: 2px solid transparent;
+    background: #f7f8fc;
+    transition: all .12s ease;
+}
+.mc-dia:hover { background: #eef1fb; }
+.mc-dia.mc-vacio { background: transparent; cursor: default; }
+.mc-dia.mc-pasado { opacity: .35; cursor: not-allowed; }
+.mc-dia.mc-hoy { border-color: #03045e; }
+.mc-dia.mc-seleccionado { background: #03045e; color: #fff; }
+.mc-dia.mc-seleccionado::after { background: #62ff00 !important; }
+.mc-dia .mc-punto {
+    position: absolute;
+    bottom: 4px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #ff9800;
+}
+.mc-leyenda {
+    margin-top: 10px;
+    font-size: 0.72rem;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+}
+.mc-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 4px;
+}
+.mc-dot-activo { background: #ff9800; }
+.mc-dot-hoy { background: #fff; border: 2px solid #03045e; }
+.mc-dot-sel { background: #03045e; }
+
+.hora-btn {
+    border: 2px solid #e3e6f0;
+    background: #fff;
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #1c1e2b;
+    cursor: pointer;
+}
+.hora-btn.seleccionada {
+    background: #03045e;
+    color: #fff;
+    border-color: #03045e;
+}
+.hora-btn.ocupada {
+    background: #ffe5e5;
+    border-color: #f5c2c2;
+    color: #b34747;
+    cursor: not-allowed;
+}
+</style>
+
 <script>
-// NUEVO: estas 4 variables faltaban por completo en la página, por eso
-// la consola tiraba "Uncaught ReferenceError: CANCHAS is not defined"
-// y el modal de edición nunca llegaba a abrirse. Vienen desde el
-// contexto de la vista panel_principal (canchas_json / reservas_json).
+// ── Datos base (canchas: lista estática, no cambia en tiempo real) ──
 const CANCHAS = {{ canchas_json|safe }};
-const RESERVAS_BD = {{ reservas_json|safe }};
 const HORAS = ['06:00','07:00','08:00','09:00','10:00','11:00','12:00',
                '13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'];
+
+const URL_HORAS_OCUPADAS = "{% url 'horas_ocupadas' %}";
+const URL_RESUMEN_MES = "{% url 'resumen_reservas_mes' %}";
+const URL_CREAR_ADMIN = "{% url 'crear_reserva_admin' %}";
 
 function calcularDuracionTexto(n) {
     return n === 1 ? '1 Hora' : `${n} Horas`;
@@ -194,9 +329,17 @@ function calcularDuracionTexto(n) {
 const CSRF_PANEL = '{{ csrf_token }}';
 let reservaSeleccionadaId = null;
 
-let editIdActual = null;
+let editIdActual = null;               // null => modo "crear"
 let editHorasSeleccionadas = [];
 let editPrecioOriginalTotal = 0;
+let horasOcupadasActuales = [];        // cache de la última consulta AJAX
+let pollingHoras = null;               // intervalo para refrescar horas mientras el modal está abierto
+
+// ── Estado del mini-calendario ──
+let mcMes = new Date().getMonth();      // 0-11
+let mcAnio = new Date().getFullYear();
+let mcFechaSeleccionada = null;         // 'YYYY-MM-DD'
+let mcResumenMes = {};                  // { dia: cantidadHorasReservadas }
 
 function fetchPostPanel(url, body) {
     return fetch(url, {
@@ -206,7 +349,89 @@ function fetchPostPanel(url, body) {
     });
 }
 
-// ── EDITAR ─────────────────────────────────────────────────
+// =================================================================
+// MINI CALENDARIO
+// =================================================================
+
+const NOMBRES_MES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+function fechaISO(anio, mes, dia) {
+    return `${anio}-${pad2(mes + 1)}-${pad2(dia)}`;
+}
+
+async function cargarResumenMes() {
+    const canchaNombre = document.getElementById('editCancha').value;
+    const params = new URLSearchParams({ anio: mcAnio, mes: mcMes + 1 });
+    if (canchaNombre) params.set('cancha', canchaNombre);
+
+    try {
+        const resp = await fetch(`${URL_RESUMEN_MES}?${params.toString()}`);
+        const data = await resp.json();
+        mcResumenMes = (data.status === 'ok') ? data.resumen : {};
+    } catch (e) {
+        mcResumenMes = {};
+    }
+    renderCalendario();
+}
+
+function renderCalendario() {
+    document.getElementById('mcMesAnio').textContent = `${NOMBRES_MES[mcMes]} ${mcAnio}`;
+    const grid = document.getElementById('mcGrid');
+    grid.innerHTML = '';
+
+    const primerDiaSemana = (new Date(mcAnio, mcMes, 1).getDay() + 6) % 7; // 0 = Lunes
+    const diasEnMes = new Date(mcAnio, mcMes + 1, 0).getDate();
+    const hoyISO = new Date().toISOString().split('T')[0];
+
+    for (let i = 0; i < primerDiaSemana; i++) {
+        const vacio = document.createElement('div');
+        vacio.className = 'mc-dia mc-vacio';
+        grid.appendChild(vacio);
+    }
+
+    for (let dia = 1; dia <= diasEnMes; dia++) {
+        const iso = fechaISO(mcAnio, mcMes, dia);
+        const btn = document.createElement('div');
+        btn.className = 'mc-dia';
+        btn.textContent = dia;
+
+        if (iso < hoyISO) btn.classList.add('mc-pasado');
+        if (iso === hoyISO) btn.classList.add('mc-hoy');
+        if (iso === mcFechaSeleccionada) btn.classList.add('mc-seleccionado');
+
+        if (mcResumenMes[dia]) {
+            const punto = document.createElement('span');
+            punto.className = 'mc-punto';
+            btn.appendChild(punto);
+        }
+
+        if (iso >= hoyISO) {
+            btn.onclick = () => seleccionarFechaCalendario(iso);
+        }
+
+        grid.appendChild(btn);
+    }
+}
+
+function cambiarMesCalendario(delta) {
+    mcMes += delta;
+    if (mcMes < 0) { mcMes = 11; mcAnio--; }
+    if (mcMes > 11) { mcMes = 0; mcAnio++; }
+    cargarResumenMes();
+}
+
+function seleccionarFechaCalendario(iso) {
+    mcFechaSeleccionada = iso;
+    editHorasSeleccionadas = [];
+    renderCalendario();
+    renderHorariosEdicion();
+}
+
+// =================================================================
+// HORARIOS (en tiempo real vía AJAX)
+// =================================================================
 
 function poblarSelectCanchasEdit() {
     const sel = document.getElementById('editCancha');
@@ -220,24 +445,34 @@ function obtenerPrecioCancha(nombre) {
     return c ? c.precio : 0;
 }
 
-// Renderiza los horarios disponibles dentro del modal de edición,
-// igual que en "Agenda tu encuentro", excluyendo la propia reserva
-// que se está editando (para que sus horas actuales no se marquen
-// como ocupadas).
-function renderHorariosEdicion() {
+async function renderHorariosEdicion() {
     const cont = document.getElementById('editContenedorHorarios');
-    const fecha = document.getElementById('editFecha').value;
     const canchaNombre = document.getElementById('editCancha').value;
 
-    if (!fecha || !canchaNombre) {
+    if (!mcFechaSeleccionada || !canchaNombre) {
         cont.innerHTML = '<span class="text-muted small">Selecciona cancha y fecha.</span>';
         return;
     }
 
-    const ocupadas = getOcupadasParaEdicion(canchaNombre, fecha, editIdActual);
+    document.getElementById('editHorasEstadoTexto').textContent = 'Consultando disponibilidad...';
+
+    const params = new URLSearchParams({ cancha: canchaNombre, fecha: mcFechaSeleccionada });
+    if (editIdActual) params.set('excluir_id', editIdActual);
+
+    try {
+        const resp = await fetch(`${URL_HORAS_OCUPADAS}?${params.toString()}`);
+        const data = await resp.json();
+        horasOcupadasActuales = (data.status === 'ok') ? data.ocupadas : [];
+    } catch (e) {
+        horasOcupadasActuales = [];
+    }
+
+    // Quita de la selección actual cualquier hora que alguien más
+    // acabe de tomar mientras el admin tenía el modal abierto.
+    editHorasSeleccionadas = editHorasSeleccionadas.filter(h => !horasOcupadasActuales.includes(h));
 
     cont.innerHTML = HORAS.map(h => {
-        const estaOcupada = ocupadas.includes(h);
+        const estaOcupada = horasOcupadasActuales.includes(h);
         const seleccionada = editHorasSeleccionadas.includes(h);
         let cls = 'hora-btn';
         if (estaOcupada) cls += ' ocupada';
@@ -247,13 +482,9 @@ function renderHorariosEdicion() {
             onclick="toggleHoraEdicion('${h}')">${h}</button>`;
     }).join('');
 
-    actualizarResumenPrecioEdicion();
-}
+    document.getElementById('editHorasEstadoTexto').textContent = 'Puedes seleccionar o quitar varias horas. Se actualiza en tiempo real.';
 
-function getOcupadasParaEdicion(canchaNombre, fecha, idExcluir) {
-    return RESERVAS_BD
-        .filter(r => r.cancha === canchaNombre && r.fecha === fecha && r.id !== idExcluir)
-        .map(r => r.hora.substring(0, 5));
+    actualizarResumenPrecioEdicion();
 }
 
 function toggleHoraEdicion(h) {
@@ -268,43 +499,43 @@ function toggleHoraEdicion(h) {
 
 function onCambioCanchaEdit() {
     editHorasSeleccionadas = [];
+    cargarResumenMes();     // el resumen del calendario también depende de la cancha
     renderHorariosEdicion();
 }
 
-function onCambioFechaEdit() {
-    editHorasSeleccionadas = [];
-    renderHorariosEdicion();
-}
-
-// Calcula y muestra el precio original vs el nuevo, y el mensaje
-// de pago adicional o reembolso según corresponda.
 function actualizarResumenPrecioEdicion() {
     const canchaNombre = document.getElementById('editCancha').value;
     const precioHora = obtenerPrecioCancha(canchaNombre);
     const nuevoTotal = precioHora * editHorasSeleccionadas.length;
     const diferencia = nuevoTotal - editPrecioOriginalTotal;
 
-    let mensaje = 'Sin cambios en el valor de la reserva.';
+    let mensaje = editIdActual ? 'Sin cambios en el valor de la reserva.' : 'Nueva reserva.';
     let colorClass = 'text-muted';
     let icono = 'bi-check-circle';
 
-    if (diferencia > 0) {
+    if (editIdActual && diferencia > 0) {
         mensaje = `Al agregar horas, el cliente deberá pagar $${diferencia.toLocaleString('es-CO')} adicionales.`;
         colorClass = 'text-danger';
         icono = 'bi-exclamation-triangle-fill';
-    } else if (diferencia < 0) {
+    } else if (editIdActual && diferencia < 0) {
         mensaje = `Al quitar horas, se deberá gestionar el reembolso de $${Math.abs(diferencia).toLocaleString('es-CO')}.`;
         colorClass = 'text-success';
         icono = 'bi-arrow-return-left';
     }
 
-    document.getElementById('editContenedorPrecio').innerHTML = `
+    let filaOriginal = '';
+    if (editIdActual) {
+        filaOriginal = `
         <div class="d-flex justify-content-between small mb-1">
             <span class="text-muted">Precio actual de la reserva:</span>
             <span class="fw-bold">$${editPrecioOriginalTotal.toLocaleString('es-CO')}</span>
-        </div>
+        </div>`;
+    }
+
+    document.getElementById('editContenedorPrecio').innerHTML = `
+        ${filaOriginal}
         <div class="d-flex justify-content-between small mb-2">
-            <span class="text-muted">Nuevo precio (${editHorasSeleccionadas.length} h seleccionada${editHorasSeleccionadas.length === 1 ? '' : 's'}):</span>
+            <span class="text-muted">${editIdActual ? 'Nuevo precio' : 'Precio total'} (${editHorasSeleccionadas.length} h seleccionada${editHorasSeleccionadas.length === 1 ? '' : 's'}):</span>
             <span class="fw-bold">$${nuevoTotal.toLocaleString('es-CO')}</span>
         </div>
         <div class="${colorClass} small fw-semibold d-flex align-items-start gap-1">
@@ -313,35 +544,80 @@ function actualizarResumenPrecioEdicion() {
     `;
 }
 
-// FIX: renombrada de abrirEdicion(...) a abrirEditarReserva(...) para que
-// coincida con el onclick del botón, y se agrega el parámetro "estado"
-// para precargar el selector de estado (función exclusiva de admin).
+// =================================================================
+// ABRIR MODAL (crear / editar)
+// =================================================================
+
+function iniciarPollingHoras() {
+    detenerPollingHoras();
+    // Refresca la disponibilidad cada 8s mientras el modal está abierto,
+    // por si otro usuario reserva esa hora en tiempo real.
+    pollingHoras = setInterval(renderHorariosEdicion, 8000);
+}
+
+function detenerPollingHoras() {
+    if (pollingHoras) {
+        clearInterval(pollingHoras);
+        pollingHoras = null;
+    }
+}
+
+document.getElementById('modalEditarReserva').addEventListener('hidden.bs.modal', detenerPollingHoras);
+
+function abrirNuevaReserva() {
+    editIdActual = null;
+    editHorasSeleccionadas = [];
+    editPrecioOriginalTotal = 0;
+
+    document.getElementById('modalReservaTitulo').textContent = 'Nueva Reserva';
+    document.getElementById('btnGuardarReserva').textContent = 'Crear reserva';
+
+    document.getElementById('editId').value = '';
+    document.getElementById('editNombre').value = '';
+    document.getElementById('editCorreo').value = '';
+    document.getElementById('editTelefono').value = '';
+    document.getElementById('editEstado').value = 'confirmada';
+
+    poblarSelectCanchasEdit();
+
+    const hoy = new Date();
+    mcMes = hoy.getMonth();
+    mcAnio = hoy.getFullYear();
+    mcFechaSeleccionada = null;
+
+    cargarResumenMes();
+    renderHorariosEdicion();
+    iniciarPollingHoras();
+
+    new bootstrap.Modal(document.getElementById('modalEditarReserva')).show();
+}
+
 function abrirEditarReserva(id, nombre, correo, telefono, fecha, hora, cancha, duracion, estado) {
     editIdActual = parseInt(id);
+
+    document.getElementById('modalReservaTitulo').textContent = 'Editar Reserva';
+    document.getElementById('btnGuardarReserva').textContent = 'Guardar cambios';
+
     document.getElementById('editId').value = id;
     document.getElementById('editNombre').value = nombre;
     document.getElementById('editCorreo').value = correo;
     document.getElementById('editTelefono').value = telefono;
-    document.getElementById('editEstado').value = estado || 'Pendiente';
+    document.getElementById('editEstado').value = estado || 'pendiente';
 
-    // Fecha: si existe la de la reserva la muestra, si no, hoy.
-    document.getElementById('editFecha').value =
-        (fecha && fecha !== "None") ? fecha.substring(0, 10) : new Date().toISOString().split('T')[0];
-
-    // Cancha
     poblarSelectCanchasEdit();
     document.getElementById('editCancha').value = cancha;
 
-    // Calcula cuántas horas ocupaba originalmente la reserva
-    // (según el texto de duración, ej. "2 Horas" -> 2) y con eso
-    // fija el precio original de referencia.
+    const fechaValida = (fecha && fecha !== "None") ? fecha.substring(0, 10) : new Date().toISOString().split('T')[0];
+    const [anio, mes] = fechaValida.split('-').map(Number);
+    mcAnio = anio;
+    mcMes = mes - 1;
+    mcFechaSeleccionada = fechaValida;
+
     const match = (duracion || '').match(/\d+/);
     const horasOriginalesCount = match ? parseInt(match[0]) : 1;
     const precioHoraOriginal = obtenerPrecioCancha(cancha);
     editPrecioOriginalTotal = precioHoraOriginal * horasOriginalesCount;
 
-    // Pre-selecciona la(s) hora(s) original(es) a partir de la
-    // hora base guardada, asumiendo bloque consecutivo.
     const horaBase = (hora && hora !== "None") ? hora.substring(0, 5) : HORAS[0];
     editHorasSeleccionadas = [horaBase];
     const idxBase = HORAS.indexOf(horaBase);
@@ -351,58 +627,79 @@ function abrirEditarReserva(id, nombre, correo, telefono, fecha, hora, cancha, d
         }
     }
 
+    cargarResumenMes();
     renderHorariosEdicion();
+    iniciarPollingHoras();
 
     new bootstrap.Modal(document.getElementById('modalEditarReserva')).show();
 }
 
-// FIX: usaba getCSRF() (no existe en este bloque) y llamaba al endpoint
-// de usuario final /reservas/editar/ que redirige a pago. Ahora usa
-// fetchPostPanel() con el token CSRF_PANEL ya definido arriba, apunta
-// al endpoint de administrador y envía también el estado (exclusivo admin).
+// =================================================================
+// GUARDAR (crear o editar según editIdActual)
+// =================================================================
+
 function guardarEdicion() {
-    const id = document.getElementById('editId').value;
-    const fecha = document.getElementById('editFecha').value;
     const cancha = document.getElementById('editCancha').value;
     const estado = document.getElementById('editEstado').value;
+    const nombre = document.getElementById('editNombre').value.trim();
 
-    if (!id || !fecha) { alert('Completa los campos requeridos.'); return; }
+    if (!mcFechaSeleccionada) { alert('Selecciona una fecha en el calendario.'); return; }
     if (editHorasSeleccionadas.length === 0) { alert('Selecciona al menos una hora.'); return; }
+    if (!editIdActual && !nombre) { alert('Ingresa el nombre del cliente.'); return; }
 
     const horasOrdenadas = [...editHorasSeleccionadas].sort();
     const precioHora = obtenerPrecioCancha(cancha);
     const nuevoTotal = precioHora * horasOrdenadas.length;
-    const diferencia = nuevoTotal - editPrecioOriginalTotal;
 
-    let confirmMsg = '¿Guardar los cambios de esta reserva?';
-    if (diferencia > 0) {
-        confirmMsg = `El nuevo total es $${nuevoTotal.toLocaleString('es-CO')} (antes $${editPrecioOriginalTotal.toLocaleString('es-CO')}).\n\nComo administrador, este cambio quedará registrado sin cobrar al cliente de inmediato. ¿Continuar?`;
-    } else if (diferencia < 0) {
-        confirmMsg = `El nuevo total es $${nuevoTotal.toLocaleString('es-CO')} (antes $${editPrecioOriginalTotal.toLocaleString('es-CO')}).\n\nSe deberá gestionar un reembolso de $${Math.abs(diferencia).toLocaleString('es-CO')}. ¿Continuar?`;
-    }
-    if (!confirm(confirmMsg)) return;
-
-    fetchPostPanel(`/panel_admin/panel/reservas/${id}/editar/`, {
-        nombre: document.getElementById('editNombre').value,
+    const payload = {
+        nombre: nombre,
         correo: document.getElementById('editCorreo').value,
         telefono: document.getElementById('editTelefono').value,
-        fecha,
-        hora: horasOrdenadas[0],       // compatibilidad con el backend actual (una sola hora)
-        horas: horasOrdenadas,         // arreglo completo por si el backend se actualiza
+        fecha: mcFechaSeleccionada,
+        hora: horasOrdenadas[0],
+        horas: horasOrdenadas,
         cancha,
         duracion: calcularDuracionTexto(horasOrdenadas.length),
-        estado,                        // exclusivo de administrador
-        diferencia_pago: diferencia,   // > 0: cobrar, < 0: reembolsar, 0: sin cambio
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.status === 'ok') {
-            location.reload();
-        } else {
-            alert(data.mensaje || 'Error al actualizar.');
+        estado,
+    };
+
+    if (editIdActual) {
+        // ── MODO EDITAR ──
+        const diferencia = nuevoTotal - editPrecioOriginalTotal;
+        let confirmMsg = '¿Guardar los cambios de esta reserva?';
+        if (diferencia > 0) {
+            confirmMsg = `El nuevo total es $${nuevoTotal.toLocaleString('es-CO')} (antes $${editPrecioOriginalTotal.toLocaleString('es-CO')}).\n\nEste cambio quedará registrado sin cobrar al cliente de inmediato. ¿Continuar?`;
+        } else if (diferencia < 0) {
+            confirmMsg = `El nuevo total es $${nuevoTotal.toLocaleString('es-CO')} (antes $${editPrecioOriginalTotal.toLocaleString('es-CO')}).\n\nSe deberá gestionar un reembolso de $${Math.abs(diferencia).toLocaleString('es-CO')}. ¿Continuar?`;
         }
-    })
-    .catch(() => alert('Error de conexión al guardar los cambios.'));
+        if (!confirm(confirmMsg)) return;
+
+        payload.diferencia_pago = diferencia;
+
+        fetchPostPanel(`/panel_admin/panel/reservas/${editIdActual}/editar/`, payload)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    location.reload();
+                } else {
+                    alert(data.mensaje || 'Error al actualizar.');
+                }
+            })
+            .catch(() => alert('Error de conexión al guardar los cambios.'));
+
+    } else {
+        // ── MODO CREAR ──
+        fetchPostPanel(URL_CREAR_ADMIN, payload)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    location.reload();
+                } else {
+                    alert(data.mensaje || 'Error al crear la reserva.');
+                }
+            })
+            .catch(() => alert('Error de conexión al crear la reserva.'));
+    }
 }
 
 /* ── ELIMINAR ── */

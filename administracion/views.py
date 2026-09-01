@@ -1,5 +1,6 @@
 from datetime import timedelta
 from calendar import monthrange
+import re
 
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
@@ -20,6 +21,10 @@ from django.conf import settings
 
 ESTADOS_PAGADOS = [Reserva.ESTADO_CONFIRMADA, Reserva.ESTADO_COMPLETADA]
 DIAS_SEMANA = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+
+# Debe coincidir exactamente con el array HORAS del template panel_reservas.html
+HORAS_DISPONIBLES = ['06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00',
+                      '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']
 
 
 def _contexto_ingresos_mes():
@@ -139,8 +144,6 @@ def ingresos_chart_data(request):
 
 
 def panel_principal(request):
-    # Sincroniza estados: cualquier reserva 'confirmada' cuya fecha/hora
-    # ya pasó se marca automáticamente como 'completada'.
     for r in Reserva.objects.filter(estado=Reserva.ESTADO_CONFIRMADA):
         r.sincronizar_estado()
 
@@ -226,6 +229,95 @@ def editar_reserva_admin(request, id):
 
 
 @require_POST
+def crear_reserva_admin(request):
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+
+        reserva = Reserva(
+            nombre=data.get("nombre", ""),
+            correo=data.get("correo", ""),
+            telefono=data.get("telefono", ""),
+            fecha=data.get("fecha"),
+            hora=data.get("hora"),
+            cancha=data.get("cancha", ""),
+            duracion=data.get("duracion"),
+            estado=data.get("estado", Reserva.ESTADO_PENDIENTE),
+        )
+
+        if hasattr(reserva, "monto_pagado") and data.get("monto_pagado") is not None:
+            reserva.monto_pagado = data["monto_pagado"]
+
+        reserva.save()
+        return JsonResponse({'status': 'ok', 'id': reserva.id})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'mensaje': str(e)}, status=400)
+
+
+def _horas_ocupadas_por_reserva(r):
+    """Lista de horas ('HH:MM') que cubre una reserva, a partir de su hora
+    de inicio y el texto de duración (ej: '2 Horas')."""
+    hora_str = r.hora.strftime('%H:%M') if hasattr(r.hora, 'strftime') else str(r.hora)[:5]
+    if hora_str not in HORAS_DISPONIBLES:
+        return []
+    idx = HORAS_DISPONIBLES.index(hora_str)
+    match = re.search(r'\d+', r.duracion or '')
+    cantidad = int(match.group()) if match else 1
+    return HORAS_DISPONIBLES[idx: idx + cantidad]
+
+
+def horas_ocupadas(request):
+    """AJAX: horas ya reservadas para una cancha+fecha (excluyendo, opcionalmente,
+    la reserva que se está editando)."""
+    cancha = request.GET.get('cancha')
+    fecha = request.GET.get('fecha')
+    excluir_id = request.GET.get('excluir_id')
+
+    if not cancha or not fecha:
+        return JsonResponse({'status': 'error', 'mensaje': 'Faltan parámetros cancha/fecha'}, status=400)
+
+    reservas = Reserva.objects.filter(
+        cancha=cancha,
+        fecha=fecha,
+    ).exclude(estado=Reserva.ESTADO_CANCELADA)
+
+    if excluir_id:
+        reservas = reservas.exclude(id=excluir_id)
+
+    ocupadas = []
+    for r in reservas:
+        ocupadas.extend(_horas_ocupadas_por_reserva(r))
+
+    return JsonResponse({'status': 'ok', 'ocupadas': sorted(set(ocupadas))})
+
+
+def resumen_reservas_mes(request):
+    """AJAX: cuántas horas hay reservadas por día en un mes (para pintar los
+    puntos naranjas del mini-calendario)."""
+    anio = request.GET.get('anio')
+    mes = request.GET.get('mes')
+    cancha = request.GET.get('cancha')
+
+    if not anio or not mes:
+        return JsonResponse({'status': 'error', 'mensaje': 'Faltan parámetros anio/mes'}, status=400)
+
+    reservas = Reserva.objects.filter(
+        fecha__year=anio,
+        fecha__month=mes,
+    ).exclude(estado=Reserva.ESTADO_CANCELADA)
+
+    if cancha:
+        reservas = reservas.filter(cancha=cancha)
+
+    resumen = {}
+    for r in reservas:
+        dia = r.fecha.day
+        cantidad_horas = len(_horas_ocupadas_por_reserva(r)) or 1
+        resumen[dia] = resumen.get(dia, 0) + cantidad_horas
+
+    return JsonResponse({'status': 'ok', 'resumen': resumen})
+
+
+@require_POST
 def marcar_mensaje_respondido(request, id):
     try:
         msg = MensajeContacto.objects.get(id=id)
@@ -268,4 +360,3 @@ Nuestra respuesta:
     msg.save()
  
     return JsonResponse({'status': 'ok'})
- 
