@@ -10,6 +10,8 @@
     <link rel="icon" href="{% static 'img/logo-green.png' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Flatpickr: necesario para poder seleccionar VARIOS días (modo Torneo). El input date nativo solo permite un día. -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="{% static 'css/formulario.css' %}">
     <style>
         /* Refuerzo visual: horas ocupadas siempre se ven en rojo, sin importar lo que diga formulario.css */
@@ -34,6 +36,39 @@
             inset: 0;
             background: transparent;
             cursor: not-allowed;
+        }
+
+        /* Botones de modo: Partido Normal / Torneo */
+        .modo-btn {
+            border: 2px solid #03045e;
+            color: #03045e;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            transition: all .15s ease-in-out;
+        }
+        .modo-btn.active {
+            background-color: #03045e !important;
+            color: #fff !important;
+        }
+        .modo-btn:not(.active):hover {
+            background-color: #eef0fa;
+        }
+        .modo-ayuda {
+            font-size: 0.75rem;
+        }
+
+        /* Flatpickr: días seleccionados en modo torneo (selección múltiple) */
+        .flatpickr-day.selected,
+        .flatpickr-day.selected:hover {
+            background: #62ff00;
+            border-color: #4fd400;
+            color: #03045e;
+            font-weight: 700;
+        }
+        .flatpickr-day.today {
+            border-color: #03045e;
         }
     </style>
 </head>
@@ -139,8 +174,12 @@
                             <span id="resumenCancha" class="fw-bold text-end ms-2">No seleccionada</span>
                         </div>
                         <div class="mb-2 d-flex justify-content-between">
+                            <span class="text-white-50 small">Modalidad:</span>
+                            <span id="resumenModo" class="fw-bold">Partido Normal</span>
+                        </div>
+                        <div class="mb-2 d-flex justify-content-between">
                             <span class="text-white-50 small">Fecha:</span>
-                            <span id="resumenFecha" class="fw-bold">-- / -- / ----</span>
+                            <span id="resumenFecha" class="fw-bold text-end ms-2">-- / -- / ----</span>
                         </div>
                         <div class="mb-2 d-flex justify-content-between">
                             <span class="text-white-50 small">Hora:</span>
@@ -205,10 +244,24 @@
                     </h5>
                     <div class="row g-4">
                         <div class="col-md-4 border-end">
+                            <label class="form-label fw-bold text-secondary small">Modalidad</label>
+                            <div class="btn-group w-100 mb-3" role="group" aria-label="Modalidad de reserva">
+                                <button type="button" class="btn modo-btn active" id="btnModoNormal"
+                                    onclick="cambiarModoReserva('normal')">
+                                    <i class="bi bi-1-circle me-1"></i>Partido Normal
+                                </button>
+                                <button type="button" class="btn modo-btn" id="btnModoTorneo"
+                                    onclick="cambiarModoReserva('torneo')">
+                                    <i class="bi bi-trophy me-1"></i>Torneo
+                                </button>
+                            </div>
+
                             <label class="form-label fw-bold text-secondary small">Fecha del partido</label>
-                            <input type="date" id="fechaSeleccionada"
-                                class="form-control form-control-lg shadow-sm mb-2">
-                            <span class="text-muted small">La disponibilidad se actualiza al instante.</span>
+                            <input type="text" id="fechaSeleccionada" placeholder="DD/MM/AAAA" readonly
+                                class="form-control form-control-lg shadow-sm mb-2" style="background:#fff;">
+                            <span class="text-muted small modo-ayuda" id="ayudaModo">
+                                Elige un día para tu partido.
+                            </span>
                         </div>
                         <div class="col-md-8">
                             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -398,6 +451,9 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Flatpickr: habilita selección de un solo día (Partido Normal) o varios días (Torneo) -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 <script>
         // ── SESIÓN ─────────────────────────────────────────────────
         const LOGUEADO = {% if request.session.usuario_id %}true{% else %}false{% endif %};
@@ -424,11 +480,6 @@
         const PRESELECCIONAR_ID = {{ cancha_id|default:"null" }};
 
         // ── RESERVAS EXISTENTES DESDE DJANGO ─────────────────────────
-        // CORREGIDO: antes solo se mandaba UNA hora por reserva (r.hora).
-        // Ahora se recorre r.horas (todas las horas de esa reserva) para
-        // que CADA hora quede marcada como ocupada en el calendario, no
-        // solo la primera. r.get_horas se usa desde el modelo como
-        // fallback para reservas viejas que no tengan el campo 'horas'.
         const RESERVAS_BD = [
             {% for r in reservas %}
                 {% for h in r.get_horas %}
@@ -446,6 +497,12 @@
         // ── ESTADO (formulario principal) ─────────────────────────
         let canchaSeleccionada = null;
         let horasSeleccionadas = [];
+
+        // 'normal' -> un solo día. 'torneo' -> varios días.
+        let modoReserva = 'normal';
+        // Siempre es un arreglo de fechas "YYYY-MM-DD", así sea uno solo (normal) o varios (torneo).
+        let fechasSeleccionadas = [];
+        let fpCalendario = null; // instancia de flatpickr
 
         // ── ESTADO (modal de edición) ──────────────────────────────
         let editIdActual = null;
@@ -530,23 +587,85 @@
             actualizarResumen();
         }
 
+        // ── MODO: PARTIDO NORMAL vs TORNEO ───────────────────────────
+        function cambiarModoReserva(modo) {
+            if (!LOGUEADO) {
+                mostrarModal('Inicia sesión', 'Debes iniciar sesión para poder reservar una cancha.');
+                return;
+            }
+            if (modo === modoReserva) return;
+
+            modoReserva = modo;
+
+            document.getElementById('btnModoNormal').classList.toggle('active', modo === 'normal');
+            document.getElementById('btnModoTorneo').classList.toggle('active', modo === 'torneo');
+
+            document.getElementById('ayudaModo').textContent = modo === 'normal'
+                ? 'Elige un día para tu partido.'
+                : 'Elige todos los días del torneo. La(s) hora(s) que selecciones abajo se reservarán en cada día elegido.';
+
+            // Al cambiar de modo se reinicia la selección de fecha/horas para evitar inconsistencias.
+            fechasSeleccionadas = [];
+            horasSeleccionadas = [];
+            document.getElementById('fechaSeleccionada').value = '';
+
+            initFlatpickr();
+            renderHorarios();
+            actualizarResumen();
+        }
+
+        function initFlatpickr() {
+            if (fpCalendario) {
+                fpCalendario.destroy();
+                fpCalendario = null;
+            }
+            fpCalendario = flatpickr('#fechaSeleccionada', {
+                locale: 'es',
+                mode: modoReserva === 'torneo' ? 'multiple' : 'single',
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd / m / Y',
+                minDate: 'today',
+                onChange: function (selectedDates, dateStr, instance) {
+                    if (!LOGUEADO) {
+                        mostrarModal('Inicia sesión', 'Debes iniciar sesión para poder reservar una cancha.');
+                        instance.clear();
+                        fechasSeleccionadas = [];
+                        return;
+                    }
+                    fechasSeleccionadas = selectedDates
+                        .map(d => instance.formatDate(d, 'Y-m-d'))
+                        .sort();
+                    horasSeleccionadas = [];
+                    renderHorarios();
+                    actualizarResumen();
+                }
+            });
+        }
+
         // ── HORARIOS ──────────────────────────────────────────────
-        function getOcupadas(cancha, fecha, idExcluir = null) {
-            if (!cancha || !fecha) return [];
-            return RESERVAS_BD
-                .filter(r => r.cancha === cancha.nombre && r.fecha === fecha && r.id !== idExcluir)
-                .map(r => r.hora.substring(0, 5));
+        // Una hora se considera ocupada si ya está tomada en CUALQUIERA
+        // de las fechas seleccionadas (así, en modo torneo, la hora
+        // queda libre en todos los días elegidos antes de reservarla).
+        function getOcupadas(cancha, fechas, idExcluir = null) {
+            if (!cancha || !fechas || fechas.length === 0) return [];
+            const set = new Set();
+            RESERVAS_BD
+                .filter(r => r.cancha === cancha.nombre && fechas.includes(r.fecha) && r.id !== idExcluir)
+                .forEach(r => set.add(r.hora.substring(0, 5)));
+            return [...set];
         }
 
         function renderHorarios() {
             const cont = document.getElementById('contenedorHorarios');
             const avisoTodoOcupado = document.getElementById('avisoTodoOcupado');
-            const fecha = document.getElementById('fechaSeleccionada').value;
 
             avisoTodoOcupado.classList.add('d-none');
 
-            if (!fecha) {
-                cont.innerHTML = '<span class="text-muted small">Selecciona una fecha para ver disponibilidad.</span>';
+            if (fechasSeleccionadas.length === 0) {
+                cont.innerHTML = modoReserva === 'torneo'
+                    ? '<span class="text-muted small">Selecciona los días del torneo para ver disponibilidad.</span>'
+                    : '<span class="text-muted small">Selecciona una fecha para ver disponibilidad.</span>';
                 return;
             }
             if (!canchaSeleccionada) {
@@ -554,7 +673,7 @@
                 return;
             }
 
-            const ocupadas = getOcupadas(canchaSeleccionada, fecha);
+            const ocupadas = getOcupadas(canchaSeleccionada, fechasSeleccionadas);
 
             cont.innerHTML = HORAS.map(h => {
                 const estaOcupada = ocupadas.includes(h);
@@ -562,7 +681,7 @@
                 let cls = 'hora-btn';
                 if (estaOcupada) cls += ' ocupada';
                 if (seleccionada && !estaOcupada) cls += ' seleccionada';
-                const titulo = estaOcupada ? 'Hora ya reservada' : `Seleccionar ${h}`;
+                const titulo = estaOcupada ? 'Hora ya reservada en una de las fechas elegidas' : `Seleccionar ${h}`;
                 return `<button class="${cls}" ${estaOcupada ? 'disabled' : ''} title="${titulo}"
                     onclick="seleccionarHora('${h}')">${h}</button>`;
             }).join('');
@@ -594,30 +713,36 @@
 
         // ── RESUMEN ────────────────────────────────────────────────
         function actualizarResumen() {
-            const fecha = document.getElementById('fechaSeleccionada').value;
             const nombre = document.getElementById('nombre').value.trim();
 
             document.getElementById('resumenCancha').textContent = canchaSeleccionada ? canchaSeleccionada.nombre : 'No seleccionada';
-            document.getElementById('resumenFecha').textContent = fecha ? formatearFecha(fecha) : '-- / -- / ----';
+            document.getElementById('resumenModo').textContent = modoReserva === 'torneo' ? 'Torneo' : 'Partido Normal';
+
+            document.getElementById('resumenFecha').textContent = fechasSeleccionadas.length
+                ? fechasSeleccionadas.map(formatearFecha).join(' , ')
+                : '-- / -- / ----';
 
             const horasOrdenadas = [...horasSeleccionadas].sort();
             document.getElementById('resumenHora').textContent = horasOrdenadas.length ? horasOrdenadas.join(', ') : 'Por elegir';
 
-            document.getElementById('resumenDuracion').textContent = calcularDuracionTexto(horasSeleccionadas.length);
+            document.getElementById('resumenDuracion').textContent = calcularDuracionTexto(horasSeleccionadas.length, fechasSeleccionadas.length);
             document.getElementById('resumenNombre').textContent = nombre || '—';
 
-            if (canchaSeleccionada && horasSeleccionadas.length > 0) {
-                const total = canchaSeleccionada.precio * horasSeleccionadas.length;
+            if (canchaSeleccionada && horasSeleccionadas.length > 0 && fechasSeleccionadas.length > 0) {
+                const total = canchaSeleccionada.precio * horasSeleccionadas.length * fechasSeleccionadas.length;
                 document.getElementById('resumenPrecio').textContent = '$ ' + total.toLocaleString('es-CO');
             } else {
                 document.getElementById('resumenPrecio').textContent = '$ 0';
             }
         }
 
-        function calcularDuracionTexto(n) {
-            if (n === 0) return '—';
-            if (n === 1) return '1 Hora';
-            return `${n} Horas`;
+        function calcularDuracionTexto(nHoras, nDias = 1) {
+            if (nHoras === 0) return '—';
+            const horasTxt = nHoras === 1 ? '1 Hora' : `${nHoras} Horas`;
+            if (nDias > 1) {
+                return `${horasTxt} x ${nDias} días`;
+            }
+            return horasTxt;
         }
 
         function formatearFecha(f) {
@@ -640,10 +765,12 @@
             const nombre = document.getElementById('nombre').value.trim();
             const correo = document.getElementById('correo').value.trim();
             const telefono = document.getElementById('telefono').value.trim();
-            const fecha = document.getElementById('fechaSeleccionada').value;
 
             if (!canchaSeleccionada) { mostrarModal('Falta información', 'Selecciona una cancha.'); return; }
-            if (!fecha) { mostrarModal('Falta información', 'Selecciona una fecha.'); return; }
+            if (fechasSeleccionadas.length === 0) {
+                mostrarModal('Falta información', modoReserva === 'torneo' ? 'Selecciona al menos un día del torneo.' : 'Selecciona una fecha.');
+                return;
+            }
             if (horasSeleccionadas.length === 0) { mostrarModal('Falta información', 'Selecciona al menos una hora.'); return; }
             if (horasSeleccionadas.length > MAX_HORAS_POR_RESERVA) {
                 mostrarModal('Límite de horas', `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`);
@@ -655,6 +782,7 @@
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registrando reserva...';
 
             const horasOrdenadas = [...horasSeleccionadas].sort();
+            const fechasOrdenadas = [...fechasSeleccionadas].sort();
 
             fetch("{% url 'crear_reserva' %}", {
                 method: 'POST',
@@ -663,11 +791,14 @@
                     'X-CSRFToken': getCSRF(),
                 },
                 body: JSON.stringify({
-                    nombre, correo, telefono, fecha,
+                    nombre, correo, telefono,
+                    modo: modoReserva,               // 'normal' o 'torneo'
+                    fecha: fechasOrdenadas[0],        // se mantiene por compatibilidad con reservas de un solo día
+                    fechas: fechasOrdenadas,          // arreglo completo de días (uno o varios, según el modo)
                     hora: horasOrdenadas[0],
                     horas: horasOrdenadas,
                     cancha: canchaSeleccionada.nombre,
-                    duracion: calcularDuracionTexto(horasSeleccionadas.length),
+                    duracion: calcularDuracionTexto(horasSeleccionadas.length, fechasSeleccionadas.length),
                 })
             })
                 .then(r => {
@@ -700,7 +831,7 @@
                 });
         }
 
-        // ── EDITAR ──────────────────────────────────────────────────
+        // ── EDITAR (sin cambios: la edición sigue siendo de un solo día) ──
         function poblarSelectCanchasEdit() {
             const sel = document.getElementById('editCancha');
             sel.innerHTML = CANCHAS_DATA.map(c =>
@@ -804,10 +935,6 @@
             `;
         }
 
-        // CORREGIDO: ahora recibe 'horasReserva' (arreglo real desde Django,
-        // vía r.get_horas) en vez de intentar RECONSTRUIR las horas sumando
-        // a partir de la duración/hora inicial (eso fallaba si las horas
-        // seleccionadas no eran consecutivas, ej. 07:00 y 15:00).
         function abrirEdicion(id, nombre, correo, telefono, fecha, horasReserva, cancha, duracion) {
             editIdActual = parseInt(id);
             document.getElementById('editId').value = id;
@@ -821,7 +948,6 @@
             poblarSelectCanchasEdit();
             document.getElementById('editCancha').value = cancha;
 
-            // horasReserva llega como array JSON real, ej: ["18:00","19:00"]
             editHorasSeleccionadas = Array.isArray(horasReserva) ? [...horasReserva] : [horasReserva];
             const precioHoraOriginal = obtenerPrecioCancha(cancha);
             editPrecioOriginalTotal = precioHoraOriginal * editHorasSeleccionadas.length;
@@ -896,20 +1022,9 @@
             new bootstrap.Modal(document.getElementById('modalNotificacion')).show();
         }
 
-        // ── EVENTOS ────────────────────────────────────────────────
-        document.getElementById('fechaSeleccionada').addEventListener('change', () => {
-            if (!LOGUEADO) {
-                mostrarModal('Inicia sesión', 'Debes iniciar sesión para poder reservar una cancha.');
-                document.getElementById('fechaSeleccionada').value = '';
-                return;
-            }
-            horasSeleccionadas = [];
-            renderHorarios();
-            actualizarResumen();
-        });
-        document.getElementById('fechaSeleccionada').min = new Date().toISOString().split('T')[0];
-
         // ── INICIO ─────────────────────────────────────────────────
+        initFlatpickr();
+
         if (PRESELECCIONAR_ID) {
             renderCanchaFija();
         } else {
