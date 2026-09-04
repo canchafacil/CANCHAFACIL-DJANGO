@@ -19,24 +19,19 @@ body {
 
 .navbar {
     background-color: #03045e !important;
-    border-bottom: 2px solid var(--verde-neon);
+    border-bottom: 2px solid #62ff00;
 }
 
 .navbar .nav-link {
-    color: var(--blanco) !important;
+    color: white !important;
     transition: color 0.3s ease;
 }
 
 .navbar .nav-link:hover {
-    color: var() !important;
-}
-
-.navbar .nav-link.active {
     color: #62ff00 !important;
-    font-weight: bold;
-}
+}   
 
-h2{
+.titulo-cancha{
     color: var(--azul-oscuro); 
     font-weight: bold;
 }
@@ -45,9 +40,9 @@ h2{
 }
 
 .cancha-card{
-    background-color: var(--azul-oscuro) !important;
-    border: 1px solid var(--line);
+    background-color: var(--azul-oscuro);
     border-radius: 16px;
+    border-color: var(--verde-neon);
     overflow: hidden;
     transition: 0.4s ease;
     height: 100%;
@@ -104,6 +99,7 @@ h2{
 
 .card-body {
     padding: 1.4rem;
+    color: var(--blanco);
 }
 
 .card-location {
@@ -146,19 +142,15 @@ h2{
     border: 2px solid var(--neon);
     background: transparent;
     color: var(--neon);
-
     padding: 12px;
     border-radius: 10px;
-
     font-weight: bold;
     letter-spacing: 1px;
-
     transition: 0.3s ease;
 }
 
 .btn-reservar:hover {
     background: var(--neon);
     color: #03045E;
-
     box-shadow: 0 0 20px rgba(98, 255, 0, 0.5);
 }

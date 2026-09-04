@@ -181,7 +181,7 @@
     color: var(--verde-neon);
 }
 
-[data-bs-theme="dark"] .title, h2{
+[data-bs-theme="dark"] .title{
     color: var(--blanco) !important;
 }
 
@@ -193,14 +193,37 @@
 
 /* ============ Canchas ============ */
 
-[data-bs-theme="dark"] {
-    bottom: ;
+[data-bs-theme="dark"] .titulo-cancha, .mb-0{
+    color: var(--blanco);
 }
 
-[data-bs-theme="dark"] .title, .mb-0{
-    color: #ffffff !important;
+[data-bs-theme="dark"] .cancha-card{
+    background-color: var(--dark-surface) !important;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: 0.4s ease;
+    height: 100%;
 }
 
+/* ============ Reseñas ============ */
+
+[data-bs-theme="dark"] .btn-reservar {
+    width: 100%;
+    border: 2px solid var(--neon);
+    color: var(--neon);
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    transition: 0.3s ease;
+}
+
+[data-bs-theme="dark"] .btn-reservar:hover {
+    background: var(--neon);
+    color: var(--dark-bg);
+    box-shadow: 0 0 20px rgba(98, 255, 0, 0.5);
+}
 
 
 /* Responsive para el botón en móvil */

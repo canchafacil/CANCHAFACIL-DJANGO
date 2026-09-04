@@ -31,11 +31,11 @@
             <div class="collapse navbar-collapse" id="menu">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link active" href="{% url 'inicio' %}">Inicio</a>
+                        <a class="nav-link" href="{% url 'inicio' %}">Inicio</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'reservas' %}">Reservas</a>
+                        <a class="nav-link" href="{% url 'gestion_canchas:canchas' %}">Reservar</a>
                     </li>
 
                     <li class="nav-item">
@@ -79,7 +79,7 @@
     <section id="canchas">
         <div class="container px-5 pt-3 ">
             <div class="section-label">
-                <h2>Escoge tu cancha</h2>
+                <h2 class="titulo-cancha">Escoge tu cancha</h2>
             </div>
 
             <div class="row g-4 cards-grid pt-3 ">

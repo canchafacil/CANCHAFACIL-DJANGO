@@ -21,6 +21,24 @@ body {
     background-color: var(--gris-fondo);
 }
 
+.navbar {
+    background-color: #03045e !important;
+    border-bottom: 2px solid #62ff00;
+}
+
+.navbar .nav-link {
+    color: white !important;
+    transition: color 0.3s ease;
+}
+
+.navbar .nav-link:hover {
+    color: #62ff00 !important;
+}
+
+.navbar .nav-link.active {
+    color: #62ff00 !important;
+    font-weight: bold;
+}
 /* ── NAVBAR ── */
 .cancha-nav {
     background-color: var(--oscuro);
