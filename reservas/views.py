@@ -408,64 +408,96 @@ def crear_preferencia_mercadopago(request, reserva_id):
     """
     Crea una preferencia de pago en Mercado Pago y redirige al usuario.
     """
+
     if not request.session.get('usuario_id'):
         return redirect('login')
 
     reserva = get_object_or_404(Reserva, id=reserva_id)
-    usuario = get_object_or_404(Usuario, id=request.session['usuario_id'])
+    usuario = get_object_or_404(
+        Usuario,
+        id=request.session['usuario_id']
+    )
 
+    # Verificar que la reserva pertenece al usuario
     if reserva.correo != usuario.email:
         return redirect('perfil')
 
+    # Si ya está confirmada, mostrar pantalla de éxito
     if reserva.estado == 'confirmada':
         return redirect('pago_exitoso_mp')
 
-    # Configurar SDK
-    sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
+    # Configurar SDK de Mercado Pago
+    sdk = mercadopago.SDK(
+        settings.MERCADO_PAGO_ACCESS_TOKEN
+    )
 
-    # 🔥 NUEVO: Obtener el monto a pagar desde el formulario
-    # Si viene 'monto_a_pagar', usamos ese. Si no, calculamos el total.
+    # Obtener monto
     monto_a_pagar = request.POST.get('monto_a_pagar')
-    
+
     if monto_a_pagar:
         try:
             total = float(monto_a_pagar)
-        except ValueError:
+        except (ValueError, TypeError):
             total = float(reserva.calcular_total())
     else:
         total = float(reserva.calcular_total())
 
-    # Obtener tipo de pago (completo o abono)
-    tipo_pago = request.POST.get('tipo_pago', 'completo')
+    # Mercado Pago trabaja correctamente con el valor entero en COP
+    total = int(total)
 
-    # Construir URLs absolutas
+    tipo_pago = request.POST.get(
+        'tipo_pago',
+        'completo'
+    )
+
+    # IMPORTANTE:
+    # Guardamos la reserva en la sesión para recuperarla
+    # cuando Mercado Pago devuelva al usuario.
+    
+
+    # Construir URLs
     dominio = request.build_absolute_uri('/').rstrip('/')
+
     success_url = f"{dominio}/reservas/mp/exito/"
     failure_url = f"{dominio}/reservas/mp/cancelado/"
     pending_url = f"{dominio}/reservas/mp/cancelado/"
+    
+    request.session['reserva_pendiente_id'] = reserva.id
+    request.session['tipo_pago'] = tipo_pago
+    request.session['monto_pagado'] = total
+    request.session.modified = True
+    
+    
 
-    # Crear preferencia
     preference_data = {
         "items": [
             {
                 "title": f"Reserva Cancha: {reserva.cancha}",
-                "description": f"Fecha: {reserva.fecha} - Horas: {', '.join(reserva.get_horas())} - Duración: {reserva.duracion}",
+                "description": (
+                    f"Fecha: {reserva.fecha} - "
+                    f"Horas: {', '.join(reserva.get_horas())} - "
+                    f"Duración: {reserva.duracion}"
+                ),
                 "quantity": 1,
                 "currency_id": "COP",
-                "unit_price": total,  # 🔥 Usa el monto calculado (total o 50%)
+                "unit_price": total,
             }
         ],
+
         "payer": {
             "email": usuario.email,
             "name": usuario.first_name or "Cliente",
             "surname": usuario.last_name or "CanchaFácil",
         },
+
         "back_urls": {
             "success": success_url,
             "failure": failure_url,
             "pending": pending_url,
         },
+
         "external_reference": str(reserva.id),
+
         "metadata": {
             "reserva_id": str(reserva.id),
             "tipo_pago": tipo_pago,
@@ -475,35 +507,39 @@ def crear_preferencia_mercadopago(request, reserva_id):
 
     try:
         result = sdk.preference().create(preference_data)
-        
-        if 'id' not in result.get('response', {}):
-            error_msg = result.get('response', {}).get('message', 'Error desconocido')
+
+        response = result.get('response', {})
+
+        if 'id' not in response:
+            error_msg = response.get(
+                'message',
+                'Error desconocido de Mercado Pago'
+            )
+
             return HttpResponse(
-                f"Error de Mercado Pago: {error_msg}<br><br>"
-                f"Respuesta completa: <pre>{json.dumps(result, indent=2, default=str)}</pre>",
+                f"Error de Mercado Pago: {error_msg}",
                 status=400
             )
-        
-        preference = result["response"]
-        reserva.mp_preference_id = preference["id"]
+
+        # Guardar ID de preferencia
+        reserva.mp_preference_id = response['id']
         reserva.save()
 
-        return redirect(preference["init_point"])
+        # Redirigir a Mercado Pago
+        return redirect(response['init_point'])
 
     except Exception as e:
-        return HttpResponse(f"Error al crear preferencia: {e}", status=400)
+        return HttpResponse(
+            f"Error al crear preferencia: {e}",
+            status=400
+        )
 
 def pago_exitoso_mp(request):
-    """
-    Vista a la que redirige Mercado Pago después de un pago exitoso.
-    Actualiza la reserva a Confirmada y muestra el éxito.
-    """
     reserva_id = request.session.get("reserva_pendiente_id")
-    
+    reserva = None
     if reserva_id:
         try:
             reserva = Reserva.objects.get(id=reserva_id)
-            # Si no está confirmada, la actualizamos aquí
             if reserva.estado != 'confirmada':
                 reserva.estado = 'confirmada'
                 reserva.metodo_pago = 'Mercado Pago'
@@ -511,14 +547,6 @@ def pago_exitoso_mp(request):
                     reserva.precio_total = reserva.calcular_total()
                 reserva.numero_factura = f"FAC-{reserva.id:06d}"
                 reserva.save()
-        except Reserva.DoesNotExist:
-            pass
-
-    # Obtener la reserva actualizada para el template
-    reserva = None
-    if reserva_id:
-        try:
-            reserva = Reserva.objects.get(id=reserva_id)
         except Reserva.DoesNotExist:
             pass
 
@@ -535,36 +563,72 @@ def pago_cancelado_mp(request):
 @csrf_exempt
 def webhook_mercadopago(request):
     """
-    Webhook para recibir notificaciones de Mercado Pago.
-    Actualiza la reserva a Confirmada cuando el pago es aprobado.
+    Recibe las notificaciones de Mercado Pago
+    y confirma la reserva cuando el pago es aprobado.
     """
+
     if request.method != 'POST':
         return HttpResponse(status=405)
 
     try:
         data = json.loads(request.body)
-        # Mercado Pago envía un objeto con 'type' y 'data'
-        if data.get('type') == 'payment':
-            payment_id = data['data']['id']
-            sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
-            payment_info = sdk.payment().get(payment_id)
-            payment = payment_info["response"]
-            
-            if payment.get('status') == 'approved':
-                external_reference = payment.get('external_reference')
-                if external_reference:
-                    try:
-                        reserva = Reserva.objects.get(id=external_reference)
-                        # Solo actualizar si no está confirmada
-                        if reserva.estado != 'confirmada':
-                            reserva.estado = 'confirmada'
-                            reserva.metodo_pago = 'Mercado Pago'
-                            reserva.precio_total = payment['transaction_amount']
-                            reserva.numero_factura = f"FAC-{reserva.id:06d}"
-                            reserva.save()
-                    except Reserva.DoesNotExist:
-                        pass
-    except:
-        pass
-    
+
+        if data.get('type') != 'payment':
+            return HttpResponse(status=200)
+
+        payment_id = data.get('data', {}).get('id')
+
+        if not payment_id:
+            return HttpResponse(status=200)
+
+        sdk = mercadopago.SDK(
+            settings.MERCADO_PAGO_ACCESS_TOKEN
+        )
+
+        payment_info = sdk.payment().get(payment_id)
+        payment = payment_info.get('response', {})
+
+        # Verificar que el pago fue aprobado
+        if payment.get('status') == 'approved':
+
+            external_reference = payment.get(
+                'external_reference'
+            )
+
+            if external_reference:
+
+                try:
+                    reserva = Reserva.objects.get(
+                        id=external_reference
+                    )
+
+                    if reserva.estado != 'confirmada':
+
+                        reserva.estado = 'confirmada'
+                        reserva.metodo_pago = 'Mercado Pago'
+
+                        reserva.precio_total = (
+                            payment.get(
+                                'transaction_amount',
+                                reserva.calcular_total()
+                            )
+                        )
+
+                        reserva.numero_factura = (
+                            f"FAC-{reserva.id:06d}"
+                        )
+
+                        reserva.save()
+
+                except Reserva.DoesNotExist:
+                    pass
+
+    except json.JSONDecodeError:
+        return HttpResponse(status=400)
+
+    except Exception as e:
+        print(
+            f"Error en webhook Mercado Pago: {e}"
+        )
+
     return HttpResponse(status=200)
