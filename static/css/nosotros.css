@@ -2,7 +2,6 @@
 
  /* VARIABLES Y ESTILOS GENERALES */
  :root {
-     --verde-limon: #b8fb3c;
      --verde-neon: #39FF14;
      --azul-oscuro: #03045e;
      --azul-medio: #0d0d7a;
@@ -20,20 +19,20 @@
  }
 
  .navbar {
-    background-color: #03045e !important;
-    border-bottom: 2px solid #62ff00;
-}
+     background-color: #03045e !important;
+     border-bottom: 2px solid var(--verde-neon);
+ }
 
-.navbar .nav-link {
-    color: white !important;
-    transition: color 0.3s ease;
-}
+ .navbar .nav-link {
+     color: white !important;
+     transition: color 0.3s ease;
+ }
 
-.navbar .nav-link:hover {
-    color: #62ff00 !important;
-}
+ .navbar .nav-link:hover {
+     color: var(--verde-neon) !important;
+ }
 
-body {
+ body {
      background-color: var(--blanco);
      overflow-x: hidden;
  }
@@ -60,6 +59,7 @@ body {
      display: flex;
      align-items: center;
      text-align: center;
+     border-bottom: 2px solid var(--verde-neon);
  }
 
 
@@ -156,7 +156,7 @@ body {
 
 
  .porque-titulo {
-     color: #b8fb3c;
+     color: var(--verde-neon);
      font-size: 1.3rem;
      font-family: 'Bebas Neue', sans-serif;
      letter-spacing: 2px;
@@ -179,7 +179,6 @@ body {
 
  /* VARIABLES */
  .rf-root {
-     --verde: #b8fb3c;
      --neon: #39FF14;
      --azul: #03045e;
      --azul2: #0d0d7a;
@@ -192,7 +191,6 @@ body {
      background: var(--azul);
      padding: 48px 32px 32px;
      text-align: center;
-     border-bottom: 4px solid var(--verde);
      position: relative;
  }
 
@@ -203,13 +201,13 @@ body {
      left: 0;
      right: 0;
      height: 5px;
-     background: linear-gradient(90deg, var(--verde), var(--neon), var(--verde));
+     background: linear-gradient(90deg, var(--neon), var(--neon), var(--verde-neon));
  }
 
  .rf-titulo {
      font-size: 2.6rem;
      letter-spacing: 4px;
-     color: var(--verde);
+     color: var(--neon);
      margin: 0 0 6px;
  }
 
@@ -219,7 +217,29 @@ body {
      margin: 0;
  }
 
- /* ESTADÍSTICAS */
+ /* ESTADÍSTICAS CORREGIDAS */
+ .rf-header {
+     background-color: var(--azul-oscuro);
+     padding: 50px 20px;
+     border-top: 1px solid var(--verde-neon);
+     border-bottom: 4px solid var(--verde-neon);
+     color: var(--blanco);
+ }
+
+ .rf-titulo {
+     font-family: 'Bebas Neue', sans-serif;
+     font-size: 2.5rem;
+     color: var(--verde-neon);
+     letter-spacing: 2px;
+     margin-bottom: 8px;
+ }
+
+ .rf-sub {
+     color: rgba(255, 255, 255, 0.7);
+     font-size: 1rem;
+     margin-bottom: 25px;
+ }
+
  .rf-stats {
      display: flex;
      justify-content: center;
@@ -229,15 +249,16 @@ body {
  }
 
  .rf-stat-num {
+     font-family: 'Bebas Neue', sans-serif;
      font-size: 2.4rem;
-     color: var(--verde);
+     color: var(--verde-neon) !important;
      display: block;
      line-height: 1;
  }
 
  .rf-stat-lbl {
      font-size: 0.78rem;
-     color: rgba(255, 255, 255, 0.5);
+     color: var(--blanco);
      text-transform: uppercase;
      letter-spacing: 1px;
  }
@@ -261,7 +282,7 @@ body {
  }
 
  .rf-card:hover {
-     border-color: var(--verde);
+     border-color: var(--neon);
      transform: translateY(-4px);
      box-shadow: 0 8px 24px rgba(3, 4, 94, 0.12);
  }
@@ -278,7 +299,7 @@ body {
      height: 46px;
      border-radius: 50%;
      background: var(--azul);
-     color: var(--verde);
+     color: var(--neon);
      display: flex;
      align-items: center;
      justify-content: center;
@@ -310,7 +331,7 @@ body {
  .rf-badge {
      display: inline-block;
      background: var(--azul);
-     color: var(--verde);
+     color: var(--neon);
      font-size: 0.72rem;
      font-weight: 800;
      padding: 4px 12px;
@@ -325,14 +346,14 @@ body {
      line-height: 1.65;
      font-style: italic;
      margin: 0;
-     border-left: 3px solid var(--verde);
+     border-left: 3px solid var(--neon);
      padding-left: 10px;
  }
 
  /* FORMULARIO */
  .rf-form-wrap {
-     background: var(--azul);
-     border-top: 4px solid var(--verde);
+     background-color: var(--azul);
+     border-top: 2px solid var(--neon);
      padding: 44px 32px;
  }
 
@@ -340,12 +361,12 @@ body {
      font-family: 'Bebas Neue', sans-serif;
      font-size: 2rem;
      letter-spacing: 3px;
-     color: var(--verde);
+     color: var(--neon);
      margin: 0 0 6px;
  }
 
  .rf-form-sub {
-     color: rgba(255, 255, 255, 0.5);
+     color: var(--blanco);
      font-size: 0.88rem;
      margin-bottom: 28px;
  }
@@ -396,7 +417,7 @@ body {
 
  .rf-input:focus,
  .rf-select:focus {
-     border-color: var(--verde);
+     border-color: var(--neon);
      background: rgba(255, 255, 255, 0.12);
  }
 
@@ -446,7 +467,7 @@ body {
 
  /* BOTÓN ENVIAR */
  .rf-submit {
-     background: var(--verde);
+     background: var(--neon);
      color: var(--azul);
      border: none;
      padding: 14px 44px;
@@ -494,7 +515,7 @@ body {
 
  .rf-card.nueva {
      animation: rf-entrar 0.4s ease forwards;
-     border-color: var(--verde);
+     border-color: var(--neon);
      box-shadow: 0 0 20px rgba(184, 251, 60, 0.25);
  }
 

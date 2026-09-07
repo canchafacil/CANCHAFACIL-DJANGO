@@ -9,11 +9,12 @@
     // Aplicar tema inmediatamente para evitar parpadeo
     function applyThemeImmediately() {
         const storedTheme = localStorage.getItem(STORAGE_KEY);
+        
         if (storedTheme) {
+            // Si hay tema guardado, usarlo
             document.documentElement.setAttribute('data-bs-theme', storedTheme);
-        } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.setAttribute('data-bs-theme', DARK_THEME);
         } else {
+            // Si no hay tema guardado, SIEMPRE iniciar en modo claro
             document.documentElement.setAttribute('data-bs-theme', LIGHT_THEME);
         }
     }
@@ -65,12 +66,13 @@
         // Event listener para el botón
         toggleButton.addEventListener('click', toggleTheme);
         
-        // Escuchar cambios del sistema
+        // ELIMINAR esta parte para que no detecte el sistema automáticamente
+        /*
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
-            // Solo actualizar si no hay preferencia guardada
             if (!localStorage.getItem(STORAGE_KEY)) {
                 setTheme(event.matches ? DARK_THEME : LIGHT_THEME);
             }
         });
+        */
     });
 })();

@@ -30,7 +30,7 @@ body {
 /* ============ NAVBAR ============ */
 .navbar {
     background-color: #03045e !important;
-    border-bottom: 2px solid #62ff00;
+    border-bottom: 2px solid var(--verde-neon);
 }
 
 .navbar .nav-link {
@@ -39,11 +39,11 @@ body {
 }
 
 .navbar .nav-link:hover {
-    color: #62ff00 !important;
+    color: var(--verde-neon) !important;
 }
 
 .navbar .nav-link.active {
-    color: #62ff00 !important;
+    color: var(--verde-neon) !important;
     font-weight: bold;
 }
 
@@ -190,7 +190,7 @@ footer {
 }
 
 .porque-titulo {
-    color: #b8fb3c;
+    color: var(--verde-limon);
     font-size: 1.3rem;
     font-family: 'Bebas Neue', sans-serif;
     letter-spacing: 2px;
@@ -244,7 +244,7 @@ footer {
 
 .rf-stat-lbl {
     font-size: 0.78rem;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--blanco);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
