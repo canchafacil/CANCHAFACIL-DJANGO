@@ -1,21 +1,45 @@
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
 
+:root {
+    --verde-neon: #39FF14;
+    --azul-oscuro: #03045e;
+    --azul-medio: #0d0d7a;
+    --azul-claro: #0a0a8a;
+    --negro: #000;
+    --blanco: #fff;
+}
+
 *{
     font-family: 'Bebas Neue', sans-serif;
 }
 
-/* Estilos Generales */
-body {
-    color: #333;
-    background-color: #006ad3;
+/* ============ NAVBAR ============ */
+.navbar {
+    background-color: #03045e !important;
+    border-bottom: 2px solid var(--verde-neon);
 }
 
-/* Navbar */
-.navbar {
-    border-bottom: 4px solid #62ff00;
+.navbar .nav-link {
+    color: white !important;
+    transition: color 0.3s ease;
+}
+
+.navbar .nav-link:hover {
+    color: var(--verde-neon) !important;
+}
+
+.navbar .nav-link.active {
+    color: var(--verde-neon) !important;
+    font-weight: bold;
 }
 
 /* Tarjetas de Canchas */
+.card-body {
+    background: var(--azul-oscuro);
+    color: var(--blanco);
+    margin-bottom: 30px;
+}
+
 .cancha-card {
     border-radius: 10px;
     cursor: pointer;
@@ -35,6 +59,14 @@ body {
     background-color: #e9fff0;
 }
 
+h5{
+    color:#03045e;
+}
+
+.bi .box-arrow-right{
+    font-size: 3rem; 
+    color: #03045e;
+}
 /* Botones de Horarios */
 .btn-hora {
     min-width: 90px;

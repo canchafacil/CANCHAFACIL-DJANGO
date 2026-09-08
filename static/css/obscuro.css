@@ -273,6 +273,35 @@
      margin-bottom: 28px;
  }
 
+/* ============ Form reservas ============ */
+[data-bs-theme="dark"] .seccion-pasos {
+    background: var(--dark-bg);
+    color: var(--blanco);
+    margin-bottom: 30px;
+}
+
+[data-bs-theme="dark"] .card-body {
+    background: var(--dark-bg);
+    color: var(--blanco);
+    margin-bottom: 30px;
+}
+
+[data-bs-theme="dark"] .card{
+    background: var(--dark-bg) !important;
+    color: var(--blanco);
+}
+
+[data-bs-theme="dark"] h5{
+    color:#ffffff;
+}
+
+/* ============ Contacto ============ */
+[data-bs-theme="dark"] .hero-contacto {
+    background-color: var(--dark-bg);
+    color: white;
+}
+
+
 
 /* Responsive para el botón en móvil */
 @media (max-width: 991px) {

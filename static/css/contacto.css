@@ -23,7 +23,7 @@ body {
 
 .navbar {
     background-color: #03045e !important;
-    border-bottom: 2px solid #62ff00;
+    border-bottom: 2px solid var(--verde-neon);
 }
 
 .navbar .nav-link {
@@ -32,21 +32,17 @@ body {
 }
 
 .navbar .nav-link:hover {
-    color: #62ff00 !important;
+    color: var(--verde-neon) !important;
 }
 
 .navbar .nav-link.active {
-    color: #62ff00 !important;
+    color: var(--verde-neon) !important;
     font-weight: bold;
-}
-/* ── NAVBAR ── */
-.cancha-nav {
-    background-color: var(--oscuro);
 }
 
 /* ── HERO ── */
 .hero-contacto {
-    background: linear-gradient(135deg, #03045e 0%, #0a0a2e 100%);
+    background-color: var(--oscuro);
     padding: 80px 0 60px;
     text-align: center;
     color: white;
