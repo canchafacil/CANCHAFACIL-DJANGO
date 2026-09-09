@@ -1,5 +1,6 @@
 from django import forms
-from .models import Cancha, Sede
+from django.core.exceptions import ValidationError
+from .models import Cancha
 
 
 class CanchaForm(forms.ModelForm):
@@ -44,28 +45,26 @@ class CanchaForm(forms.ModelForm):
 
 
 # ── Nuevo ─────────────────────────────────────────────
-class SedeForm(forms.ModelForm):
+
+
+class CanchaForm(forms.ModelForm):
     class Meta:
-        model  = Sede
-        fields = ['nombre', 'direccion', 'ciudad', 'telefono', 'activa']
+        model = Cancha
+        fields = '__all__'
         widgets = {
-            'nombre': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Ej: Sede Norte'
-            }),
-            'direccion': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Dirección completa'
-            }),
-            'ciudad': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Ciudad'
-            }),
-            'telefono': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Ej: 3001234567'
-            }),
-            'activa': forms.CheckboxInput(attrs={
-                'class': 'form-check-input'
-            }),
+            'descripcion': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'tipo': forms.Select(attrs={'class': 'form-control'}),
+            'precio': forms.NumberInput(attrs={'class': 'form-control', 'min': 50000, 'step': 1000}),
+            'imagen': forms.FileInput(attrs={'class': 'form-control'}),
+            'disponible': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+    def clean_precio(self):
+        """Validación específica para el campo precio"""
+        precio = self.cleaned_data.get('precio')
+        if precio is None or precio <= 0:
+            raise forms.ValidationError('El precio debe ser mayor a 0.')
+        if precio < 50000:
+            raise forms.ValidationError('El precio mínimo por hora es de $50,000 COP.')
+        return precio

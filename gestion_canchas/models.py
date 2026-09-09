@@ -18,38 +18,38 @@ class Sede(models.Model):
         ordering = ['nombre']
 
 
+from django.db import models
+from django.core.exceptions import ValidationError
+
 class Cancha(models.Model):
     TIPOS = [
-        ('Fútbol 5',  'Fútbol 5'),
-        ('Fútbol 7',  'Fútbol 7'),
+        ('Fútbol 5', 'Fútbol 5'),
+        ('Fútbol 7', 'Fútbol 7'),
         ('Fútbol 11', 'Fútbol 11'),
     ]
 
-    # ← única línea nueva: FK a Sede
-    # null=True/blank=True para que las canchas existentes no rompan
-    sede = models.ForeignKey(
-        Sede,
-        on_delete=models.SET_NULL,
-        related_name='canchas',
-        null=True,
-        blank=True,
-        verbose_name='Sede'
-    )
-
-    nombre     = models.CharField(max_length=100)
-    tipo       = models.CharField(max_length=20, choices=TIPOS, default='Fútbol 5')
+    nombre = models.CharField(max_length=100)
+    tipo = models.CharField(max_length=20, choices=TIPOS, default='Fútbol 5')
     descripcion = models.TextField(blank=True)
-    precio     = models.PositiveIntegerField(
-                    help_text="Valor por hora en pesos colombianos (COP), sin decimales"
-                  )
-    imagen     = models.ImageField(upload_to='canchas/', blank=True, null=True)
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    imagen = models.ImageField(upload_to='canchas/', blank=True, null=True)
     disponible = models.BooleanField(default=True)
-    creada     = models.DateTimeField(auto_now_add=True)
+    creada = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        if self.sede:
-            return f"{self.nombre} — {self.sede.nombre}"
         return self.nombre
+
+    def clean(self):
+        """Validación a nivel de modelo"""
+        if self.precio < 50000:
+            raise ValidationError({
+                'precio': 'El precio mínimo por hora es de $50,000 COP.'
+            })
+
+    def save(self, *args, **kwargs):
+        """Ejecutar validación antes de guardar"""
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = 'Cancha'

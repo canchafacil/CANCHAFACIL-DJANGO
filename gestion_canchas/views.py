@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
-from .models import Cancha, Sede
-from .forms import CanchaForm, SedeForm
+from .models import Cancha
+from .forms import CanchaForm
 
 
 # ── Helpers de rol ────────────────────────────────────────────────────────────
