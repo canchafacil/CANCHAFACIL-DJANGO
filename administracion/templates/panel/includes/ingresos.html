@@ -1,3 +1,5 @@
+{% load static cop_filters %}
+
 <div class="tab-pane fade" id="sec-ingresos" role="tabpanel">
     <div class="container p-0">
 
@@ -6,29 +8,18 @@
                 <h2 class="text-white fw-bold m-0">Reporte de Ingresos</h2>
                 <p class="text-white-50 m-0 small">Resumen financiero — CanchaFácil</p>
             </div>
-            <select id="filtro-periodo" class="form-select custom-input bg-dark text-white" style="max-width:180px;" onchange="actualizarGrafica()">
-                <option value="semana">Esta semana</option>
-                <option value="mes" selected>Este mes</option>
-                <option value="año">Este año</option>
-            </select>
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
-                <div>
-                    <h2 class="text-white fw-bold m-0">Reporte de Ingresos</h2>
-                    <p class="text-white-50 m-0 small">Resumen financiero — CanchaFácil</p>
-                </div>
-                <div class="d-flex gap-2 flex-wrap">
-                    <select id="filtro-periodo" class="form-select custom-input bg-dark text-white" style="max-width:180px;" onchange="actualizarGrafica()">
-                        <option value="semana">Esta semana</option>
-                        <option value="mes" selected>Este mes</option>
-                        <option value="año">Este año</option>
-                    </select>
-                    <a href="{% url 'reporte_mensual_pdf' %}" class="btn btn-panel-action px-3 rounded-3 fw-bold d-flex align-items-center">
-                        <i class="bi bi-file-earmark-pdf me-2"></i> PDF del Mes
-                    </a>
-                    <a href="{% url 'reporte_general_pdf' %}" class="btn btn-outline-light px-3 rounded-3 fw-bold d-flex align-items-center">
-                        <i class="bi bi-file-earmark-pdf me-2"></i> PDF Histórico
-                    </a>
-                </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <select id="filtro-periodo" class="form-select custom-input bg-dark text-white" style="max-width:180px;" onchange="actualizarGrafica()">
+                    <option value="semana">Esta semana</option>
+                    <option value="mes" selected>Este mes</option>
+                    <option value="año">Este año</option>
+                </select>
+                <a href="{% url 'reporte_mensual_pdf' %}" class="btn btn-panel-action px-3 rounded-3 fw-bold d-flex align-items-center">
+                    <i class="bi bi-file-earmark-pdf me-2"></i> PDF del Mes
+                </a>
+                <a href="{% url 'reporte_general_pdf' %}" class="btn btn-outline-light px-3 rounded-3 fw-bold d-flex align-items-center">
+                    <i class="bi bi-file-earmark-pdf me-2"></i> PDF Histórico
+                </a>
             </div>
         </div>
 
@@ -37,7 +28,7 @@
             <div class="col-6 col-md-3">
                 <div class="p-3 rounded-4 text-center" style="background:#1a1a1a;border:1px solid #62ff0033;">
                     <p class="text-white-50 small mb-1">Total del mes</p>
-                    <h3 class="fw-bold m-0" style="color:#62ff00;">${{ total_mes|floatformat:0 }}</h3>
+                    <h3 class="fw-bold m-0" style="color:#62ff00;">{{ total_mes|floatformat:0|cop }}</h3>
                 </div>
             </div>
             <div class="col-6 col-md-3">
@@ -49,7 +40,7 @@
             <div class="col-6 col-md-3">
                 <div class="p-3 rounded-4 text-center" style="background:#1a1a1a;border:1px solid #333;">
                     <p class="text-white-50 small mb-1">Promedio diario</p>
-                    <h3 class="fw-bold m-0 text-white">${{ promedio_diario|floatformat:0 }}</h3>
+                    <h3 class="fw-bold m-0 text-white">{{ promedio_diario|floatformat:0|cop }}</h3>
                 </div>
             </div>
             <div class="col-6 col-md-3">
@@ -88,7 +79,7 @@
                             <td>{{ t.nombre }}</td>
                             <td>{{ t.cancha }}</td>
                             <td>{{ t.get_horas|length }}h</td>
-                            <td>${{ t.monto_pagado|floatformat:0 }}</td>
+                            <td>{{ t.monto_pagado|floatformat:0|cop }}</td>
                             <td>
                                 {% if t.estado == 'confirmada' or t.estado == 'completada' %}
                                     <span class="badge rounded-pill px-3" style="background:#62ff00;color:#000;">Pagado</span>

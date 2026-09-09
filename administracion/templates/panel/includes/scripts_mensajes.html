@@ -1,0 +1,67 @@
+<script>
+function getCSRFToken() {
+    const match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? match[1] : '';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    // Marcar como respondido (sin enviar correo)
+    document.querySelectorAll('.btn-marcar-respondido').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const id = btn.dataset.id;
+            fetch(`/panel_admin/panel/mensajes/${id}/respondido/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCSRFToken() },
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    location.reload();
+                } else {
+                    alert('No se pudo marcar el mensaje como respondido.');
+                }
+            })
+            .catch(() => alert('Error de conexión.'));
+        });
+    });
+
+    // Responder mensaje (guarda respuesta + envía correo)
+    document.querySelectorAll('.form-responder-mensaje').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const id = form.dataset.id;
+            const respuesta = form.querySelector('[name="respuesta"]').value;
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Enviando...';
+
+            fetch(`/mensajes/responder/${id}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `respuesta=${encodeURIComponent(respuesta)}`,
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    location.reload();
+                } else {
+                    alert(data.mensaje || 'No se pudo enviar la respuesta.');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Enviar respuesta';
+                }
+            })
+            .catch(() => {
+                alert('Error de conexión.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Enviar respuesta';
+            });
+        });
+    });
+
+});
+</script>

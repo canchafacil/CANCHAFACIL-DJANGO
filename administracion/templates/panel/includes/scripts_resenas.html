@@ -1,65 +1,63 @@
-<script>
-    const CSRF          = '{{ csrf_token }}';
-    const URL_ARCHIVAR  = '/contacto/resena/__ID__/archivar/';
-    const URL_RESTAURAR = '/contacto/resena/__ID__/restaurar/';
-    const URL_ELIMINAR  = '/contacto/resena/__ID__/eliminar/';
-    const URL_EDITAR    = '/contacto/resena/__ID__/editar/';
+    <script>
+        const CSRF          = '{{ csrf_token }}';
+        const URL_ARCHIVAR  = '/contacto/resena/__ID__/archivar/';
+        const URL_RESTAURAR = '/contacto/resena/__ID__/restaurar/';
 
-    function buildUrl(base, id) { return base.replace('__ID__', id); }
+        function buildUrl(base, id) { return base.replace('__ID__', id); }
 
-    /* ── FILTROS ── */
-    function aplicarFiltros() {
-        const cancha    = document.getElementById('filtro-cancha').value;
-        const estrellas = document.getElementById('filtro-estrellas').value;
-        const buscar    = document.getElementById('filtro-buscar').value.toLowerCase();
-        let hayAlguna = false;
-        document.querySelectorAll('#tbody-activas tr[id^="fila-"]').forEach(tr => {
-            const ok = (!cancha    || tr.dataset.cancha    === cancha)
-                    && (!estrellas || tr.dataset.estrellas === estrellas)
-                    && (!buscar    || tr.dataset.nombre.includes(buscar) || tr.dataset.texto.includes(buscar));
-            tr.style.display = ok ? '' : 'none';
-            if (ok) hayAlguna = true;
-        });
-        document.getElementById('empty-activas').style.display = hayAlguna ? 'none' : 'block';
-    }
-
-    /* ── TOGGLE VISTA ── */
-    let vistaActual = 'activas';
-    function toggleVista() {
-        const btn   = document.getElementById('btn-toggle-arch');
-        const vAct  = document.getElementById('container-activas');
-        const vArch = document.getElementById('container-archivadas');
-        if (vistaActual === 'activas') {
-            vistaActual = 'archivadas';
-            vAct.style.display = 'none'; vArch.style.display = 'block';
-            btn.textContent = 'Ver activas'; btn.classList.add('activo');
-        } else {
-            vistaActual = 'activas';
-            vAct.style.display = 'block'; vArch.style.display = 'none';
-            btn.textContent = 'Ver archivados'; btn.classList.remove('activo');
+        /* ── FILTROS ── */
+        function aplicarFiltros() {
+            const cancha    = document.getElementById('filtro-cancha').value;
+            const estrellas = document.getElementById('filtro-estrellas').value;
+            const buscar    = document.getElementById('filtro-buscar').value.toLowerCase();
+            let hayAlguna = false;
+            document.querySelectorAll('#tbody-activas tr[id^="fila-"]').forEach(tr => {
+                const ok = (!cancha    || tr.dataset.cancha    === cancha)
+                        && (!estrellas || tr.dataset.estrellas === estrellas)
+                        && (!buscar    || tr.dataset.nombre.includes(buscar) || tr.dataset.texto.includes(buscar));
+                tr.style.display = ok ? '' : 'none';
+                if (ok) hayAlguna = true;
+            });
+            document.getElementById('empty-activas').style.display = hayAlguna ? 'none' : 'block';
         }
-    }
 
-    /* ── FETCH ── */
-    function fetchPost(url, body) {
-        return fetch(url, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' },
-            body: body ? JSON.stringify(body) : null
-        });
-    }
+        /* ── TOGGLE VISTA ── */
+        let vistaActual = 'activas';
+        function toggleVista() {
+            const btn   = document.getElementById('btn-toggle-arch');
+            const vAct  = document.getElementById('container-activas');
+            const vArch = document.getElementById('container-archivadas');
+            if (vistaActual === 'activas') {
+                vistaActual = 'archivadas';
+                vAct.style.display = 'none'; vArch.style.display = 'block';
+                btn.textContent = 'Ver activas'; btn.classList.add('activo');
+            } else {
+                vistaActual = 'activas';
+                vAct.style.display = 'block'; vArch.style.display = 'none';
+                btn.textContent = 'Ver archivados'; btn.classList.remove('activo');
+            }
+        }
 
-    function quitarFila(id, prefijo) {
-        const fila = document.getElementById(prefijo + id);
-        if (fila) { fila.style.opacity = '0'; fila.style.transition = 'opacity 0.3s'; setTimeout(() => fila.remove(), 300); }
-    }
+        /* ── FETCH ── */
+        function fetchPost(url, body) {
+            return fetch(url, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' },
+                body: body ? JSON.stringify(body) : null
+            });
+        }
 
-    function actualizarContador(elId, delta) {
-        const el = document.getElementById(elId);
-        if (el) el.textContent = Math.max(0, parseInt(el.textContent) + delta);
-    }
+        function quitarFila(id, prefijo) {
+            const fila = document.getElementById(prefijo + id);
+            if (fila) { fila.style.opacity = '0'; fila.style.transition = 'opacity 0.3s'; setTimeout(() => fila.remove(), 300); }
+        }
 
-    /* ── ARCHIVAR ── */
+        function actualizarContador(elId, delta) {
+            const el = document.getElementById(elId);
+            if (el) el.textContent = Math.max(0, parseInt(el.textContent) + delta);
+        }
+
+            /* ── ARCHIVAR ── */
     function archivar(id) {
         const filaOrigen = document.getElementById('fila-' + id);
         if (!filaOrigen) return;
@@ -68,8 +66,7 @@
             const filaArch = filaOrigen.cloneNode(true);
             filaArch.id = 'fila-arch-' + id;
             filaArch.querySelector('.adm-acciones').innerHTML =
-                '<button class="adm-btn restaurar" onclick="restaurar(' + id + ')">↩ Restaurar</button>' +
-                '<button class="adm-btn eliminar" onclick="pedirEliminar(' + id + ')">🗑 Eliminar</button>';
+                '<button class="adm-btn restaurar" onclick="restaurar(' + id + ')">↩ Restaurar</button>';
             document.getElementById('tbody-archivadas').prepend(filaArch);
             quitarFila(id, 'fila-');
             actualizarContador('adm-total', -1);
@@ -89,9 +86,7 @@
             filaAct.dataset.texto   = filaAct.querySelector('.adm-comentario')?.textContent.trim().toLowerCase() || '';
             filaAct.dataset.nombre  = filaAct.querySelector('.text-white.fw-bold')?.textContent.trim().toLowerCase() || '';
             filaAct.querySelector('.adm-acciones').innerHTML =
-                '<button class="adm-btn editar" onclick="editarResena(' + id + ', this)">✏ Editar</button>' +
-                '<button class="adm-btn archivar" onclick="archivar(' + id + ')">📦 Archivar</button>' +
-                '<button class="adm-btn eliminar" onclick="pedirEliminar(' + id + ')">🗑 Eliminar</button>';
+                '<button class="adm-btn archivar" onclick="archivar(' + id + ')">📦 Archivar</button>';
             document.getElementById('tbody-activas').prepend(filaAct);
             quitarFila(id, 'fila-arch-');
             actualizarContador('adm-arch', -1);
@@ -99,101 +94,22 @@
         });
     }
 
-    /* ── ELIMINAR ── */
-    let pendienteEliminarId = null;
-    function pedirEliminar(id) {
-        pendienteEliminarId = id;
-        document.getElementById('modal-overlay').style.display = 'flex';
-    }
-    function cerrarModal() {
-        document.getElementById('modal-overlay').style.display = 'none';
-        pendienteEliminarId = null;
-    }
-    document.getElementById('btn-confirmar-eliminar').onclick = function () {
-        const id = pendienteEliminarId;
-        cerrarModal();
-        fetchPost(buildUrl(URL_ELIMINAR, id)).then(r => {
-            if (r.ok) {
-                quitarFila(id, 'fila-');
-                quitarFila(id, 'fila-arch-');
-                actualizarContador('adm-total', -1);
-            }
-        });
-    };
 
-   /* ── ESTRELLAS MODAL EDITAR ── */
-    const admStarLabels = ["","Malo","Regular","Bueno","Muy bueno","Excelente"];
-    let admEstrellaActual = 0;
+    /* ── ESTRELLAS MODAL EDITAR ── */
+        const admStarLabels = ["","Malo","Regular","Bueno","Muy bueno","Excelente"];
+        let admEstrellaActual = 0;
 
-    function admHighlightStars(v) {
-        document.querySelectorAll('.adm-star-btn').forEach(btn => {
-            btn.style.color = parseInt(btn.dataset.v) <= v ? '#62FF00' : '#525151';
-        });
-    }
-    function admSetStar(v) {
-        admEstrellaActual = v;
-        document.getElementById('adm-star-label').textContent = admStarLabels[v];
-        document.getElementById('editar-estrellas-input').value = v;
-        admHighlightStars(v);
-    }
-
-    /* ── EDITAR ── */
-    let editarId = null;
-
-    function editarResena(id, btn) {
-        editarId = id;
-        const fila = document.getElementById('fila-' + id);
-
-        document.getElementById('editar-nombre-input').value  = fila.dataset.nombre.charAt(0).toUpperCase() + fila.dataset.nombre.slice(1);
-        document.getElementById('editar-jugador-input').value = fila.querySelector('.adm-tag:not(.cancha)').textContent.trim();
-        document.getElementById('editar-cancha-input').value  = fila.dataset.cancha;
-        document.getElementById('editar-texto-input').value   = fila.querySelector('.adm-comentario').textContent.trim();
-
-        admSetStar(parseInt(fila.dataset.estrellas) || 0);
-
-        document.querySelectorAll('.adm-star-btn').forEach(b => {
-            b.onclick      = () => admSetStar(parseInt(b.dataset.v));
-            b.onmouseenter = () => admHighlightStars(parseInt(b.dataset.v));
-            b.onmouseleave = () => admHighlightStars(admEstrellaActual);
-        });
-
-        document.getElementById('modal-editar-overlay').style.display = 'flex';
-    }
-
-    function cerrarModalEditar() {
-        document.getElementById('modal-editar-overlay').style.display = 'none';
-        editarId = null;
-    }
-
-    document.getElementById('btn-confirmar-editar').onclick = function () {
-        const nombre   = document.getElementById('editar-nombre-input').value.trim();
-        const jugador  = document.getElementById('editar-jugador-input').value;
-        const cancha   = document.getElementById('editar-cancha-input').value;
-        const estrellas = parseInt(document.getElementById('editar-estrellas-input').value);
-        const texto    = document.getElementById('editar-texto-input').value.trim();
-        if (!nombre || !texto || estrellas === 0) return;
-
-        const idRef = editarId;
-        cerrarModalEditar();
-
-        fetchPost(buildUrl(URL_EDITAR, idRef), { nombre, jugador, cancha, estrellas, texto })
-            .then(r => r.json())
-            .then(data => {
-                if (!data.ok) return;
-                const fila = document.getElementById('fila-' + idRef);
-                fila.dataset.estrellas = data.estrellas;
-                fila.dataset.cancha    = data.cancha;
-                fila.dataset.nombre    = data.nombre.toLowerCase();
-                fila.dataset.texto     = data.texto.toLowerCase();
-
-                fila.querySelector('.text-white.fw-bold').textContent          = data.nombre;
-                fila.querySelector('.adm-avatar').textContent                  = data.nombre.slice(0,2).toUpperCase();
-                fila.querySelector('.adm-tag:not(.cancha)').textContent        = data.jugador;
-                fila.querySelector('.adm-tag.cancha').textContent              = data.cancha;
-                fila.querySelector('.adm-comentario').textContent              = data.texto;
-                fila.querySelectorAll('.adm-stars span').forEach((s, i) => {
-                    s.style.color = i < data.estrellas ? '#62FF00' : '#525151';
-                });
+        function admHighlightStars(v) {
+            document.querySelectorAll('.adm-star-btn').forEach(btn => {
+                btn.style.color = parseInt(btn.dataset.v) <= v ? '#62FF00' : '#525151';
             });
-    };
-</script>
+        }
+        function admSetStar(v) {
+            admEstrellaActual = v;
+            document.getElementById('adm-star-label').textContent = admStarLabels[v];
+            document.getElementById('editar-estrellas-input').value = v;
+            admHighlightStars(v);
+        }
+
+        
+    </script>

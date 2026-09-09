@@ -102,9 +102,10 @@ def contacto(request):
         mensaje  = request.POST.get('mensaje', '').strip()
 
         if not (nombre and correo and asunto and mensaje):
-            return render(request, 'contacto/contacto.html', {
-                'error': 'Completa nombre, correo, asunto y mensaje.',
-            })
+            return JsonResponse({
+                'status': 'error',
+                'mensaje': 'Completa nombre, correo, asunto y mensaje.',
+            }, status=400)
 
         MensajeContacto.objects.create(
             nombre=nombre,
@@ -115,27 +116,32 @@ def contacto(request):
             mensaje=mensaje,
         )
 
-        send_mail(
-            'Hemos recibido tu mensaje - CanchaFácil',
-            f'''
+        try:
+            send_mail(
+                'Hemos recibido tu mensaje - CanchaFácil',
+                f'''
 Hola {nombre}
 
 Gracias por escribirnos. Recibimos tu mensaje sobre "{asunto}" y pronto nos comunicaremos contigo.
 
 Tu mensaje:
 {mensaje}
-            ''',
-            settings.DEFAULT_FROM_EMAIL,
-            [correo],
-            fail_silently=False,
-        )
+                ''',
+                settings.DEFAULT_FROM_EMAIL,
+                [correo],
+                fail_silently=False,
+            )
+        except Exception as e:
+            # El mensaje ya se guardó en la BD aunque el correo falle
+            return JsonResponse({
+                'status': 'ok',
+                'correo_enviado': False,
+                'mensaje': 'Tu mensaje se guardó, pero no pudimos enviarte el correo de confirmación.',
+            })
 
-        return render(request, 'contacto/contacto.html', {
-            'enviado': True,
-        })
+        return JsonResponse({'status': 'ok', 'correo_enviado': True})
 
     return render(request, 'contacto/contacto.html')
-
 
 @require_POST
 def resena_archivar(request, id):
@@ -226,3 +232,4 @@ def eliminar_resena_perfil(request, id):
         # dime y lo bloqueamos por separado.
 
     return redirect('perfil')
+
