@@ -298,8 +298,26 @@
 /* ============ Contacto ============ */
 [data-bs-theme="dark"] .hero-contacto {
     background-color: var(--dark-bg);
-    color: white;
+    color: var(--blanco);
 }
+
+[data-bs-theme="dark"] .custom-card {
+    background: var(--dark-bg);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+}
+
+[data-bs-theme="dark"] .contacto-info p {
+    font-size: 0.95rem;
+    color: var(--blanco);
+}
+
+/* ============ Contacto ============ */
+[data-bs-theme="dark"] .card-header {
+    background-color: var(--verde-neon);
+    color: var(--blanco);
+}
+
+
 
 
 

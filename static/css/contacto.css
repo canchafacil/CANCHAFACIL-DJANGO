@@ -8,9 +8,12 @@
 }
 
 :root {
-    --verde-principal: #62ff00;
-    --verde-hover: #4fd400;
-    --oscuro: #03045e;
+    --verde-neon: #39FF14;
+    --azul-oscuro: #03045e;
+    --azul-medio: #0d0d7a;
+    --azul-claro: #0a0a8a;
+    --negro: #000;
+    --blanco: #fff;
     --negro: #0a0a0a;
     --gris-fondo: #f4f6f8;
     --borde-input: #ced4da;
@@ -42,7 +45,7 @@ body {
 
 /* ── HERO ── */
 .hero-contacto {
-    background-color: var(--oscuro);
+    background-color: var(--azul-oscuro);
     padding: 80px 0 60px;
     text-align: center;
     color: white;
@@ -54,7 +57,7 @@ body {
 }
 
 .hero-contacto h1 span {
-    color: var(--verde-principal);
+    color: var(--verde-neon);
 }
 
 .hero-contacto p {
@@ -64,9 +67,9 @@ body {
 
 /* ── CARDS ── */
 .custom-card {
-    border-radius: 16px !important;
+    border-radius: 16px;
     background: #fff;
-    border: none !important;
+    border: var(--verde-neon) 1px solid;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
     transition: transform 0.3s, box-shadow 0.3s;
 }
@@ -77,15 +80,15 @@ body {
 }
 
 .card-heading {
-    color: var(--oscuro);
-    border-left: 4px solid var(--verde-principal);
+    color: var(--azul-oscuro);
+    border-left: 4px solid var(--verde-neon);
     padding-left: 10px;
     font-weight: 800;
 }
 
 /* ── INFO ICONS ── */
 .icon-cancha {
-    color: var(--verde-principal);
+    color: var(--verde-neon);
     font-size: 1.2rem;
 }
 
@@ -97,21 +100,21 @@ body {
 /* ── INPUTS ── */
 .custom-input {
     border-radius: 10px;
-    border: 1.5px solid var(--borde-input);
+    border: 1.5px solid var(--verde-neon);
     padding: 10px 15px;
     transition: all 0.2s;
     width: 100%;
 }
 
 .custom-input:focus {
-    border-color: var(--verde-principal);
-    box-shadow: 0 0 0 3px rgba(98, 255, 0, 0.15);
+    border-color: var(--borde-input);
+    box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.15);
     outline: none;
 }
 
 /* ── BOTÓN ── */
 .btn-primary-cancha {
-    background-color: var(--verde-principal);
+    background-color: var(--verde-neon);
     border: none;
     color: #000;
     font-weight: 800;
@@ -181,7 +184,7 @@ body {
 .modal-box .check-icon {
     width: 70px;
     height: 70px;
-    background: var(--verde-principal);
+    background: var(--verde-neon);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -192,7 +195,7 @@ body {
 
 .modal-box h3 {
     font-weight: 800;
-    color: var(--oscuro);
+    color: var(--azul-oscuro);
     margin-bottom: 8px;
 }
 
@@ -213,7 +216,7 @@ body {
 }
 
 .modal-box .datos-resumen strong {
-    color: var(--oscuro);
+    color: var(--azul-oscuro);
 }
 
 .btn-editar {
@@ -234,7 +237,7 @@ body {
 }
 
 .btn-enviar-final {
-    background: var(--verde-principal);
+    background: var(--verde-neon);
     border: none;
     color: #000;
     border-radius: 50px;
@@ -254,7 +257,7 @@ body {
     position: fixed;
     bottom: 30px;
     right: 30px;
-    background: var(--oscuro);
+    background: var(--azul-oscuro);
     color: #fff;
     padding: 16px 24px;
     border-radius: 12px;
@@ -265,7 +268,7 @@ body {
 }
 
 .toast-enviado span {
-    color: var(--verde-principal);
+    color: var(--verde-neon);
     margin-right: 8px;
 }
 

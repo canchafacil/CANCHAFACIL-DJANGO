@@ -108,7 +108,7 @@ footer {
 .carousel-inner {
     border-radius: 20px;
     overflow: hidden;
-    border: 1px solid var(--line);
+    border: 1px solid var(--verde-neon);
     box-shadow:
         0 0 40px rgba(98, 255, 0, 0.15),
         0 20px 60px rgba(0, 0, 0, 0.5);
@@ -132,7 +132,7 @@ footer {
 }
 
 .badge-field {
-    background: var(--neon);
+    background: var(--verde-neon);
     color: #03045E;
     padding: 5px 12px;
     border-radius: 6px;
@@ -190,7 +190,7 @@ footer {
 }
 
 .porque-titulo {
-    color: var(--verde-limon);
+    color: var(--verde-neon);
     font-size: 1.3rem;
     font-family: 'Bebas Neue', sans-serif;
     letter-spacing: 2px;
@@ -266,6 +266,12 @@ footer {
 .btn-ver-reseñas:hover {
     background-color: var(--verde-neon);
     color: var(--azul-oscuro);
+    box-shadow: 0 0 15px rgba(184, 251, 60, 0.4);
+}
+
+.card-header {
+    background-color: var(--azul-oscuro);
+    color: var(--blanco);
     box-shadow: 0 0 15px rgba(184, 251, 60, 0.4);
 }
 
