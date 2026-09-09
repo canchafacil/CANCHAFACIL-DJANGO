@@ -84,24 +84,24 @@
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold text-secondary">Nombre</label>
+                            <label class="form-label small fw-bold">Nombre</label>
                             <input class="form-control" id="editNombre" placeholder="Nombre">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold text-secondary">Teléfono</label>
+                            <label class="form-label small fw-bold">Teléfono</label>
                             <input class="form-control" id="editTelefono" placeholder="Teléfono">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold text-secondary">Correo</label>
+                            <label class="form-label small fw-bold">Correo</label>
                             <input class="form-control" id="editCorreo" placeholder="Correo">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-secondary">Cancha</label>
+                            <label class="form-label small fw-bold">Cancha</label>
                             <select class="form-select" id="editCancha" onchange="onCambioCanchaEdit()"></select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-secondary d-flex align-items-center gap-2">
+                            <label class="form-label small fw-bold d-flex align-items-center gap-2">
                                 Estado
                                 <span class="badge bg-dark" style="font-size:0.65rem;">Solo administrador</span>
                             </label>
@@ -119,7 +119,7 @@
                     <div class="row g-4">
                         <!-- ── CALENDARIO ── -->
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-secondary text-uppercase mb-2">Fecha del partido</label>
+                            <label class="form-label small fw-bold text-uppercase mb-2">Fecha del partido</label>
                             <div class="mini-calendario">
                                 <div class="mc-header">
                                     <button type="button" class="mc-nav" onclick="cambiarMesCalendario(-1)">‹</button>
@@ -141,7 +141,7 @@
                         <!-- ── HORARIOS ── -->
                         <div class="col-md-6">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="form-label small fw-bold text-secondary text-uppercase m-0">Horarios
+                                <label class="form-label small fw-bold text-uppercase m-0">Horarios
                                     disponibles</label>
                                 <div class="d-flex gap-2 align-items-center" style="font-size:0.72rem;">
                                     <span class="leyenda-dot" style="background:#62ff00;border:2px solid #4fd400;"></span>
@@ -153,9 +153,9 @@
                             <div id="editContenedorHorarios"
                                 class="d-flex flex-wrap gap-2 p-3 rounded bg-light border"
                                 style="max-height:230px; overflow-y:auto;">
-                                <span class="text-muted small">Selecciona cancha y fecha.</span>
+                                <span class="small">Selecciona cancha y fecha.</span>
                             </div>
-                            <span class="text-muted small d-block mt-2" id="editHorasEstadoTexto">Puedes seleccionar o quitar varias horas.</span>
+                            <span class="small d-block mt-2" id="editHorasEstadoTexto">Puedes seleccionar o quitar varias horas.</span>
 
                             <div class="rounded p-3 mt-3 border" style="background-color:#f4f6fb;" id="editContenedorPrecio">
                                 <!-- Se llena dinámicamente con JS -->

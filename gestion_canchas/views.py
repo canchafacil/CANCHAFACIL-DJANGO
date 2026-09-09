@@ -1,72 +1,140 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Cancha
-from .forms import CanchaForm
+from django.http import JsonResponse
+from .models import Cancha, Sede
+from .forms import CanchaForm, SedeForm
+
+
+# ── Helpers de rol ────────────────────────────────────────────────────────────
+def es_admin(request):
+    return request.session.get('admin_rol') in ('ADMIN', 'SUPERADMIN')
+
+def es_superadmin(request):
+    return request.session.get('admin_rol') == 'SUPERADMIN'
+
 
 # ==================== VISTAS PÚBLICAS ====================
 
 def canchas(request):
-    """Vista pública para mostrar canchas disponibles."""
     todas = Cancha.objects.filter(disponible=True).order_by('-creada')
-    return render(request, 
-                  'gestion_canchas/canchas.html', 
-                  {'canchas': todas})
+    return render(request, 'gestion_canchas/canchas.html', {'canchas': todas})
 
-# ==================== VISTAS DE ADMINISTRACIÓN (CRUD) ====================
+
+# ==================== ADMIN — CRUD CANCHAS ====================
 
 def cancha_admin(request):
-    """Vista para listar todas las canchas en el panel de administración."""
+    if not es_admin(request):
+        return redirect('login_admin')
     canchas = Cancha.objects.all().order_by('-creada')
-    return render(request,
-                  'gestion_canchas/cancha_admin.html',
-                  {'canchas': canchas, 'form_agregar': CanchaForm()})
+    return render(request, 'gestion_canchas/cancha_admin.html', {
+        'canchas': canchas,
+        'form_agregar': CanchaForm()
+    })
 
 def agregar_cancha(request):
-    """Vista para agregar una nueva cancha."""
+    if not es_admin(request):
+        return redirect('login_admin')
     if request.method == 'POST':
         form = CanchaForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             return redirect('gestion_canchas:cancha_admin')
-        else:
-            # Antes: se hacía redirect silencioso y el error se perdía.
-            # Ahora: volvemos a renderizar el panel mostrando los errores
-            # del formulario y reabriendo el modal automáticamente.
-            canchas = Cancha.objects.all().order_by('-creada')
-            return render(request,
-                          'gestion_canchas/cancha_admin.html',
-                          {
-                              'canchas': canchas,
-                              'form_agregar': form,
-                              'abrir_modal_agregar': True,
-                          })
+        canchas = Cancha.objects.all().order_by('-creada')
+        return render(request, 'gestion_canchas/cancha_admin.html', {
+            'canchas': canchas,
+            'form_agregar': form,
+            'abrir_modal_agregar': True,
+        })
     return redirect('gestion_canchas:cancha_admin')
 
 def editar_cancha(request, id):
-    """Vista para editar una cancha existente."""
+    if not es_admin(request):
+        return redirect('login_admin')
     cancha = get_object_or_404(Cancha, id=id)
-    
     if request.method == 'POST':
         form = CanchaForm(request.POST, request.FILES, instance=cancha)
         if form.is_valid():
             form.save()
             return redirect('gestion_canchas:cancha_admin')
-        # Si el formulario no es válido, seguimos abajo y volvemos a
-        # renderizar editar.html con los errores (antes se perdían).
     else:
         form = CanchaForm(instance=cancha)
-
-    return render(request,
-                  'gestion_canchas/editar.html',
-                  {'form': form, 'cancha': cancha})
+    return render(request, 'gestion_canchas/editar.html', {
+        'form': form, 'cancha': cancha
+    })
 
 def eliminar_cancha(request, id):
-    """Vista para eliminar una cancha."""
-    cancha = get_object_or_404(Cancha, id=id)
-    cancha.delete()
+    if not es_admin(request):
+        return redirect('login_admin')
+    get_object_or_404(Cancha, id=id).delete()
     return redirect('gestion_canchas:cancha_admin')
 
-from django.http import JsonResponse
+
+# ==================== SUPERADMIN — SEDES ====================
+
+def lista_sedes(request):
+    if not es_superadmin(request):
+        return redirect('login_admin')
+    sedes = Sede.objects.prefetch_related('canchas').all()
+    return render(request, 'gestion_canchas/sedes/lista_sedes.html', {
+        'sedes': sedes,
+        'form':  SedeForm(),
+    })
+
+def crear_sede(request):
+    if not es_superadmin(request):
+        return redirect('login_admin')
+    if request.method == 'POST':
+        form = SedeForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('gestion_canchas:lista_sedes')
+        return render(request, 'gestion_canchas/sedes/lista_sedes.html', {
+            'sedes':       Sede.objects.prefetch_related('canchas').all(),
+            'form':        form,
+            'abrir_modal': True,
+        })
+    return redirect('gestion_canchas:lista_sedes')
+
+def editar_sede(request, id):
+    if not es_superadmin(request):
+        return redirect('login_admin')
+    sede = get_object_or_404(Sede, id=id)
+    if request.method == 'POST':
+        form = SedeForm(request.POST, instance=sede)
+        if form.is_valid():
+            form.save()
+            return redirect('gestion_canchas:lista_sedes')
+    else:
+        form = SedeForm(instance=sede)
+    return render(request, 'gestion_canchas/sedes/editar_sede.html', {
+        'form': form, 'sede': sede
+    })
+
+def eliminar_sede(request, id):
+    if not es_superadmin(request):
+        return redirect('login_admin')
+    get_object_or_404(Sede, id=id).delete()
+    return redirect('gestion_canchas:lista_sedes')
+
+def toggle_sede(request, id):
+    if not es_superadmin(request):
+        return redirect('login_admin')
+    sede = get_object_or_404(Sede, id=id)
+    sede.activa = not sede.activa
+    sede.save()
+    return redirect('gestion_canchas:lista_sedes')
+
+def canchas_por_sede(request, sede_id):
+    if not es_superadmin(request):
+        return redirect('login_admin')
+    sede    = get_object_or_404(Sede, id=sede_id)
+    canchas = sede.canchas.all().order_by('-creada')
+    return render(request, 'gestion_canchas/sedes/canchas_sede.html', {
+        'sede': sede, 'canchas': canchas
+    })
+
+
+# ==================== DEBUG ====================
 
 def debug_canchas(request):
-    data = list(Cancha.objects.all().values('id', 'nombre', 'disponible'))
+    data = list(Cancha.objects.all().values('id', 'nombre', 'disponible', 'sede__nombre'))
     return JsonResponse({'canchas': data}, safe=False)

@@ -1,0 +1,289 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sedes - CanchaFácil</title>
+    <link rel="icon" href="{% static 'img/logo-green.png' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/listausers.css' %}">
+</head>
+<body class="adm-body bg-dark text-white min-vh-100">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark shadow cancha-nav">
+        <div class="container-fluid">
+            <div class="d-flex align-items-center ms-5">
+                <img src="{% static 'img/logo-green.png' %}" style="height:90px;object-fit:contain;" alt="Logo">
+                <a class="navbar-brand fw-bold ms-2 m-0 logo-text" href="#" style="font-size:2rem;color:#fff;">
+                    Cancha<span style="color:#62ff00;">Fácil</span>
+                </a>
+            </div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end me-5" id="menuNav">
+                <ul class="nav navbar-nav gap-2 align-items-center">
+                    <li class="nav-item">
+                        <a href="{% url 'lista_usuarios' %}" class="btn btn-custom rounded-pill">
+                            <i class="bi bi-people-fill me-1"></i>Usuarios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'gestion_canchas:lista_sedes' %}"
+                           class="btn rounded-pill fw-bold"
+                           style="background-color:#62ff00; color:black;">
+                            <i class="bi bi-building me-1"></i>Sedes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'gestion_canchas:cancha_admin' %}" class="btn btn-custom rounded-pill">
+                            <i class="bi bi-dribbble me-1"></i>Canchas
+                        </a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a href="{% url 'logout_admin' %}" class="btn btn-salir rounded-pill fw-bold py-2 px-4">
+                            Salir
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+
+        <!-- Encabezado -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-0">
+                    <i class="bi bi-building me-2" style="color:#62ff00;"></i>Gestión de Sedes
+                </h2>
+                <small class="text-muted">{{ sedes.count }} sede{{ sedes.count|pluralize }} registrada{{ sedes.count|pluralize }}</small>
+            </div>
+            <button class="btn fw-bold rounded-pill px-4 py-2"
+                    style="background-color:#62ff00; color:black;"
+                    data-bs-toggle="modal" data-bs-target="#modalCrearSede">
+                <i class="bi bi-plus-lg me-1"></i>Nueva Sede
+            </button>
+        </div>
+
+        <!-- Mensajes -->
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Tarjetas -->
+        <div class="row g-4">
+            {% for sede in sedes %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-lg"
+                     style="background-color:#03045e; color:white;
+                            border-left: 4px solid {% if sede.activa %}#62ff00{% else %}#dc3545{% endif %} !important;">
+                    <div class="card-body">
+
+                        <!-- Header sede -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="fw-bold mb-0" style="color:#62ff00;">
+                                <i class="bi bi-building me-1"></i>{{ sede.nombre }}
+                            </h5>
+                            {% if sede.activa %}
+                                <span class="badge bg-success">Activa</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactiva</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Info -->
+                        <p class="mb-1 small">
+                            <i class="bi bi-geo-alt-fill me-1" style="color:#62ff00;"></i>
+                            {{ sede.direccion }}
+                        </p>
+                        <p class="mb-1 small">
+                            <i class="bi bi-buildings me-1" style="color:#62ff00;"></i>
+                            {{ sede.ciudad }}
+                        </p>
+                        {% if sede.telefono %}
+                        <p class="mb-3 small">
+                            <i class="bi bi-telephone-fill me-1" style="color:#62ff00;"></i>
+                            {{ sede.telefono }}
+                        </p>
+                        {% endif %}
+
+                        <!-- Stats canchas -->
+                        <div class="d-flex gap-2 flex-wrap">
+                            <span class="badge rounded-pill"
+                                  style="background-color:#62ff00; color:black; font-size:.8rem;">
+                                ⚽ {{ sede.canchas.count }}
+                                cancha{{ sede.canchas.count|pluralize }}
+                            </span>
+                            <span class="badge rounded-pill bg-success" style="font-size:.8rem;">
+                                ✅ {{ sede.canchas.filter.disponible }} disponibles
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="card-footer border-0 d-flex gap-2 flex-wrap py-3"
+                         style="background-color:#020230;">
+                        <a href="{% url 'gestion_canchas:canchas_por_sede' sede.id %}"
+                           class="btn btn-sm rounded-pill px-3"
+                           style="background-color:#62ff00; color:black;">
+                            <i class="bi bi-eye me-1"></i>Ver canchas
+                        </a>
+                        <a href="{% url 'gestion_canchas:editar_sede' sede.id %}"
+                           class="btn btn-warning btn-sm rounded-pill px-3">
+                            <i class="bi bi-pencil me-1"></i>Editar
+                        </a>
+                        <a href="{% url 'gestion_canchas:toggle_sede' sede.id %}"
+                           class="btn btn-sm rounded-pill px-3
+                                  {% if sede.activa %}btn-secondary{% else %}btn-success{% endif %}">
+                            {% if sede.activa %}
+                                <i class="bi bi-pause-circle me-1"></i>Desactivar
+                            {% else %}
+                                <i class="bi bi-play-circle me-1"></i>Activar
+                            {% endif %}
+                        </a>
+                        <button class="btn btn-danger btn-sm rounded-pill px-3"
+                                onclick="confirmarEliminar('{{ sede.id }}', '{{ sede.nombre }}', {{ sede.canchas.count }})">
+                            <i class="bi bi-trash3 me-1"></i>Eliminar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5" style="color:#888;">
+                    <i class="bi bi-building-x" style="font-size:4rem; color:#62ff00;"></i>
+                    <h4 class="mt-3">No hay sedes registradas</h4>
+                    <p>Crea la primera sede con el botón de arriba.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Modal Crear Sede -->
+    <div class="modal fade" id="modalCrearSede" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white"
+                 style="border: 1px solid #62ff00;">
+                <div class="modal-header" style="border-color:#62ff00;">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-building-add me-2" style="color:#62ff00;"></i>Nueva Sede
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong><i class="bi bi-exclamation-triangle-fill me-1"></i>Corrige los errores:</strong>
+                        <ul class="mb-0 mt-2">
+                            {% for campo in form %}
+                                {% for error in campo.errors %}
+                                    <li>{{ campo.label }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    <form method="POST" action="{% url 'gestion_canchas:crear_sede' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nombre *</label>
+                            {{ form.nombre }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Dirección *</label>
+                            {{ form.direccion }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Ciudad *</label>
+                            {{ form.ciudad }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Teléfono</label>
+                            {{ form.telefono }}
+                        </div>
+                        <div class="form-check mb-4">
+                            {{ form.activa }}
+                            <label class="form-check-label ms-2">Sede activa</label>
+                        </div>
+                        <button type="submit" class="btn w-100 fw-bold rounded-pill py-2"
+                                style="background-color:#62ff00; color:black;">
+                            <i class="bi bi-save me-1"></i>Guardar Sede
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Eliminar Sede -->
+    <div class="modal fade" id="modalEliminarSede" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white"
+                 style="border: 1px solid #dc3545;">
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size:3rem;"></i>
+                    </div>
+                    <h5 class="fw-bold">¿Eliminar sede?</h5>
+                    <p class="text-muted mb-1">
+                        Estás a punto de eliminar
+                        <strong id="nombreSedeEliminar" style="color:#62ff00;"></strong>
+                    </p>
+                    <p id="advertenciaCanchas" class="text-danger small fw-semibold mb-4"></p>
+                    <div class="d-flex gap-3 justify-content-center">
+                        <button class="btn btn-secondary rounded-pill px-4"
+                                data-bs-dismiss="modal">Cancelar</button>
+                        <form id="formEliminarSede" method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger rounded-pill px-4">
+                                <i class="bi bi-trash3 me-1"></i>Sí, eliminar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function confirmarEliminar(id, nombre, totalCanchas) {
+            document.getElementById('nombreSedeEliminar').textContent = '"' + nombre + '"';
+
+            const advertencia = document.getElementById('advertenciaCanchas');
+            if (totalCanchas > 0) {
+                advertencia.textContent =
+                    '⚠️ Esta sede tiene ' + totalCanchas + ' cancha(s). ' +
+                    'Quedarán sin sede asignada.';
+            } else {
+                advertencia.textContent = '';
+            }
+
+            document.getElementById('formEliminarSede').action =
+                "{% url 'gestion_canchas:eliminar_sede' 0 %}".replace('0', id);
+
+            new bootstrap.Modal(document.getElementById('modalEliminarSede')).show();
+        }
+    </script>
+
+    {% if abrir_modal %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            new bootstrap.Modal(document.getElementById('modalCrearSede')).show();
+        });
+    </script>
+    {% endif %}
+
+</body>
+</html>
