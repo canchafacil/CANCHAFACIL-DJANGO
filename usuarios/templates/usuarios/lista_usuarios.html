@@ -24,7 +24,7 @@
       </div>
       <div class="d-flex align-items-center gap-3">
         <span class="text-white fw-semibold">
-          👤 {{ request.session.admin_nombre }}
+          {{ request.session.admin_nombre }}
         </span>
         <a href="{% url 'logout_admin' %}" class="btn btn-salir rounded-pill fw-bold py-2 px-4">Salir</a>
       </div>
@@ -39,21 +39,21 @@
         <a class="nav-link {% if tab == 'usuarios' or not tab %}active{% endif %}" href="{% url 'lista_usuarios' %}"
           style="color: #62ff00; background: transparent; border: none;
                           {% if tab == 'usuarios' or not tab %}border-bottom: 3px solid #62ff00;{% endif %}">
-          👥 Usuarios
+          Usuarios
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link {% if tab == 'sedes' %}active{% endif %}" href="{% url 'gestion_canchas:lista_sedes' %}"
           style="color: #62ff00; background: transparent; border: none;
                           {% if tab == 'sedes' %}border-bottom: 3px solid #62ff00;{% endif %}">
-          🏢 Sedes
+          Sedes
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link {% if tab == 'canchas' %}active{% endif %}" href="{% url 'gestion_canchas:cancha_admin' %}"
           style="color: #62ff00; background: transparent; border: none;
                           {% if tab == 'canchas' %}border-bottom: 3px solid #62ff00;{% endif %}">
-          ⚽ Canchas
+          Canchas
         </a>
       </li>
     </ul>
@@ -116,13 +116,13 @@
               <div class="d-flex gap-2">
                 <!-- Editar -->
                 <a href="{% url 'editar_usuario' usuario.id %}" class="btn btn-warning btn-sm rounded-pill px-3">
-                  ✏️ Editar
+                  Editar
                 </a>
                 <!-- Habilitar / Deshabilitar -->
                 {% if usuario.activo %}
                 <button type="button" class="btn btn-danger btn-sm rounded-pill px-3"
                   onclick="abrirModalDeshabilitar('{{ usuario.id }}', '{{ usuario.first_name }}')">
-                  🚫 Deshabilitar
+                  Deshabilitar
                 </button>
                 {% else %}
                 <a href="{% url 'habilitar_usuario' usuario.id %}" class="btn btn-success btn-sm rounded-pill px-3">
