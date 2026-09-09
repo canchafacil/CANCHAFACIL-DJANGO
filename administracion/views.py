@@ -316,6 +316,66 @@ def resumen_reservas_mes(request):
 
     return JsonResponse({'status': 'ok', 'resumen': resumen})
 
+def calendario_eventos(request):
+    """Devuelve todas las fechas con reservas, marcando si ya pasaron o siguen activas.
+    Se usa para pintar el calendario en gris (pasada) o azul (activa)."""
+    hoy = timezone.localdate()
+
+    reservas = Reserva.objects.exclude(estado=Reserva.ESTADO_CANCELADA)
+
+    resumen = {}
+    for r in reservas:
+        fecha_str = str(r.fecha)
+        info = resumen.setdefault(fecha_str, {'pasada': False, 'activa': False})
+        if r.fecha < hoy:
+            info['pasada'] = True
+        else:
+            info['activa'] = True
+
+    return JsonResponse({'status': 'ok', 'fechas': resumen})
+
+
+def calendario_horas_dia(request, fecha):
+    """Devuelve las reservas de un día específico (todas las canchas), con
+    las horas que ocupa cada una, para el modal de 'horas del día'."""
+    reservas = Reserva.objects.filter(fecha=fecha).exclude(estado=Reserva.ESTADO_CANCELADA).order_by('hora')
+
+    data = []
+    for r in reservas:
+        data.append({
+            'id': r.id,
+            'cliente': r.nombre,
+            'cancha': r.cancha,
+            'hora_inicio': r.hora.strftime('%H:%M') if hasattr(r.hora, 'strftime') else str(r.hora)[:5],
+            'horas_ocupadas': _horas_ocupadas_por_reserva(r),
+            'estado': r.estado,
+        })
+
+    return JsonResponse({'status': 'ok', 'fecha': fecha, 'reservas': data})
+
+
+def calendario_detalle_reserva(request, id):
+    """Devuelve el detalle completo de una reserva puntual, para el modal final."""
+    try:
+        r = Reserva.objects.get(id=id)
+    except Reserva.DoesNotExist:
+        return JsonResponse({'status': 'error'}, status=404)
+
+    return JsonResponse({
+        'status': 'ok',
+        'id': r.id,
+        'cliente': r.nombre,
+        'correo': r.correo,
+        'telefono': r.telefono,
+        'cancha': r.cancha,
+        'fecha': r.fecha.strftime('%d de %B, %Y'),
+        'hora': r.hora.strftime('%H:%M') if hasattr(r.hora, 'strftime') else str(r.hora)[:5],
+        'duracion': r.duracion,
+        'estado': r.get_estado_display(),
+        'monto_pagado': str(getattr(r, 'monto_pagado', 0)),
+        'saldo_pendiente': str(getattr(r, 'saldo_pendiente', 0)) if hasattr(r, 'saldo_pendiente') else None,
+    })
+
 
 @require_POST
 def marcar_mensaje_respondido(request, id):

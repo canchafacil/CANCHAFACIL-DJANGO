@@ -1,0 +1,134 @@
+/* ==========================================================================
+   ESTILOS PARA MÓDULO DE PAGO - ENTORNO USUARIO (FONDO CLARO)
+   ========================================================================== */
+
+.pago-body-claro {
+    background-color: #e9ecef; /* Gris claro de fondo corporativo */
+    min-height: 100vh;
+}
+
+.titulo-pagina-pago {
+    font-family: 'Bebas Neue', sans-serif;
+    color: #03045e;
+    font-size: 2.8rem;
+    letter-spacing: 1px;
+}
+
+.pago-card-azul {
+    background-color: #03045e;
+    border: none;
+    border-radius: 1rem;
+}
+
+.resumen-interior-box {
+    background-color: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pago-titulo {
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 700;
+}
+
+.text-verde {
+    color: #62ff00 !important;
+}
+
+.text-bg-verde, .btn-pago-action {
+    background-color: #62ff00 !important;
+    color: #000000 !important;
+    font-weight: 700;
+    border: none;
+}
+
+.btn-pago-action {
+    border-radius: 0.5rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-pago-action:hover {
+    background-color: #ffffff !important;
+    color: #03045e !important;
+    transform: scale(1.02);
+    box-shadow: 0 4px 15px rgba(98, 255, 0, 0.4);
+}
+
+.nav-tabs .nav-link {
+    color: rgba(255, 255, 255, 0.6);
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    color: #ffffff;
+    border-bottom-color: rgba(255, 255, 255, 0.2);
+}
+
+.nav-tabs .nav-link.active {
+    background-color: transparent !important;
+    color: #62ff00 !important;
+    border: none !important;
+    border-bottom: 2px solid #62ff00 !important;
+}
+
+.pago-input {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    border-radius: 0.5rem !important;
+    padding: 10px 12px;
+}
+
+.pago-input:focus {
+    border-color: #62ff00 !important;
+    box-shadow: 0 0 8px rgba(98, 255, 0, 0.4) !important;
+}
+
+.pago-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.pago-input-group {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    border-radius: 0.5rem 0 0 0.5rem !important;
+}
+
+.pago-back-link {
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+}
+
+.pago-back-link:hover {
+    color: #62ff00;
+}
+
+.nequi-box {
+    background-color: #1b0a2a; 
+    border: 1.5px solid #7000ff;
+}
+
+.nequi-logo-badge {
+    background-color: #ff007f;
+    color: #ffffff;
+    font-family: 'Bebas Neue', sans-serif;
+    padding: 1px 9px;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    display: inline-block;
+}
+
+/* Animación simple de escala para la confirmación exitosa */
+.animate-success {
+    animation: popIn 0.4s ease-out;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}

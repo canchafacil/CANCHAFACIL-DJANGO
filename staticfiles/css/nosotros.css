@@ -1,0 +1,552 @@
+ @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+ /* VARIABLES Y ESTILOS GENERALES */
+ :root {
+     --verde-neon: #39FF14;
+     --azul-oscuro: #03045e;
+     --azul-medio: #0d0d7a;
+     --azul-claro: #0a0a8a;
+     --negro: #000;
+     --blanco: #fff;
+ }
+
+
+ * {
+     box-sizing: border-box;
+     margin: 0;
+     padding: 0;
+     font-family: 'Bebas Neue', sans-serif;
+ }
+
+ .navbar {
+     background-color: #03045e !important;
+     border-bottom: 2px solid var(--verde-neon);
+ }
+
+ .navbar .nav-link {
+     color: white !important;
+     transition: color 0.3s ease;
+ }
+
+ .navbar .nav-link:hover {
+     color: var(--verde-neon) !important;
+ }
+
+ body {
+     background-color: var(--blanco);
+     overflow-x: hidden;
+ }
+
+
+ h1,
+ h2,
+ h3,
+ .titulo-seccion {
+     letter-spacing: 2px;
+ }
+
+
+ body {
+     background-color: #d9d9d9;
+ }
+
+
+ .hero {
+     background: linear-gradient(rgba(0, 0, 0, .6), rgba(0, 0, 0, .6)),
+         url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1400&auto=format&fit=crop') center/cover;
+     height: 60vh;
+     color: white;
+     display: flex;
+     align-items: center;
+     text-align: center;
+     border-bottom: 2px solid var(--verde-neon);
+ }
+
+
+ .hero h1 {
+     font-size: 4rem;
+     font-weight: bold;
+ }
+
+
+ .card img {
+     height: 220px;
+     object-fit: cover;
+ }
+
+
+ .section-title {
+     color: #03045e;
+     font-weight: bold;
+ }
+
+
+ footer {
+     background-color: black;
+     color: white;
+     padding: 20px 0;
+     text-align: center;
+ }
+
+
+ .hero2 {
+     background: linear-gradient(rgba(0, 0, 0, .6), rgba(0, 0, 0, .6)),
+         url(https://www.canchasfutboleros.com/uploads/1/3/7/3/137335804/mejores-canchas-bogota.jpeg) center/cover;
+     height: 60vh;
+     color: white;
+     display: flex;
+     align-items: center;
+     text-align: start;
+ }
+
+ /* SECCIÓN — ¿POR QUÉ ELEGIRNOS? */
+ .seccion-porque {
+     padding: 70px 20px;
+     text-align: center;
+     position: relative;
+ }
+
+
+ .seccion-porque::before {
+     content: '';
+     position: relative;
+     top: 0;
+     left: 0;
+     right: 0;
+     height: 4px;
+     background: linear-gradient(90deg, var(--verde-limon), var(--verde-neon), var(--verde-limon));
+ }
+
+
+ .porque-card {
+     background: linear-gradient(145deg, #0d0d7a, #03045e);
+     border: 1px solid rgba(184, 251, 60, 0.2);
+     border-radius: 20px;
+     padding: 40px 24px;
+     text-align: center;
+     transition: 0.3s;
+     height: 100%;
+ }
+
+
+ .porque-card:hover {
+     transform: translateY(-8px);
+     border-color: var(--verde-neon);
+     box-shadow: 0 0 30px rgba(57, 255, 20, 0.2);
+ }
+
+
+ .porque-icono {
+     font-size: 3rem;
+     margin-bottom: 16px;
+     display: block;
+     color: #fff;
+ }
+
+
+ .titulo-sec {
+     color: #03045e;
+     font-weight: bold;
+ }
+
+
+ .subtitulo-seccion {
+     color: #000000;
+ }
+
+
+ .porque-titulo {
+     color: var(--verde-neon);
+     font-size: 1.3rem;
+     font-family: 'Bebas Neue', sans-serif;
+     letter-spacing: 2px;
+     margin-bottom: 10px;
+ }
+
+
+ .porque-texto {
+     color: rgba(255, 255, 255, 0.7);
+     font-size: 0.92rem;
+     line-height: 1.6;
+ }
+
+
+ /* =============================================
+   SECCIÓN RESEÑAS — resenas.css
+   Paleta: #b8fb3c (verde limón) | #39FF14 (verde neón) | #03045e (azul oscuro)
+============================================= */
+
+
+ /* VARIABLES */
+ .rf-root {
+     --neon: #39FF14;
+     --azul: #03045e;
+     --azul2: #0d0d7a;
+     background: #f4f6f0;
+     overflow: hidden;
+ }
+
+ /* ENCABEZADO*/
+ .rf-header {
+     background: var(--azul);
+     padding: 48px 32px 32px;
+     text-align: center;
+     position: relative;
+ }
+
+ .rf-header::before {
+     content: '';
+     position: absolute;
+     top: 0;
+     left: 0;
+     right: 0;
+     height: 5px;
+     background: linear-gradient(90deg, var(--neon), var(--neon), var(--verde-neon));
+ }
+
+ .rf-titulo {
+     font-size: 2.6rem;
+     letter-spacing: 4px;
+     color: var(--neon);
+     margin: 0 0 6px;
+ }
+
+ .rf-sub {
+     color: rgba(255, 255, 255, 0.6);
+     font-size: 0.95rem;
+     margin: 0;
+ }
+
+ /* ESTADÍSTICAS CORREGIDAS */
+ .rf-header {
+     background-color: var(--azul-oscuro);
+     padding: 50px 20px;
+     border-top: 1px solid var(--verde-neon);
+     border-bottom: 4px solid var(--verde-neon);
+     color: var(--blanco);
+ }
+
+ .rf-titulo {
+     font-family: 'Bebas Neue', sans-serif;
+     font-size: 2.5rem;
+     color: var(--verde-neon);
+     letter-spacing: 2px;
+     margin-bottom: 8px;
+ }
+
+ .rf-sub {
+     color: rgba(255, 255, 255, 0.7);
+     font-size: 1rem;
+     margin-bottom: 25px;
+ }
+
+ .rf-stats {
+     display: flex;
+     justify-content: center;
+     gap: 40px;
+     margin-top: 24px;
+     flex-wrap: wrap;
+ }
+
+ .rf-stat-num {
+     font-family: 'Bebas Neue', sans-serif;
+     font-size: 2.4rem;
+     color: var(--verde-neon) !important;
+     display: block;
+     line-height: 1;
+ }
+
+ .rf-stat-lbl {
+     font-size: 0.78rem;
+     color: var(--blanco);
+     text-transform: uppercase;
+     letter-spacing: 1px;
+ }
+
+ /* GRID DE TARJETAS */
+ .rf-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+     gap: 20px;
+     padding: 36px 32px;
+     background: #f0f2ec;
+ }
+
+ .rf-card {
+     background: #ffffff;
+     border: 1.5px solid #e2e8d8;
+     border-radius: 16px;
+     padding: 22px;
+     transition: border 0.25s, transform 0.2s, box-shadow 0.2s;
+     box-shadow: 0 2px 8px rgba(3, 4, 94, 0.07);
+ }
+
+ .rf-card:hover {
+     border-color: var(--neon);
+     transform: translateY(-4px);
+     box-shadow: 0 8px 24px rgba(3, 4, 94, 0.12);
+ }
+
+ .rf-card-top {
+     display: flex;
+     align-items: center;
+     gap: 12px;
+     margin-bottom: 12px;
+ }
+
+ .rf-avatar {
+     width: 46px;
+     height: 46px;
+     border-radius: 50%;
+     background: var(--azul);
+     color: var(--neon);
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     font-weight: 800;
+     font-size: 0.95rem;
+     flex-shrink: 0;
+     letter-spacing: 1px;
+ }
+
+ .rf-nombre {
+     font-weight: 800;
+     color: var(--azul);
+     font-size: 0.97rem;
+     margin: 0 0 2px;
+ }
+
+ .rf-tipo-jugador {
+     font-size: 0.76rem;
+     color: #888;
+     margin: 0;
+ }
+
+ .rf-stars {
+     font-size: 1.1rem;
+     margin-bottom: 8px;
+     letter-spacing: 2px;
+ }
+
+ .rf-badge {
+     display: inline-block;
+     background: var(--azul);
+     color: var(--neon);
+     font-size: 0.72rem;
+     font-weight: 800;
+     padding: 4px 12px;
+     border-radius: 50px;
+     margin-bottom: 12px;
+     letter-spacing: 0.5px;
+ }
+
+ .rf-texto {
+     color: #444;
+     font-size: 0.9rem;
+     line-height: 1.65;
+     font-style: italic;
+     margin: 0;
+     border-left: 3px solid var(--neon);
+     padding-left: 10px;
+ }
+
+ /* FORMULARIO */
+ .rf-form-wrap {
+     background-color: var(--azul);
+     border-top: 2px solid var(--neon);
+     padding: 44px 32px;
+ }
+
+ .rf-form-titulo {
+     font-family: 'Bebas Neue', sans-serif;
+     font-size: 2rem;
+     letter-spacing: 3px;
+     color: var(--neon);
+     margin: 0 0 6px;
+ }
+
+ .rf-form-sub {
+     color: var(--blanco);
+     font-size: 0.88rem;
+     margin-bottom: 28px;
+ }
+
+ .rf-form-grid {
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 18px;
+ }
+
+ .rf-field {
+     display: flex;
+     flex-direction: column;
+     gap: 7px;
+ }
+
+ .rf-field.full {
+     grid-column: 1 / -1;
+ }
+
+ .rf-label {
+     font-size: 0.78rem;
+     font-weight: 800;
+     color: rgba(255, 255, 255, 0.6);
+     text-transform: uppercase;
+     letter-spacing: 1.2px;
+ }
+
+ .rf-input,
+ .rf-select {
+     background: rgba(255, 255, 255, 0.08);
+     border: 1.5px solid rgba(184, 251, 60, 0.25);
+     border-radius: 10px;
+     color: #fff;
+     padding: 12px 15px;
+     font-size: 0.92rem;
+     outline: none;
+     transition: border 0.2s, background 0.2s;
+     width: 100%;
+     box-sizing: border-box;
+     resize: vertical;
+ }
+
+ .rf-select option {
+     background: #03045e;
+     color: #fff;
+ }
+
+ .rf-input:focus,
+ .rf-select:focus {
+     border-color: var(--neon);
+     background: rgba(255, 255, 255, 0.12);
+ }
+
+ .rf-input::placeholder {
+     color: rgba(255, 255, 255, 0.3);
+ }
+
+ /* ESTRELLAS INTERACTIVAS*/
+ .rf-star-row {
+     display: flex;
+     gap: 6px;
+     align-items: center;
+ }
+
+ .rf-star-btn {
+     background: rgba(255, 255, 255, 0.08);
+     border: 1.5px solid rgba(255, 255, 255, 0.15);
+     border-radius: 8px;
+     cursor: pointer;
+     padding: 4px 8px;
+     font-size: 1.6rem;
+     color: rgba(255, 255, 255, 0.25);
+     transition: color 0.15s, background 0.15s, border 0.15s, transform 0.1s;
+     line-height: 1;
+ }
+
+ .rf-star-btn:hover {
+     color: #facc15;
+     background: rgba(250, 204, 21, 0.12);
+     border-color: #facc15;
+     transform: scale(1.15);
+ }
+
+ .rf-star-btn.active {
+     color: #facc15;
+     background: rgba(250, 204, 21, 0.15);
+     border-color: #facc15;
+ }
+
+ .rf-star-label {
+     font-size: 0.83rem;
+     color: rgba(255, 255, 255, 0.45);
+     margin-left: 8px;
+     font-weight: 700;
+     min-width: 80px;
+ }
+
+ /* BOTÓN ENVIAR */
+ .rf-submit {
+     background: var(--neon);
+     color: var(--azul);
+     border: none;
+     padding: 14px 44px;
+     border-radius: 50px;
+     font-size: 1rem;
+     font-weight: 800;
+     cursor: pointer;
+     font-family: 'Nunito', sans-serif;
+     transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+     margin-top: 6px;
+ }
+
+ .rf-submit:hover {
+     background: var(--neon);
+     transform: scale(1.04);
+     box-shadow: 0 0 20px rgba(57, 255, 20, 0.35);
+ }
+
+ /* MENSAJE DE ÉXITO */
+ .rf-toast {
+     display: none;
+     background: rgba(57, 255, 20, 0.1);
+     border: 1.5px solid var(--neon);
+     border-radius: 10px;
+     color: var(--neon);
+     padding: 14px 20px;
+     font-weight: 700;
+     font-size: 0.92rem;
+     margin-top: 14px;
+     text-align: center;
+ }
+
+ /* ANIMACIÓN NUEVA CARD */
+ @keyframes rf-entrar {
+     from {
+         opacity: 0;
+         transform: translateY(-12px) scale(0.97);
+     }
+
+     to {
+         opacity: 1;
+         transform: translateY(0) scale(1);
+     }
+ }
+
+ .rf-card.nueva {
+     animation: rf-entrar 0.4s ease forwards;
+     border-color: var(--neon);
+     box-shadow: 0 0 20px rgba(184, 251, 60, 0.25);
+ }
+
+ /*RESPONSIVE*/
+ @media (max-width: 560px) {
+
+     .rf-form-grid {
+         grid-template-columns: 1fr;
+     }
+
+     .rf-grid {
+         padding: 20px 16px;
+         gap: 14px;
+     }
+
+     .rf-header,
+     .rf-form-wrap {
+         padding: 28px 18px;
+     }
+
+     .rf-titulo {
+         font-size: 1.9rem;
+         letter-spacing: 2px;
+     }
+
+     .rf-stats {
+         gap: 24px;
+     }
+
+     .rf-star-btn {
+         font-size: 1.4rem;
+         padding: 3px 6px;
+     }
+ }

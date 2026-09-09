@@ -19,4 +19,7 @@ urlpatterns = [
     path('panel/reportes/general/', views.generar_reporte_general, name='reporte_general_pdf'),
     path('panel/reportes/mensual/', views.generar_reporte_mes_actual, name='reporte_mensual_pdf'),
     path('mensajes/responder/<int:id>/', views.responder_mensaje, name='responder_mensaje'),
+    path('calendario/eventos/', views.calendario_eventos, name='calendario_eventos'),
+    path('calendario/dia/<str:fecha>/', views.calendario_horas_dia, name='calendario_horas_dia'),
+    path('calendario/reserva/<int:reserva_id>/', views.calendario_detalle_reserva, name='calendario_detalle_reserva'),
 ]

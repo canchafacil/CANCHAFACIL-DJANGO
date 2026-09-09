@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+:root {
+    --verde-neon: #39FF14;
+    --azul-oscuro: #03045e;
+    --azul-medio: #0d0d7a;
+    --azul-claro: #0a0a8a;
+    --negro: #000;
+    --blanco: #fff;
+}
+
+*{
+    font-family: 'Bebas Neue', sans-serif;
+}
+
+body {
+    background-color: #d9d9d9;
+}
+
+.navbar {
+    background-color: #03045e !important;
+    border-bottom: 2px solid #62ff00;
+}
+
+.navbar .nav-link {
+    color: white !important;
+    transition: color 0.3s ease;
+}
+
+.navbar .nav-link:hover {
+    color: #62ff00 !important;
+}   
+
+.titulo-cancha{
+    color: var(--azul-oscuro); 
+    font-weight: bold;
+}
+.cards-grid {
+    padding-bottom: 5rem;
+}
+
+.cancha-card{
+    background-color: var(--azul-oscuro);
+    border-radius: 16px;
+    border-color: var(--verde-neon);
+    overflow: hidden;
+    transition: 0.4s ease;
+    height: 100%;
+}
+
+.cancha-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow:
+        0 0 20px rgba(98, 255, 0, 0.4),
+        0 0 50px rgba(98, 255, 0, 0.25);
+}
+
+.card-img-wrap {
+    overflow: hidden;
+    position: relative;
+    height: 220px;
+}
+
+.card-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+
+    transition: 0.5s ease;
+}
+
+.cancha-card:hover .card-img-wrap img {
+    transform: scale(1.08);
+    filter: brightness(1.1);
+}
+
+.card-rating,
+.card-badge {
+    position: absolute;
+    top: 12px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    z-index: 2;
+}
+
+.card-rating {
+    left: 12px;
+    background: rgba(0, 0, 0, 0.6);
+    color: gold;
+}
+
+.card-badge {
+    right: 12px;
+    background: var(--neon);
+    color: #155e03;
+    font-weight: bold;
+}
+
+.card-body {
+    padding: 1.4rem;
+    color: var(--blanco);
+}
+
+.card-location {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+.card-name {
+    font-size: 1.7rem;
+    color: white;
+}
+
+.card-desc {
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.meta-item {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.meta-item i {
+    color: var(--neon);
+}
+
+/* BOTON RESERVAR */
+
+.btn-reservar {
+    width: 100%;
+    border: 2px solid var(--neon);
+    background: transparent;
+    color: var(--neon);
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    transition: 0.3s ease;
+}
+
+.btn-reservar:hover {
+    background: var(--neon);
+    color: #03045E;
+    box-shadow: 0 0 20px rgba(98, 255, 0, 0.5);
+}

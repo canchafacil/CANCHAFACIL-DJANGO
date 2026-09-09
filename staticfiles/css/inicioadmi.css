@@ -1,0 +1,73 @@
+/* ===== IMPORTACIÓN DE FUENTE ===== */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+* {
+  box-sizing: border-box;
+  font-family: 'Bebas Neue', sans-serif;
+}
+
+body {
+  /* Fondo unificado con los otros accesos (imagen + filtro azul corporativo) */
+  background-image: linear-gradient(rgba(0, 0, 0, 0.568)), url(../img/fondo-admi.jpg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 0;
+}
+
+/* ===== TARJETA DE ACCESO ADMI ===== */
+.admin-card {
+  border: 2px solid #62FF00;  /* Borde exterior en Verde Intenso */
+  border-radius: 16px;
+  width: 100%;
+  max-width: 350px; /* Tamaño ideal y responsivo */
+}
+
+/* ===== CAMPOS DE ENTRADA (INPUTS) ===== */
+.custom-input {
+  border: 2px solid #62FF00 !important;
+  color: #ffffff !important;
+  border-radius: 8px;
+}
+
+.custom-input::placeholder {
+  color: rgba(255, 255, 255, 0.548);
+}
+
+/* Iluminación verde neon al hacer foco en el campo */
+.custom-input:focus {
+  background-color: #000000;
+  border-color: #62FF00;
+  box-shadow: 0 0 10px rgba(98, 255, 0, 0.6);
+}
+
+/* ===== BOTÓN PRINCIPAL (Navy sobre Verde) ===== */
+.btn-custom {
+  background-color: #62FF00; /* Verde Intenso */
+  color: #000000;            /* Texto Azul Navy */
+  border: 2px solid #62FF00;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Efecto Hover invertido */
+.btn-custom:hover {
+  background-color: #525151;
+  color: #62FF00;
+  border-color: #62FF00;
+  box-shadow: 0 0 20px rgba(98, 255, 0, 0.5); /* Brillo neón */
+  transform: translateY(-3px);
+}
+
+/* ===== ENLACE DE RETORNO ===== */
+.back-link {
+  color: #ffffff;
+  font-size: 0.9rem;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.back-link:hover {
+  opacity: 1;
+  color: #62FF00;
+  text-shadow: 0 0 5px rgba(98, 255, 0, 0.3);
+}

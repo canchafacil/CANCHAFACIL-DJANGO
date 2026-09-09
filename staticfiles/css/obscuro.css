@@ -1,0 +1,331 @@
+:root {
+    --verde-neon: #39FF14;
+    --azul-oscuro: #03045e;
+    --azul-medio: #0d0d7a;
+    --azul-claro: #0a0a8a;
+    --negro: #000;
+    --blanco: #fff;
+}
+
+/* Modo oscuro - Navbar */
+
+[data-bs-theme="dark"] .navbar {
+    background-color: var(--dark-bg) !important;
+    border-bottom: 2px solid #39FF14;
+    box-shadow: 0 2px 10px rgba(98, 255, 0, 0.2);
+}
+
+[data-bs-theme="dark"] .navbar .nav-link {
+    color: #e0e0e0 !important;
+}
+
+[data-bs-theme="dark"] .navbar .nav-link:hover {
+    color: #39FF14 !important;
+}
+
+[data-bs-theme="dark"] .navbar .nav-link.active {
+    color: #39FF14 !important;
+}
+
+/* ============ VARIABLES MODO OSCURO ============ */
+[data-bs-theme="dark"] {
+    --dark-bg: #121212;
+    --dark-surface: #1e1e1e;
+    --dark-surface-2: #2d2d2d;
+    --dark-text: #e0e0e0;
+    --dark-border: #404040;
+}
+
+[data-bs-theme="dark"] body {
+    background-color: var(--dark-surface);
+    color: var(--dark-text);
+}
+
+/* ============ Index.html ============ */
+
+/* ============ TARJETAS POR QUÉ ELEGIRNOS ============ */
+[data-bs-theme="dark"] .btn-success{
+    background: var(--verde-neon) !important;
+    color: var(--azul-oscuro);
+    border: 1px solid rgba(184, 251, 60, 0.2);
+    text-align: center;
+    transition: 0.3s;
+}
+
+[data-bs-theme="dark"] .porque-card{
+    background: var(--dark-bg) !important;
+    border: 1px solid var(--verde-neon);
+    border-radius: 20px;
+    padding: 40px 24px;
+    text-align: center;
+    transition: 0.3s;
+    height: 100%;
+}
+
+[data-bs-theme="dark"] .porque-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(3, 4, 94, 0.15);
+    border-color: #39FF14;
+}
+
+[data-bs-theme="dark"] .titulo-sec, .porque-titulo {
+    color: #39FF14;
+}
+
+[data-bs-theme="dark"] .subtitulo-seccion, .porque-texto {
+    color: #ffffff;
+}
+
+/* ============ SECCIÓN RESEÑAS ============ */
+[data-bs-theme="dark"] .rf-header {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d1f0d 100%);
+}
+
+[data-bs-theme="dark"] .rf-stat-num {
+    color: #39FF14;
+}
+
+/* ============ MODAL ============ */
+[data-bs-theme="dark"] .modal-content {
+    background-color: var(--dark-surface);
+    color: var(--dark-text);
+    border: 1px solid var(--dark-border);
+}
+
+[data-bs-theme="dark"] .modal-body .text-muted {
+    color: #b0b0b0 !important;
+}
+
+/* ============ DROPDOWN ============ */
+.dropdown-menu {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+[data-bs-theme="dark"] .dropdown-menu {
+    background-color: var(--dark-surface);
+    border-color: var(--dark-border);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+}
+
+[data-bs-theme="dark"] .dropdown-item {
+    color: var(--dark-text);
+}
+
+[data-bs-theme="dark"] .dropdown-item:hover {
+    background-color: var(--dark-surface-2);
+    color: #39FF14;
+}
+
+/* ============ CARRUSEL ============ */
+[data-bs-theme="dark"] .carousel-indicators button {
+    background-color: #39FF14;
+}
+
+/* ============ BOTÓN DE TEMA ============ */
+.theme-toggle-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    border: 2px solid #39FF14;
+    background-color: transparent;
+    color: #39FF14;
+    cursor: pointer;
+    margin-left: 15px;
+}
+
+.theme-toggle-btn:hover {
+    background-color: #39FF14;
+    color: #03045e;
+    transform: rotate(360deg);
+    box-shadow: 0 0 20px rgba(98, 255, 0, 0.3);
+}
+
+.theme-toggle-btn i {
+    font-size: 1.3rem;
+}
+
+[data-bs-theme="dark"] .theme-toggle-btn {
+    border-color: #39FF14;
+    color: #39FF14;
+    background-color: rgba(57, 255, 20, 0.1);
+}
+
+[data-bs-theme="dark"] .theme-toggle-btn:hover {
+    background-color: var(--verde-neon);
+    color: #0a0a1a;
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.5);
+}
+
+/* ============ Reservas ============ */
+[data-bs-theme="dark"] #ok{
+    background: var(--verde-neon);
+    color: var(--azul-oscuro) !important;
+}
+
+[data-bs-theme="dark"] .image-frame{
+    background: var(--dark-bg) !important;
+    border: 1px solid var(--verde-neon);
+    color: var(--verde-neon);
+}
+
+[data-bs-theme="dark"] .title{
+    color: var(--blanco) !important;
+}
+
+[data-bs-theme="dark"] .icon-box{
+    background: var(--dark-surface) !important;
+    border: 1px solid var(--verde-neon);
+    color: var(--blanco);
+}
+
+/* ============ Canchas ============ */
+
+[data-bs-theme="dark"] .titulo-cancha, .mb-0{
+    color: var(--blanco);
+}
+
+[data-bs-theme="dark"] .cancha-card{
+    background-color: var(--dark-bg) !important;
+    border: 1px solid var(--verde-neon);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: 0.4s ease;
+    height: 100%;
+}
+
+/* ============ Reseñas ============ */
+
+[data-bs-theme="dark"] .btn-reservar {
+    width: 100%;
+    border: 2px solid var(--verde-neon);
+    color: var(--verde-neon);
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    transition: 0.3s ease;
+}
+
+[data-bs-theme="dark"] .btn-reservar:hover {
+    background: var(--verde-neon);
+    color: var(--dark-bg);
+    box-shadow: 0 0 20px rgba(98, 255, 0, 0.5);
+}
+
+ /* GRID DE TARJETAS */
+[data-bs-theme="dark"] .rf-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+     gap: 20px;
+     padding: 36px 32px;
+     background: var(--dark-surface);
+}
+
+[data-bs-theme="dark"] .rf-card {
+    background: var(--dark-bg);
+    border: 1.5px solid var(--verde-neon);
+    border-radius: 16px;
+    padding: 22px;
+    transition: border 0.25s, transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(3, 4, 94, 0.07);
+}
+
+[data-bs-theme="dark"] .rf-card:hover {
+    border-color: var(--verde-neon);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(3, 4, 94, 0.12);
+}
+
+[data-bs-theme="dark"] .rf-avatar, .rf-badge {
+    background: var(--verde-neon);
+    color: var(--dark-bg);
+}
+
+[data-bs-theme="dark"] .rf-nombre, .rf-tipo-jugador{
+    color: var(--blanco);
+}
+
+/* FORMULARIO */
+[data-bs-theme="dark"] .rf-form-wrap {
+    background-color: var(--dark-bg);
+    border-top: 4px solid var(--verde-neon);
+    padding: 44px 32px;
+}
+
+[data-bs-theme="dark"] .rf-form-titulo {
+     font-family: 'Bebas Neue', sans-serif;
+     font-size: 2rem;
+     letter-spacing: 3px;
+     color: var(--verde-neon);
+     margin: 0 0 6px;
+ }
+
+[data-bs-theme="dark"] .rf-form-sub {
+     color: var(--blanco);
+     font-size: 0.88rem;
+     margin-bottom: 28px;
+ }
+
+/* ============ Form reservas ============ */
+[data-bs-theme="dark"] .seccion-pasos {
+    background: var(--dark-bg);
+    color: var(--blanco);
+    margin-bottom: 30px;
+}
+
+[data-bs-theme="dark"] .card-body {
+    background: var(--dark-bg);
+    color: var(--blanco);
+    margin-bottom: 30px;
+}
+
+[data-bs-theme="dark"] .card{
+    background: var(--dark-bg) !important;
+    color: var(--blanco);
+}
+
+[data-bs-theme="dark"] h5{
+    color:#ffffff;
+}
+
+/* ============ Contacto ============ */
+[data-bs-theme="dark"] .hero-contacto {
+    background-color: var(--dark-bg);
+    color: var(--blanco);
+}
+
+[data-bs-theme="dark"] .custom-card {
+    background: var(--dark-bg);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+}
+
+[data-bs-theme="dark"] .contacto-info p {
+    font-size: 0.95rem;
+    color: var(--blanco);
+}
+
+/* ============ Contacto ============ */
+[data-bs-theme="dark"] .card-header {
+    background-color: var(--verde-neon);
+    color: var(--blanco);
+}
+
+
+
+
+
+/* Responsive para el botón en móvil */
+@media (max-width: 991px) {
+    .theme-toggle-btn {
+        margin: 10px 0;
+        width: 40px;
+        height: 40px;
+    }
+}
