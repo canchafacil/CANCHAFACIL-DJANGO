@@ -16,48 +16,96 @@
 
 <body class="adm-body bg-dark text-white min-vh-100">
     <nav class="navbar navbar-expand-lg navbar-dark shadow cancha-nav">
-        <div class="container-fluid">
-            <div class="d-flex align-items-center ms-5">
-                <img src="{% static 'img/logo-green.png' %}" style="height:90px;object-fit:contain;"
-                    alt="Logo CanchaFácil">
-                <a class="navbar-brand fw-bold ms-2 m-0 logo-text" href="#" style="font-size:2rem;color:#fff;">
-                    Cancha<span style="color:#62ff00;">Fácil</span>
-                </a>
-            </div>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-end me-5" id="menuNav">
-                <ul class="nav navbar-nav mt-3 mt-lg-0 gap-1" id="admTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <a href="{% url 'panel_principal' %}" class="btn btn-custom rounded-pill">
-                            Ingreso mes
-                        </a>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="btn btn-custom rounded-pill" id="panel-reservas-tab" data-bs-toggle="tab"
-                            data-bs-target="#sec-panel-reservas" type="button" role="tab">Panel Reservas</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="btn btn-custom rounded-pill" id="ingresos-tab" data-bs-toggle="tab"
-                            data-bs-target="#sec-ingresos" type="button" role="tab">Ingresos</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="btn btn-custom rounded-pill" id="resenas-tab" data-bs-toggle="tab"
-                            data-bs-target="#sec-resenas" type="button" role="tab">Ver Reseñas</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <a href="{% url 'gestion_canchas:cancha_admin' %}" class="btn btn-custom rounded-pill">
-                            Administrar Canchas
-                        </a>
-                    </li>
-                    <li class="nav-item ms-5">
-                        <a href="{% url 'login_admin' %}" class="btn btn-salir rounded-pill fw-bold py-2 px-4">Salir</a>
-                    </li>
-                </ul>
-            </div>
+    <div class="container-fluid">
+
+        <!-- LOGO -->
+        <div class="d-flex align-items-center ms-4">
+            <img src="{% static 'img/logo-green.png' %}"
+                 style="height:90px; object-fit:contain;"
+                 alt="Logo CanchaFácil">
+
+            <a class="navbar-brand fw-bold m-0 logo-text"
+               href="#"
+               style="font-size:2rem; color:#fff;">
+                Cancha<span style="color:#62ff00;">Fácil</span>
+            </a>
         </div>
-    </nav>
+
+        <!-- BOTÓN PARA CELULAR -->
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#menuNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- MENÚ -->
+        <div class="collapse navbar-collapse justify-content-end me-5"
+             id="menuNav">
+
+            <ul class="nav navbar-nav mt-3 mt-lg-0 gap-1">
+
+                <!-- DASHBOARD -->
+                <li class="nav-item">
+                    <a href="{% url 'gestion_canchas:ingreso_mes' %}"
+                       class="btn btn-custom rounded-pill">
+                        Dashboard
+                    </a>
+                </li>
+
+                <!-- PANEL RESERVAS -->
+                <li class="nav-item">
+                    <a href="{% url 'gestion_canchas:panel_reservas' %}"
+                       class="btn btn-custom rounded-pill">
+                        Panel Reservas
+                    </a>
+                </li>
+
+                <!-- INGRESOS -->
+                <li class="nav-item">
+                    <a href="{% url 'gestion_canchas:ingresos' %}"
+                       class="btn btn-custom rounded-pill">
+                        Ingresos
+                    </a>
+                </li>
+
+                <!-- RESEÑAS -->
+                <li class="nav-item">
+                    <a href="{% url 'gestion_canchas:resenas' %}"
+                       class="btn btn-custom rounded-pill">
+                        Ver Reseñas
+                    </a>
+                </li>
+
+                <!-- MENSAJES -->
+                <li class="nav-item">
+                    <a href="{% url 'gestion_canchas:mensajes' %}"
+                       class="btn btn-custom rounded-pill">
+                        Mensajes
+                    </a>
+                </li>
+
+                <!-- ADMINISTRAR CANCHAS -->
+                <li class="nav-item">
+                    <a href="{% url 'gestion_canchas:cancha_admin' %}"
+                       class="btn btn-custom rounded-pill">
+                        Administrar Canchas
+                    </a>
+                </li>
+
+                <!-- SALIR -->
+                <li class="nav-item ms-5">
+                    <a href="{% url 'logout_admin' %}"
+                       class="btn btn-salir rounded-pill fw-bold py-2 px-4">
+                        Salir
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+    </div>
+</nav>
 
     <!-- CONTENIDO -->
     <div class="container py-5">
@@ -156,10 +204,14 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Tipo de Cancha</label>
-                            <select name="tipo" class="form-select" required>
-                                <option value="Fútbol 5" {% if form_agregar.tipo.value == 'Fútbol 5' %}selected{% endif %}>Fútbol 5</option>
-                                <option value="Fútbol 7" {% if form_agregar.tipo.value == 'Fútbol 7' %}selected{% endif %}>Fútbol 7</option>
-                                <option value="Fútbol 11" {% if form_agregar.tipo.value == 'Fútbol 11' %}selected{% endif %}>Fútbol 11</option>
+                            <option value="Fútbol 5" {% if form_agregar.tipo.value == 'Fútbol 5' %}selected{% endif %}>
+                                Fútbol 5</option>
+
+                            <option value="Fútbol 7" {% if form_agregar.tipo.value == 'Fútbol 7' %}selected{% endif %}>
+                                Fútbol 7</option>
+
+                            <option value="Fútbol 11" {% if form_agregar.tipo.value == 'Fútbol 11' %}selected{% endif %}>
+                                Fútbol 11</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -170,8 +222,7 @@
                         <div class="mb-3">
                             <label class="form-label">Precio por Hora (mínimo $50,000 COP)</label>
                             <input type="number" name="precio" class="form-control" required min="50000" step="1000"
-                                placeholder="Ej: 120000"
-                                value="{{ form_agregar.precio.value|default_if_none:'' }}"
+                                placeholder="Ej: 120000" value="{{ form_agregar.precio.value|default_if_none:'' }}"
                                 oninvalid="this.setCustomValidity('El precio mínimo es $50,000 COP')"
                                 oninput="this.setCustomValidity('')">
                             <small class="text-muted">El precio mínimo por hora es de $50,000 COP.</small>
@@ -182,7 +233,8 @@
                             <small class="text-muted">Formatos permitidos: JPG o PNG.</small>
                         </div>
                         <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" name="disponible" {% if form_agregar.disponible.value|default:True %}checked{% endif %}>
+                            <input class="form-check-input" type="checkbox" name="disponible" 
+                                {% if form_agregar.disponible.value|default:True %}checked{% endif %}>
                             <label class="form-check-label">Disponible</label>
                         </div>
                         <button type="submit" class="btn btn-success w-100"

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from administracion import views as admin_views 
 
 app_name = 'gestion_canchas'
 
@@ -21,4 +22,13 @@ urlpatterns = [
     path('sedes/<int:id>/eliminar/',     views.eliminar_sede,    name='eliminar_sede'),
     path('sedes/<int:id>/toggle/',       views.toggle_sede,      name='toggle_sede'),
     path('sedes/<int:sede_id>/canchas/', views.canchas_por_sede, name='canchas_por_sede'),
+
+
+
+    path('panel/', admin_views.panel_principal, name='panel_principal'),
+    path('panel/ingreso-mes/', admin_views.panel_principal, {'seccion': 'dashboard'}, name='ingreso_mes'),
+    path('panel/reservas/', admin_views.panel_principal, {'seccion': 'reservas'}, name='panel_reservas'),
+    path('panel/ingresos/', admin_views.panel_principal, {'seccion': 'ingresos'}, name='ingresos'),
+    path('panel/resenas/', admin_views.panel_principal, {'seccion': 'resenas'}, name='resenas'),
+    path('panel/mensajes/', admin_views.panel_principal, {'seccion': 'mensajes'}, name='mensajes'),
 ]
