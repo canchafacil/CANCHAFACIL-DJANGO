@@ -11,15 +11,22 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{% static 'css/nosotros.css' %}">
     <link rel="stylesheet" href="{% static 'css/obscuro.css' %}">
+    <style>
+        body {
+            padding-top: 110px; /* ajusta este valor si tu navbar tiene otra altura */
+        }
+    </style>
 </head>
 
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark shadow">
+    <nav class="navbar navbar-expand-lg navbar-dark shadow fixed-top">
         <div class="container">
-            <img src="{% static 'img/logo-green.png' %}" style="height: 90px;" alt="">
-            <a class="navbar-brand fw-bold ms-2" href="#" style="font-size: 2rem; color: white;">
-                Cancha<span style="color:  #62ff00;">Fácil </span>
+            <a href="{% url 'inicio' %}" class="d-flex align-items-center text-decoration-none">
+                <img src="{% static 'img/logo-green.png' %}" style="height: 90px;" alt="">
+                <span class="navbar-brand fw-bold ms-2 mb-0" style="font-size: 2rem; color: white;">
+                    Cancha<span style="color:  #62ff00;">Fácil </span>
+                </span>
             </a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
