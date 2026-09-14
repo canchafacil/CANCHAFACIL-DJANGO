@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
-from .models import Cancha
+from .models import Sede, Cancha
 from .forms import CanchaForm
 
 
@@ -76,14 +76,14 @@ def lista_sedes(request):
     sedes = Sede.objects.prefetch_related('canchas').all()
     return render(request, 'gestion_canchas/sedes/lista_sedes.html', {
         'sedes': sedes,
-        'form':  SedeForm(),
+        'form':  CanchaForm(),
     })
 
 def crear_sede(request):
     if not es_superadmin(request):
         return redirect('login_admin')
     if request.method == 'POST':
-        form = SedeForm(request.POST)
+        form = CanchaForm(request.POST)
         if form.is_valid():
             form.save()
             return redirect('gestion_canchas:lista_sedes')
@@ -99,12 +99,12 @@ def editar_sede(request, id):
         return redirect('login_admin')
     sede = get_object_or_404(Sede, id=id)
     if request.method == 'POST':
-        form = SedeForm(request.POST, instance=sede)
+        form = CanchaForm(request.POST, instance=sede)
         if form.is_valid():
             form.save()
             return redirect('gestion_canchas:lista_sedes')
     else:
-        form = SedeForm(instance=sede)
+        form = CanchaForm(instance=sede)
     return render(request, 'gestion_canchas/sedes/editar_sede.html', {
         'form': form, 'sede': sede
     })

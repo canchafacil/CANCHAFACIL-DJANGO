@@ -36,18 +36,22 @@ class Cancha(models.Model):
     disponible = models.BooleanField(default=True)
     creada = models.DateTimeField(auto_now_add=True)
 
+    sede = models.ForeignKey(
+        Sede,
+        on_delete=models.CASCADE,
+        related_name='canchas'
+    )
+
     def __str__(self):
         return self.nombre
 
     def clean(self):
-        """Validación a nivel de modelo"""
         if self.precio < 50000:
             raise ValidationError({
                 'precio': 'El precio mínimo por hora es de $50,000 COP.'
             })
 
     def save(self, *args, **kwargs):
-        """Ejecutar validación antes de guardar"""
         self.full_clean()
         super().save(*args, **kwargs)
 
