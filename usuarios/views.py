@@ -1,11 +1,14 @@
 from urllib import request
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.http import require_POST
+from django.template.loader import render_to_string
+from django.core.mail import send_mail, EmailMultiAlternatives
+from django.conf import settings
 from .models import Usuario
 from reservas.models import Reserva
 from contacto.models import Resena
 import random
-from django.core.mail import send_mail
-from django.conf import settings
+
 
 def registro(request):
 
@@ -53,10 +56,8 @@ def login_view(request):
         email = request.POST.get('email', '').strip().lower()
         password = request.POST.get('password', '')
 
-        # Buscar el usuario sin importar mayúsculas/minúsculas en el correo
         usuario = Usuario.objects.filter(email__iexact=email).first()
 
-        # Si no existe el correo
         if usuario is None:
             return render(
                 request,
@@ -66,7 +67,6 @@ def login_view(request):
                 }
             )
 
-        # Comprobar contraseña
         if usuario.password != password:
             return render(
                 request,
@@ -76,7 +76,6 @@ def login_view(request):
                 }
             )
 
-        # Comprobar si está activo
         if not usuario.activo:
             return render(
                 request,
@@ -86,13 +85,11 @@ def login_view(request):
                 }
             )
 
-        # Crear sesión de USUARIO (namespace propio, independiente del admin)
         request.session['usuario_id'] = usuario.id
         request.session['rol'] = usuario.rol
         request.session['nombre'] = usuario.first_name
         request.session['correo'] = usuario.email
 
-        # Redirección según rol
         if usuario.rol == 'SUPERADMIN':
             return redirect('lista_usuarios')
 
@@ -213,10 +210,8 @@ def login_admin(request):
         email = request.POST.get('email', '').strip().lower()
         password = request.POST.get('password', '')
 
-        # Buscar el usuario sin importar mayúsculas/minúsculas en el correo
         usuario = Usuario.objects.filter(email__iexact=email).first()
 
-        # Si no existe el correo
         if usuario is None:
             return render(
                 request,
@@ -226,7 +221,6 @@ def login_admin(request):
                 }
             )
 
-        # Comprobar contraseña
         if usuario.password != password:
             return render(
                 request,
@@ -236,7 +230,6 @@ def login_admin(request):
                 }
             )
 
-        # Comprobar si está activo
         if not usuario.activo:
             return render(
                 request,
@@ -246,7 +239,6 @@ def login_admin(request):
                 }
             )
 
-        # Solo ADMIN o SUPERADMIN pueden entrar por aquí
         if usuario.rol not in ('ADMIN', 'SUPERADMIN'):
             return render(
                 request,
@@ -256,7 +248,6 @@ def login_admin(request):
                 }
             )
 
-        # Crear sesión de ADMIN (namespace propio, independiente del usuario)
         request.session['admin_id'] = usuario.id
         request.session['admin_rol'] = usuario.rol
         request.session['admin_nombre'] = usuario.first_name
@@ -270,7 +261,6 @@ def login_admin(request):
     return render(request, 'usuarios/login_admin.html')
 
 def logout_view(request):
-    # Solo cierra la sesión de USUARIO, no toca la del admin
     request.session.pop('usuario_id', None)
     request.session.pop('rol', None)
     request.session.pop('nombre', None)
@@ -278,7 +268,6 @@ def logout_view(request):
     return redirect('inicio')
 
 def logout_admin(request):
-    # Solo cierra la sesión de ADMIN, no toca la del usuario
     request.session.pop('admin_id', None)
     request.session.pop('admin_rol', None)
     request.session.pop('admin_nombre', None)
@@ -381,10 +370,8 @@ def perfil(request):
 
     usuario = get_object_or_404(Usuario, id=usuario_id)
 
-    # Historial vinculado por correo (Reserva y Resena no tienen FK a Usuario)
     reservas = Reserva.objects.filter(correo=usuario.email).order_by('-fecha', '-hora')
 
-    # Sincroniza estados vencidos (confirmada -> completada) antes de mostrar
     for r in reservas:
         r.sincronizar_estado()
 
@@ -404,6 +391,7 @@ def perfil(request):
             'tiene_reserva_activa': tiene_reserva_activa,
             'iconos_jugadores': ICONOS_JUGADORES,
             'iconos_banderas': ICONOS_BANDERAS,
+            'motivos_cancelacion': Reserva.MOTIVOS_CANCELACION,
         }
     )
 
@@ -418,7 +406,6 @@ def editar_perfil(request):
     if request.method == 'POST':
         nuevo_email = request.POST.get('email', usuario.email).strip()
 
-        # Si cambia el correo, hay que verificar que no choque con otro usuario
         if nuevo_email != usuario.email and Usuario.objects.filter(email=nuevo_email).exists():
             reservas = Reserva.objects.filter(correo=usuario.email).order_by('-fecha', '-hora')
             resenas = Resena.objects.filter(correo=usuario.email, archivada=False).order_by('-fecha')
@@ -431,12 +418,11 @@ def editar_perfil(request):
                     'resenas': resenas,
                     'iconos_jugadores': ICONOS_JUGADORES,
                     'iconos_banderas': ICONOS_BANDERAS,
+                    'motivos_cancelacion': Reserva.MOTIVOS_CANCELACION,
                     'error': 'Ese correo ya está en uso por otra cuenta',
                 }
             )
 
-        # first_name y last_name NO se tocan: no se leen del POST a propósito,
-        # así aunque alguien manipule el HTML no se pueden modificar.
         usuario.phone = request.POST.get('phone', usuario.phone).strip()
         usuario.email = nuevo_email
 
@@ -444,7 +430,6 @@ def editar_perfil(request):
         if nueva_password:
             usuario.password = nueva_password
 
-        # Foto de perfil: si sube una, tiene prioridad y borra el ícono elegido
         if 'foto' in request.FILES:
             usuario.foto = request.FILES['foto']
             usuario.avatar_icono = None
@@ -456,9 +441,94 @@ def editar_perfil(request):
 
         usuario.save()
 
-        # Mantenemos la sesión sincronizada con los datos nuevos
         request.session['nombre'] = usuario.first_name
 
         return redirect('perfil')
 
     return redirect('perfil')
+
+
+# ---------------------------------------------------------------------
+# CANCELACIÓN DE RESERVA (desde el perfil del usuario)
+# ---------------------------------------------------------------------
+
+@require_POST
+def cancelar_reserva_perfil(request, reserva_id):
+    usuario_id = request.session.get('usuario_id')
+    if not usuario_id:
+        return redirect('login')
+
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+    reserva = get_object_or_404(Reserva, id=reserva_id, correo=usuario.email)
+
+    if not reserva.puede_editarse:
+        return render_error_perfil(request, usuario, 'Esta reserva ya no se puede cancelar.')
+
+    motivo = request.POST.get('motivo_cancelacion', '').strip()
+    detalle = request.POST.get('motivo_detalle', '').strip()
+    motivos_validos = dict(Reserva.MOTIVOS_CANCELACION)
+
+    if motivo not in motivos_validos:
+        return render_error_perfil(request, usuario, 'Debes seleccionar un motivo válido de cancelación.')
+
+    if motivo == 'otro' and len(detalle) < 10:
+        return render_error_perfil(
+            request, usuario,
+            'Si eliges "Otro motivo", explica brevemente qué pasó (mínimo 10 caracteres).'
+        )
+
+    # Cancela: cambia el estado a 'cancelada', lo que libera automáticamente
+    # las horas en cualquier consulta de disponibilidad que excluya ese estado.
+    reserva.cancelar(motivo=motivo, detalle=detalle, por='usuario')
+
+    _enviar_correo_cancelacion(reserva)
+
+    return redirect('perfil')
+
+
+def render_error_perfil(request, usuario, mensaje):
+    reservas = Reserva.objects.filter(correo=usuario.email).order_by('-fecha', '-hora')
+    resenas = Resena.objects.filter(correo=usuario.email, archivada=False).order_by('-fecha')
+    tiene_reserva_activa = reservas.filter(
+        estado__in=[Reserva.ESTADO_PENDIENTE, Reserva.ESTADO_CONFIRMADA]
+    ).exists()
+    return render(
+        request,
+        'usuarios/perfil.html',
+        {
+            'usuario': usuario,
+            'reservas': reservas,
+            'resenas': resenas,
+            'tiene_reserva_activa': tiene_reserva_activa,
+            'iconos_jugadores': ICONOS_JUGADORES,
+            'iconos_banderas': ICONOS_BANDERAS,
+            'motivos_cancelacion': Reserva.MOTIVOS_CANCELACION,
+            'error': mensaje,
+        }
+    )
+
+
+def _enviar_correo_cancelacion(reserva):
+    contexto = {
+        'reserva': reserva,
+        'motivo': reserva.motivo_legible,
+        'detalle': reserva.motivo_detalle,
+    }
+    html = render_to_string('emails/cancelacion_reserva.html', contexto)
+    texto = (
+        f"Hola {reserva.nombre},\n\n"
+        f"Tu reserva del {reserva.fecha} a las {reserva.hora} "
+        f"en {reserva.cancha} fue CANCELADA.\n"
+        f"Motivo: {reserva.motivo_legible}\n"
+        f"{('Detalle: ' + reserva.motivo_detalle) if reserva.motivo_detalle else ''}\n\n"
+        "Las horas quedaron disponibles nuevamente. — CanchaFácil"
+    )
+    msg = EmailMultiAlternatives(
+        subject=f"Reserva cancelada — {reserva.cancha} ({reserva.fecha})",
+        body=texto,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[reserva.correo],
+        bcc=[settings.DEFAULT_FROM_EMAIL],
+    )
+    msg.attach_alternative(html, "text/html")
+    msg.send(fail_silently=True)

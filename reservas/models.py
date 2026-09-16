@@ -17,6 +17,21 @@ class Reserva(models.Model):
         (ESTADO_CANCELADA, 'Cancelada'),
     ]
 
+    MOTIVOS_CANCELACION = [
+        ('clima',   'Mal clima / cancha en mal estado'),
+        ('equipo',  'No se completó el equipo'),
+        ('horario', 'Se me cruzó con otro compromiso'),
+        ('error',   'Me equivoqué al reservar (fecha, hora o cancha)'),
+        ('salud',   'Motivos de salud o lesión'),
+        ('precio',  'Encontré otra opción / tema de precio'),
+        ('otro',    'Otro motivo'),
+    ]
+
+    CANCELADA_POR_CHOICES = [
+        ('usuario', 'Usuario'),
+        ('admin', 'Administrador'),
+    ]
+
     nombre = models.CharField(max_length=100)
     correo = models.EmailField()
     telefono = models.CharField(max_length=20, blank=True)
@@ -43,6 +58,17 @@ class Reserva(models.Model):
 
     # ── MERCADO PAGO ──────────────────────────────────────────────
     mp_preference_id = models.CharField(max_length=255, blank=True, null=True)
+
+    # ── CANCELACIÓN ────────────────────────────────────────────────
+    motivo_cancelacion = models.CharField(
+        max_length=20, choices=MOTIVOS_CANCELACION,
+        blank=True, null=True, verbose_name="Motivo de cancelación"
+    )
+    motivo_detalle = models.TextField(blank=True, null=True, verbose_name="Detalle del motivo")
+    fecha_cancelacion = models.DateTimeField(blank=True, null=True)
+    cancelada_por = models.CharField(
+        max_length=20, choices=CANCELADA_POR_CHOICES, blank=True, null=True
+    )
 
     def __str__(self):
         return f"{self.nombre} - {self.cancha} - {self.fecha}"
@@ -140,6 +166,30 @@ class Reserva(models.Model):
         if self.estado not in (self.ESTADO_PENDIENTE, self.ESTADO_CONFIRMADA):
             return False
         return not self.ya_paso()
+
+    @property
+    def motivo_legible(self):
+        """Etiqueta legible del motivo de cancelación, para el correo y el admin."""
+        if not self.motivo_cancelacion:
+            return "Sin motivo registrado"
+        return dict(self.MOTIVOS_CANCELACION).get(self.motivo_cancelacion, self.motivo_cancelacion)
+
+    def cancelar(self, motivo, detalle='', por='usuario'):
+        """
+        Cancela la reserva registrando motivo/detalle/quién la canceló.
+        Al cambiar el estado a 'cancelada', las horas quedan libres
+        automáticamente en cualquier consulta que excluya ese estado
+        (ver horas-ocupadas / resumen-mes en gestion_canchas).
+        """
+        self.estado = self.ESTADO_CANCELADA
+        self.motivo_cancelacion = motivo
+        self.motivo_detalle = detalle or None
+        self.fecha_cancelacion = timezone.now()
+        self.cancelada_por = por
+        self.save(update_fields=[
+            'estado', 'motivo_cancelacion', 'motivo_detalle',
+            'fecha_cancelacion', 'cancelada_por'
+        ])
 
     # Nota: NO se sobreescribe delete() a propósito. El bloqueo de borrado
     # se hace a nivel de vistas (nunca se expone una URL/acción que llame

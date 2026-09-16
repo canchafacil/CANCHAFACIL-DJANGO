@@ -78,7 +78,9 @@ def pagina_reservas(request):
 
 
 def reservas(request, cancha_id=None):
-    todas = Reserva.objects.all().order_by('-id')
+    # Se excluyen las canceladas: así el calendario público (RESERVAS_BD en el
+    # template) nunca las ve como ocupadas y las horas quedan libres de inmediato.
+    todas = Reserva.objects.exclude(estado=Reserva.ESTADO_CANCELADA).order_by('-id')
     _sincronizar_todas(todas)  # actualiza estados vencidos antes de mostrar el calendario
 
     canchas = Cancha.objects.filter(disponible=True)
@@ -88,14 +90,14 @@ def reservas(request, cancha_id=None):
     if usuario_id:
         usuario = Usuario.objects.filter(id=usuario_id).first()
 
-    # Una reserva "activa" bloquea nuevas reservas: solo la CONFIRMADA (ya
-    # pagada) bloquea de verdad. Las PENDIENTES (nunca pagadas) ya no
-    # cuentan aquí porque crear_reserva las cancela automáticamente.
     tiene_reserva_activa = False
     if usuario:
+        # "Activa" = pendiente (aún no pagada) o confirmada (ya pagada).
+        # Antes solo se revisaba 'confirmada', lo que permitía crear
+        # una segunda reserva mientras la primera seguía 'pendiente'.
         tiene_reserva_activa = Reserva.objects.filter(
             correo=usuario.email,
-            estado=Reserva.ESTADO_CONFIRMADA,
+            estado__in=[Reserva.ESTADO_PENDIENTE, Reserva.ESTADO_CONFIRMADA],
         ).exists()
 
     return render(request, "reservas/formulario.html", {
@@ -116,36 +118,30 @@ def crear_reserva(request):
     try:
         usuario = Usuario.objects.get(id=usuario_id)
 
-        # Bloqueo real: solo una reserva CONFIRMADA (ya pagada) impide
-        # crear una nueva. Las reservas PENDIENTES (carritos abandonados,
-        # nunca pagados) se cancelan automáticamente más abajo en vez de
-        # bloquear, para que no se queden atascadas para siempre.
-        ya_tiene_confirmada = Reserva.objects.filter(
+        # "Activa" = pendiente o confirmada. Esta es la validación real de
+        # backend (la del frontend en reservas() solo controla la UI).
+        ya_tiene_activa = Reserva.objects.filter(
             correo=usuario.email,
-            estado=Reserva.ESTADO_CONFIRMADA,
+            estado__in=[Reserva.ESTADO_PENDIENTE, Reserva.ESTADO_CONFIRMADA],
         ).exists()
-        if ya_tiene_confirmada:
+        if ya_tiene_activa:
             return JsonResponse(
-                {"status": "error", "mensaje": "Ya tienes una reserva confirmada."},
+                {"status": "error", "mensaje": "Ya tienes una reserva pendiente o confirmada."},
                 status=409
             )
 
         data = json.loads(request.body.decode("utf-8"))
 
-        # Lista de horas seleccionadas (el JS manda "horas": [...]).
-        # Fallback a "hora" solo por compatibilidad si algo manda una sola.
         horas_solicitadas = data.get("horas") or [data["hora"]]
         if not isinstance(horas_solicitadas, list) or len(horas_solicitadas) == 0:
             return JsonResponse({"status": "error", "mensaje": "Debes seleccionar al menos una hora."}, status=400)
 
-        # NUEVO: las horas deben ser consecutivas, sin saltos.
         if not _horas_son_consecutivas(horas_solicitadas):
             return JsonResponse(
                 {"status": "error", "mensaje": "Las horas seleccionadas deben ser continuas, sin saltos."},
                 status=400
             )
 
-        # Bloqueo: si CUALQUIERA de las horas solicitadas ya está ocupada
         ocupadas = _horas_ocupadas(data["cancha"], data["fecha"])
         conflicto = any(h in ocupadas for h in horas_solicitadas)
         if conflicto:
@@ -154,9 +150,9 @@ def crear_reserva(request):
                 status=409
             )
 
-        # Cancela automáticamente cualquier reserva PENDIENTE anterior de
-        # este usuario (carritos abandonados que nunca se pagaron), para
-        # que no queden atascados bloqueando la sesión de pago.
+        # Nota: con la validación de arriba (ya_tiene_activa) esta línea ya no
+        # debería tener nada que cancelar en la práctica, pero se deja como
+        # medida de seguridad redundante por si quedara alguna pendiente suelta.
         Reserva.objects.filter(
             correo=usuario.email,
             estado=Reserva.ESTADO_PENDIENTE,
@@ -201,14 +197,12 @@ def editar_reserva(request, id):
         if not isinstance(horas_nuevas, list) or len(horas_nuevas) == 0:
             return JsonResponse({"status": "error", "mensaje": "Debes seleccionar al menos una hora."}, status=400)
 
-        # NUEVO: las horas deben ser consecutivas, sin saltos.
         if not _horas_son_consecutivas(horas_nuevas):
             return JsonResponse(
                 {"status": "error", "mensaje": "Las horas seleccionadas deben ser continuas, sin saltos."},
                 status=400
             )
 
-        # Bloqueo: verificar conflictos EXCLUYENDO esta misma reserva
         ocupadas = _horas_ocupadas(nueva_cancha, nueva_fecha, excluir_id=reserva.id)
         conflicto = any(h in ocupadas for h in horas_nuevas)
         if conflicto:
@@ -254,11 +248,62 @@ def cancelar_reserva_perfil(request, id):
 
     # Solo se puede cancelar si todavía se podría editar
     # (pendiente/confirmada y la fecha no ha pasado)
-    if reserva.puede_editarse:
-        reserva.estado = Reserva.ESTADO_CANCELADA
-        reserva.save(update_fields=['estado'])
+    if not reserva.puede_editarse:
+        return redirect('perfil')
+
+    motivo = request.POST.get('motivo_cancelacion', '').strip()
+    detalle = request.POST.get('motivo_detalle', '').strip()
+    motivos_validos = dict(Reserva.MOTIVOS_CANCELACION)
+
+    # Si el formulario no manda motivo válido, no cancelamos nada
+    # y devolvemos al perfil (evita cancelaciones "silenciosas" sin motivo).
+    if motivo not in motivos_validos:
+        return redirect('perfil')
+
+    if motivo == 'otro' and len(detalle) < 10:
+        return redirect('perfil')
+
+    # cancelar() cambia el estado a 'cancelada' y guarda motivo/detalle/fecha.
+    # Al quedar 'cancelada', _horas_ocupadas() la excluye automáticamente
+    # y las horas quedan libres en el calendario de inmediato.
+    reserva.cancelar(motivo=motivo, detalle=detalle, por='usuario')
+
+    _enviar_correo_cancelacion(reserva)
 
     return redirect('perfil')
+
+
+def _enviar_correo_cancelacion(reserva):
+    contexto = {
+        'reserva': reserva,
+        'motivo': reserva.motivo_legible,
+        'detalle': reserva.motivo_detalle,
+    }
+    cuerpo_html = render_to_string('emails/cancelacion_reserva.html', contexto)
+    horas_texto = ", ".join(reserva.get_horas())
+    cuerpo_texto = (
+        f"Hola {reserva.nombre},\n\n"
+        f"Tu reserva fue cancelada:\n"
+        f"Cancha: {reserva.cancha}\n"
+        f"Fecha: {reserva.fecha}\n"
+        f"Hora(s): {horas_texto}\n"
+        f"Motivo: {reserva.motivo_legible}\n"
+        f"{('Detalle: ' + reserva.motivo_detalle) if reserva.motivo_detalle else ''}\n\n"
+        f"Las horas quedaron disponibles nuevamente.\n\n"
+        f"Equipo {settings.EMPRESA_NOMBRE}"
+    )
+    try:
+        email = EmailMultiAlternatives(
+            f"Reserva cancelada - {settings.EMPRESA_NOMBRE}",
+            cuerpo_texto,
+            settings.DEFAULT_FROM_EMAIL,
+            [reserva.correo],
+            bcc=[settings.DEFAULT_FROM_EMAIL],
+        )
+        email.attach_alternative(cuerpo_html, "text/html")
+        email.send(fail_silently=False)
+    except Exception as e:
+        print(f"Error enviando correo de cancelación: {e}")
 
 
 def pago(request):
@@ -266,14 +311,14 @@ def pago(request):
     reserva_id = request.session.get("reserva_pendiente_id")
     reserva = None
     total = 0
-    
+
     if reserva_id:
         try:
             reserva = Reserva.objects.get(id=reserva_id)
             total = float(reserva.calcular_total())
         except Reserva.DoesNotExist:
             pass
-    
+
     return render(request, "pagos/pago.html", {
         "reserva": reserva,
         "total": total,
@@ -418,20 +463,16 @@ def crear_preferencia_mercadopago(request, reserva_id):
         id=request.session['usuario_id']
     )
 
-    # Verificar que la reserva pertenece al usuario
     if reserva.correo != usuario.email:
         return redirect('perfil')
 
-    # Si ya está confirmada, mostrar pantalla de éxito
     if reserva.estado == 'confirmada':
         return redirect('pago_exitoso_mp')
 
-    # Configurar SDK de Mercado Pago
     sdk = mercadopago.SDK(
         settings.MERCADO_PAGO_ACCESS_TOKEN
     )
 
-    # Obtener monto
     monto_a_pagar = request.POST.get('monto_a_pagar')
 
     if monto_a_pagar:
@@ -442,7 +483,6 @@ def crear_preferencia_mercadopago(request, reserva_id):
     else:
         total = float(reserva.calcular_total())
 
-    # Mercado Pago trabaja correctamente con el valor entero en COP
     total = int(total)
 
     tipo_pago = request.POST.get(
@@ -450,24 +490,16 @@ def crear_preferencia_mercadopago(request, reserva_id):
         'completo'
     )
 
-    # IMPORTANTE:
-    # Guardamos la reserva en la sesión para recuperarla
-    # cuando Mercado Pago devuelva al usuario.
-    
-
-    # Construir URLs
     dominio = request.build_absolute_uri('/').rstrip('/')
 
     success_url = f"{dominio}/reservas/mp/exito/"
     failure_url = f"{dominio}/reservas/mp/cancelado/"
     pending_url = f"{dominio}/reservas/mp/cancelado/"
-    
+
     request.session['reserva_pendiente_id'] = reserva.id
     request.session['tipo_pago'] = tipo_pago
     request.session['monto_pagado'] = total
     request.session.modified = True
-    
-    
 
     preference_data = {
         "items": [
@@ -521,11 +553,9 @@ def crear_preferencia_mercadopago(request, reserva_id):
                 status=400
             )
 
-        # Guardar ID de preferencia
         reserva.mp_preference_id = response['id']
         reserva.save()
 
-        # Redirigir a Mercado Pago
         return redirect(response['init_point'])
 
     except Exception as e:
@@ -588,7 +618,6 @@ def webhook_mercadopago(request):
         payment_info = sdk.payment().get(payment_id)
         payment = payment_info.get('response', {})
 
-        # Verificar que el pago fue aprobado
         if payment.get('status') == 'approved':
 
             external_reference = payment.get(

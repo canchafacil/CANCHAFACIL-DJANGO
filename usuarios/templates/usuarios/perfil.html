@@ -186,7 +186,7 @@
         {% else %}
         <div class="alert alert-success d-flex align-items-center justify-content-between flex-wrap gap-2">
             <span><i class="bi bi-check-circle-fill me-2"></i>No tienes reservas activas. Ya puedes crear una nueva.</span>
-            <a href="{% url 'reservas' %}" class="btn btn-sm text-white" style="background-color: #03045e;">Nueva reserva</a>
+            <a href="{% url 'formulario_reservas' %}" class="btn btn-sm text-white" style="background-color: #03045e;">Nueva reserva</a>
         </div>
         {% endif %}
 
@@ -220,11 +220,10 @@
                                         data-bs-toggle="collapse" data-bs-target="#editar-reserva-{{ reserva.id }}">
                                     Editar
                                 </button>
-                                <form method="post" action="{% url 'cancelar_reserva_perfil' reserva.id %}" class="d-inline"
-                                    onsubmit="return confirm('¿Seguro que quieres cancelar esta reserva? Esta acción no se puede deshacer.');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">Cancelar reserva</button>
-                                </form>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        data-bs-toggle="modal" data-bs-target="#modalCancelar-{{ reserva.id }}">
+                                    Cancelar reserva
+                                </button>
                                 {% else %}
                                 <span class="text-muted small" title="Esta reserva ya no se puede editar ni cancelar">
                                     <i class="bi bi-lock-fill me-1"></i>No editable
@@ -275,6 +274,48 @@
                     {% endif %}
                 </div>
             </div>
+
+            <!-- MODAL: motivo de cancelación de esta reserva -->
+            {% if reserva.puede_editarse %}
+            <div class="modal fade" id="modalCancelar-{{ reserva.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form method="post" action="{% url 'cancelar_reserva_perfil' reserva.id %}">
+                            {% csrf_token %}
+                            <div class="modal-header">
+                                <h5 class="modal-title">Cancelar reserva</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p class="mb-3">
+                                    <strong>{{ reserva.cancha }}</strong> — {{ reserva.fecha }} a las {{ reserva.hora }}
+                                </p>
+
+                                <div class="mb-3">
+                                    <label class="form-label">¿Por qué cancelas la reserva?</label>
+                                    <select name="motivo_cancelacion" class="form-select motivo-select" required>
+                                        <option value="" selected disabled>Selecciona un motivo</option>
+                                        {% for valor, etiqueta in motivos_cancelacion %}
+                                        <option value="{{ valor }}">{{ etiqueta }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="mb-1 detalle-wrapper d-none">
+                                    <label class="form-label">Cuéntanos un poco más (mínimo 10 caracteres)</label>
+                                    <textarea name="motivo_detalle" class="form-control detalle-input" rows="3"
+                                              minlength="10" placeholder="Escribe el detalle aquí..."></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
+                                <button type="submit" class="btn btn-danger">Confirmar cancelación</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
             {% endfor %}
         {% else %}
             <p class="text-muted">Todavía no tenés reservas.</p>
@@ -370,5 +411,23 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/theme.js' %}"></script>
+    <script>
+        // Muestra el textarea de detalle solo cuando el motivo es "otro",
+        // y lo hace obligatorio en ese caso.
+        document.querySelectorAll('.motivo-select').forEach(function (select) {
+            select.addEventListener('change', function () {
+                var wrapper = this.closest('.modal-body').querySelector('.detalle-wrapper');
+                var textarea = wrapper.querySelector('.detalle-input');
+                if (this.value === 'otro') {
+                    wrapper.classList.remove('d-none');
+                    textarea.setAttribute('required', 'required');
+                } else {
+                    wrapper.classList.add('d-none');
+                    textarea.removeAttribute('required');
+                    textarea.value = '';
+                }
+            });
+        });
+    </script>
 </body>
 </html>

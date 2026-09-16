@@ -248,7 +248,7 @@
                     {% if cancha_id %}
                         <!-- Cancha ya elegida desde el catálogo: se muestra fija, no editable -->
                         <div id="cardCanchaFija"></div>
-                        <a href="{% url 'inicio' %}" class="small text-muted d-inline-block mt-2">
+                        <a href="{% url 'gestion_canchas:canchas' %}" class="small text-muted d-inline-block mt-2">
                             <i class="bi bi-arrow-left-short"></i> Elegir otra cancha
                         </a>
                     {% else %}

@@ -331,8 +331,8 @@
             <i class="bi bi-check-circle-fill fs-3"></i>
             <h4>¡Pago confirmado!</h4>
             <p>Tu reserva ya está pagada. Disfruta tu partido.</p>
-            <a href="{% url 'inicio' %}" class="btn btn-primary">Volver al inicio</a>
-            <a href="{% url 'reservas' %}" class="btn btn-outline-secondary">
+            <a href="{% url 'inicio' %}" class="btn btn-primary">Cancelar</a>
+            <a href="{% url 'formulario' %}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i>Volver a reservas
             </a>
             <a href="{% url 'pagos:descargar_factura' reserva.id %}" class="btn btn-success" target="_blank">
