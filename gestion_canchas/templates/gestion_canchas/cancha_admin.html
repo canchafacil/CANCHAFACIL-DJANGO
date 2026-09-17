@@ -16,96 +16,82 @@
 
 <body class="adm-body bg-dark text-white min-vh-100">
     <nav class="navbar navbar-expand-lg navbar-dark shadow cancha-nav">
-    <div class="container-fluid">
+        <div class="container-fluid">
 
-        <!-- LOGO -->
-        <div class="d-flex align-items-center ms-4">
-            <img src="{% static 'img/logo-green.png' %}"
-                 style="height:90px; object-fit:contain;"
-                 alt="Logo CanchaFácil">
+            <!-- LOGO -->
+            <div class="d-flex align-items-center ms-4">
+                <img src="{% static 'img/logo-green.png' %}"
+                     style="height:90px; object-fit:contain;"
+                     alt="Logo CanchaFácil">
 
-            <a class="navbar-brand fw-bold m-0 logo-text"
-               href="#"
-               style="font-size:2rem; color:#fff;">
-                Cancha<span style="color:#62ff00;">Fácil</span>
-            </a>
+                <a class="navbar-brand fw-bold m-0 logo-text"
+                   href="#"
+                   style="font-size:2rem; color:#fff;">
+                    Cancha<span style="color:#62ff00;">Fácil</span>
+                </a>
+            </div>
+
+            <!-- BOTÓN PARA CELULAR -->
+            <button class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#menuNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- MENÚ -->
+            <div class="collapse navbar-collapse justify-content-end me-5"
+                 id="menuNav">
+
+                <ul class="nav navbar-nav mt-3 mt-lg-0 gap-1">
+
+                    <li class="nav-item">
+                        <a href="{% url 'gestion_canchas:ingreso_mes' %}" class="btn btn-custom rounded-pill">
+                            Dashboard
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="{% url 'gestion_canchas:panel_reservas' %}" class="btn btn-custom rounded-pill">
+                            Panel Reservas
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="{% url 'gestion_canchas:ingresos' %}" class="btn btn-custom rounded-pill">
+                            Ingresos
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="{% url 'gestion_canchas:resenas' %}" class="btn btn-custom rounded-pill">
+                            Ver Reseñas
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="{% url 'gestion_canchas:mensajes' %}" class="btn btn-custom rounded-pill">
+                            Mensajes
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="{% url 'gestion_canchas:cancha_admin' %}" class="btn btn-custom rounded-pill">
+                            Administrar Canchas
+                        </a>
+                    </li>
+
+                    <li class="nav-item ms-5">
+                        <a href="{% url 'logout_admin' %}" class="btn btn-salir rounded-pill fw-bold py-2 px-4">
+                            Salir
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
         </div>
-
-        <!-- BOTÓN PARA CELULAR -->
-        <button class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#menuNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <!-- MENÚ -->
-        <div class="collapse navbar-collapse justify-content-end me-5"
-             id="menuNav">
-
-            <ul class="nav navbar-nav mt-3 mt-lg-0 gap-1">
-
-                <!-- DASHBOARD -->
-                <li class="nav-item">
-                    <a href="{% url 'gestion_canchas:ingreso_mes' %}"
-                       class="btn btn-custom rounded-pill">
-                        Dashboard
-                    </a>
-                </li>
-
-                <!-- PANEL RESERVAS -->
-                <li class="nav-item">
-                    <a href="{% url 'gestion_canchas:panel_reservas' %}"
-                       class="btn btn-custom rounded-pill">
-                        Panel Reservas
-                    </a>
-                </li>
-
-                <!-- INGRESOS -->
-                <li class="nav-item">
-                    <a href="{% url 'gestion_canchas:ingresos' %}"
-                       class="btn btn-custom rounded-pill">
-                        Ingresos
-                    </a>
-                </li>
-
-                <!-- RESEÑAS -->
-                <li class="nav-item">
-                    <a href="{% url 'gestion_canchas:resenas' %}"
-                       class="btn btn-custom rounded-pill">
-                        Ver Reseñas
-                    </a>
-                </li>
-
-                <!-- MENSAJES -->
-                <li class="nav-item">
-                    <a href="{% url 'gestion_canchas:mensajes' %}"
-                       class="btn btn-custom rounded-pill">
-                        Mensajes
-                    </a>
-                </li>
-
-                <!-- ADMINISTRAR CANCHAS -->
-                <li class="nav-item">
-                    <a href="{% url 'gestion_canchas:cancha_admin' %}"
-                       class="btn btn-custom rounded-pill">
-                        Administrar Canchas
-                    </a>
-                </li>
-
-                <!-- SALIR -->
-                <li class="nav-item ms-5">
-                    <a href="{% url 'logout_admin' %}"
-                       class="btn btn-salir rounded-pill fw-bold py-2 px-4">
-                        Salir
-                    </a>
-                </li>
-
-            </ul>
-
-        </div>
-    </div>
-</nav>
+    </nav>
 
     <!-- CONTENIDO -->
     <div class="container py-5">
@@ -142,6 +128,8 @@
                             <strong>Tipo:</strong> {{ cancha.tipo }}
                             <br>
                             <strong>Precio:</strong> {{ cancha.precio|cop }}/hora
+                            <br>
+                            <strong>Sede:</strong> {{ cancha.sede.nombre|default:"—" }}
                         </p>
                         {% if cancha.disponible %}
                         <span class="badge bg-success">Disponible</span>
@@ -169,24 +157,29 @@
         </div>
     </div>
 
-    <!-- MODAL AGREGAR CANCHA -->
-    <div class="modal fade" id="modalCancha" tabindex="-1">
+    <!-- ═══════════════════════════════════════════════════════════
+         MODAL AGREGAR CANCHA (CORREGIDO: ahora sí tiene la estructura
+         completa .modal → .modal-dialog → .modal-content → .modal-body)
+    ═══════════════════════════════════════════════════════════════ -->
+    <div class="modal fade" id="modalCancha" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
+
                 <div class="modal-header">
                     <h5 class="modal-title">Agregar Cancha</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
+
                 <div class="modal-body">
+
                     {% if form_agregar.errors %}
                     <div class="alert alert-danger">
-                        <strong><i class="bi bi-exclamation-triangle-fill me-1"></i>No se pudo guardar la
-                            cancha:</strong>
+                        <strong><i class="bi bi-exclamation-triangle-fill me-1"></i>No se pudo guardar la cancha:</strong>
                         <ul class="mb-0 mt-2">
                             {% for campo in form_agregar %}
-                            {% for error in campo.errors %}
-                            <li>{{ campo.label|default:campo.name }}: {{ error }}</li>
-                            {% endfor %}
+                                {% for error in campo.errors %}
+                                <li>{{ campo.label|default:campo.name }}: {{ error }}</li>
+                                {% endfor %}
                             {% endfor %}
                             {% for error in form_agregar.non_field_errors %}
                             <li>{{ error }}</li>
@@ -194,54 +187,81 @@
                         </ul>
                     </div>
                     {% endif %}
-                    <form method="POST" action="{% url 'gestion_canchas:agregar_cancha' %}"
-                        enctype="multipart/form-data">
+
+                    <form method="POST" action="{% url 'gestion_canchas:agregar_cancha' %}" enctype="multipart/form-data">
                         {% csrf_token %}
+
                         <div class="mb-3">
                             <label class="form-label">Nombre de la Cancha</label>
                             <input type="text" name="nombre" class="form-control"
-                                value="{{ form_agregar.nombre.value|default_if_none:'' }}" required>
+                                value="{{ form_agregar.nombre.value|default_if_none:'' }}"
+                                placeholder="Ej: Cancha Principal" required>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">Tipo de Cancha</label>
-                            <option value="Fútbol 5" {% if form_agregar.tipo.value == 'Fútbol 5' %}selected{% endif %}>
-                                Fútbol 5</option>
-
-                            <option value="Fútbol 7" {% if form_agregar.tipo.value == 'Fútbol 7' %}selected{% endif %}>
-                                Fútbol 7</option>
-
-                            <option value="Fútbol 11" {% if form_agregar.tipo.value == 'Fútbol 11' %}selected{% endif %}>
-                                Fútbol 11</option>
+                            <select name="tipo" class="form-select" required>
+                                <option value="Fútbol 5" {% if form_agregar.tipo.value == 'Fútbol 5' %}selected{% endif %}>Fútbol 5</option>
+                                <option value="Fútbol 7" {% if form_agregar.tipo.value == 'Fútbol 7' %}selected{% endif %}>Fútbol 7</option>
+                                <option value="Fútbol 11" {% if form_agregar.tipo.value == 'Fútbol 11' %}selected{% endif %}>Fútbol 11</option>
                             </select>
                         </div>
+
+                        <!-- Campo Sede -->
+                        <div class="mb-3">
+                            <label class="form-label">Sede</label>
+                            <select name="sede" class="form-select" required>
+                                <option value="">--- Selecciona una sede ---</option>
+                                {% for sede in sedes %}
+                                <option value="{{ sede.id }}"
+                                    {% if form_agregar.sede.value|stringformat:"s" == sede.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ sede.nombre }} - {{ sede.ciudad }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if not sedes %}
+                            <small class="text-danger">
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                No hay sedes activas. <a href="{% url 'gestion_canchas:lista_sedes' %}">Crea una sede primero</a>.
+                            </small>
+                            {% endif %}
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label">Descripción</label>
                             <textarea name="descripcion" class="form-control" rows="3"
-                                placeholder="Breve descripción de la cancha (ubicación, superficie, características, etc.)">{{ form_agregar.descripcion.value|default_if_none:'' }}</textarea>
+                                placeholder="Ubicación, superficie, características...">{{ form_agregar.descripcion.value|default_if_none:'' }}</textarea>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">Precio por Hora (mínimo $50,000 COP)</label>
                             <input type="number" name="precio" class="form-control" required min="50000" step="1000"
-                                placeholder="Ej: 120000" value="{{ form_agregar.precio.value|default_if_none:'' }}"
+                                placeholder="Ej: 120000"
+                                value="{{ form_agregar.precio.value|default_if_none:'' }}"
                                 oninvalid="this.setCustomValidity('El precio mínimo es $50,000 COP')"
                                 oninput="this.setCustomValidity('')">
                             <small class="text-muted">El precio mínimo por hora es de $50,000 COP.</small>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">Imagen</label>
                             <input type="file" name="imagen" class="form-control" accept="image/*">
                             <small class="text-muted">Formatos permitidos: JPG o PNG.</small>
                         </div>
+
                         <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" name="disponible" 
+                            <input class="form-check-input" type="checkbox" name="disponible"
                                 {% if form_agregar.disponible.value|default:True %}checked{% endif %}>
                             <label class="form-check-label">Disponible</label>
                         </div>
+
                         <button type="submit" class="btn btn-success w-100"
                             style="background-color:#62ff00; border-color:#62ff00; color:black;">
                             Guardar Cancha
                         </button>
+
                     </form>
+
                 </div>
             </div>
         </div>

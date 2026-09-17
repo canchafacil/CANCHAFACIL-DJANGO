@@ -16,7 +16,41 @@
         rel="stylesheet" />
     <style>
         body {
-            padding-top: 110px; /* ajusta este valor si tu navbar tiene otra altura */
+            padding-top: 110px;
+        }
+
+        /* ── Estilos de sección por sede ── */
+        .sede-titulo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 40px 0 6px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #62ff00;
+        }
+        .sede-titulo i {
+            color: #62ff00;
+            font-size: 1.6rem;
+        }
+        .sede-titulo h3 {
+            margin: 0;
+            color: #03045e;
+            font-weight: 700;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 1px;
+        }
+        .sede-info {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+        .sede-info i {
+            color: #62ff00;
+            margin-right: 4px;
+        }
+        .sede-info span + span {
+            margin-left: 18px;
         }
     </style>
 </head>
@@ -84,51 +118,77 @@
     </nav>
 
     <section id="canchas">
-        <div class="container px-5 pt-3 ">
+        <div class="container px-5 pt-3">
             <div class="section-label">
                 <h2 class="titulo-cancha">Escoge tu cancha</h2>
             </div>
 
-            <div class="row g-4 cards-grid pt-3 ">
-
-                {% for cancha in canchas %}
-                <div class="col-12 col-sm-6 col-xl-4 fade-up delay-{{ forloop.counter|add:"0" }}">
-                    <div class="cancha-card">
-                        <div class="card-img-wrap">
-                            <!-- Puedes poner un rating fijo o calcularlo, lo dejamos como ejemplo -->
-                            <span class="card-rating"><i class="bi bi-star-fill"></i> 4.9</span>
-                            {% if cancha.imagen %}
-                            <img src="{{ cancha.imagen.url }}" alt="{{ cancha.nombre }}">
-                            {% else %}
-                            <img src="{% static 'img/default-cancha.jpg' %}" alt="Cancha sin imagen">
-                            {% endif %}
-                        </div>
-                        <div class="card-body">
-                            <p class="card-location"><i class="bi bi-geo-alt-fill me-1" style="color: #62ff00;"></i>Ubicación</p>
-                            <h3 class="card-name" style="color: #62ff00;">{{ cancha.nombre }}</h3>
-                            <p class="card-desc">{{ cancha.descripcion|default:"Sin descripción" }}</p>
-                            <div class="card-meta">
-                                <span class="meta-item"><i class="bi bi-people-fill me-1" style="color: #62ff00;"></i> {{ cancha.tipo }}</span>
-                                <span class="meta-item"><i class="bi bi-clock-fill me-1" style="color: #62ff00;"></i> 60 min</span>
-                                <span class="meta-item"><i class="bi bi-currency-dollar" style="color: #62ff00;"></i> {{ cancha.precio|cop }}</span>
-                            </div>
-                            <button class="btn-reservar" 
-                                    style="background-color: #62ff00; color: #03045e; cursor: pointer; width: 100%; border: none; padding: 10px; border-radius: 8px; font-weight: bold;" 
-                                    onclick="window.location.href='{% url 'formulario_reservas' cancha.id %}'">
-                                Reservar ahora
-                            </button>
-                        </div>
-                    </div>
+            {% if sedes_con_canchas %}
+                {% for item in sedes_con_canchas %}
+                <!-- ══════════ SEDE: {{ item.sede.nombre }} ══════════ -->
+                <div class="sede-titulo">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <h3>{{ item.sede.nombre }}</h3>
                 </div>
-                {% empty %}
-                <div class="col-12">
-                    <div class="alert alert-info text-center">
-                        No hay canchas disponibles en este momento.
+
+                <p class="sede-info">
+                    <span><i class="bi bi-pin-map-fill"></i>{{ item.sede.direccion }}</span>
+                    <span><i class="bi bi-building"></i>{{ item.sede.ciudad }}</span>
+                    {% if item.sede.telefono %}
+                    <span><i class="bi bi-telephone-fill"></i>{{ item.sede.telefono }}</span>
+                    {% endif %}
+                </p>
+
+                <div class="row g-4 cards-grid pt-2 pb-4">
+                    {% for cancha in item.canchas %}
+                    <div class="col-12 col-sm-6 col-xl-4 fade-up">
+                        <div class="cancha-card">
+                            <div class="card-img-wrap">
+                                <span class="card-rating"><i class="bi bi-star-fill"></i> 4.9</span>
+                                {% if cancha.imagen %}
+                                <img src="{{ cancha.imagen.url }}" alt="{{ cancha.nombre }}">
+                                {% else %}
+                                <img src="{% static 'img/default-cancha.jpg' %}" alt="Cancha sin imagen">
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <p class="card-location">
+                                    <i class="bi bi-geo-alt-fill me-1" style="color: #62ff00;"></i>
+                                    {{ item.sede.ciudad }}
+                                </p>
+                                <h3 class="card-name" style="color: #62ff00;">{{ cancha.nombre }}</h3>
+                                <p class="card-desc">{{ cancha.descripcion|default:"Sin descripción" }}</p>
+                                <div class="card-meta">
+                                    <span class="meta-item">
+                                        <i class="bi bi-people-fill me-1" style="color: #62ff00;"></i>
+                                        {{ cancha.tipo }}
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="bi bi-clock-fill me-1" style="color: #62ff00;"></i> 60 min
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="bi bi-currency-dollar" style="color: #62ff00;"></i>
+                                        {{ cancha.precio|cop }}
+                                    </span>
+                                </div>
+                                <button class="btn-reservar"
+                                    style="background-color: #62ff00; color: #03045e; cursor: pointer; width: 100%; border: none; padding: 10px; border-radius: 8px; font-weight: bold;"
+                                    onclick="window.location.href='{% url 'formulario_reservas' cancha.id %}'">
+                                    Reservar ahora
+                                </button>
+                            </div>
+                        </div>
                     </div>
+                    {% endfor %}
                 </div>
                 {% endfor %}
+            {% else %}
+                <div class="alert alert-info text-center mt-5">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No hay canchas disponibles en este momento.
+                </div>
+            {% endif %}
 
-            </div>
         </div>
     </section>
 
@@ -136,4 +196,5 @@
     <script src="{% static 'js/theme.js' %}"></script>
 
 </body>
+
 </html>
