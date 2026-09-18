@@ -200,6 +200,11 @@
     height: 100%;
 }
 
+[data-bs-theme="dark"] h3.sede-titulo, 
+[data-bs-theme="dark"] .mb-0 {
+    color: white;
+}
+
 /* ============ Reseñas ============ */
 
 [data-bs-theme="dark"] .btn-reservar {

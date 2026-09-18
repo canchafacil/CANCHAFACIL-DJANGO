@@ -18,14 +18,19 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark shadow fixed-top">
-        <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-dark  shadow fixed-top">
+        <div class="container d-flex align-items-center">
             <a href="{% url 'inicio' %}" class="d-flex align-items-center text-decoration-none">
                 <img src="{% static 'img/logo-green.png' %}" style="height: 90px;" alt="">
                 <span class="navbar-brand fw-bold ms-2 mb-0" style="font-size: 2rem; color: white;">
                     Cancha<span style="color:  #62ff00;">Fácil </span>
                 </span>
             </a>
+            <ul class="navbar-nav ms 2 d-lg-none">
+                <li class="nav-item">
+                    <a href="{% url 'login' %}" class="btn btn-info border-0 ms-2" style="background-color: #62ff00; color: #03045e; font-weight: bold;">Iniciar Sesión</a>
+                </li>
+            </ul>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
                 <span class="navbar-toggler-icon"></span>
@@ -64,17 +69,18 @@
                         </ul>
                     </li>
                     {% else %}
-                    <li class="nav-item">
+                    <li class="nav-item d-none d-lg-block">
                         <a href="{% url 'login' %}" class="btn btn-info border-0 ms-2" style="background-color: #62ff00; color: #03045e; font-weight: bold;">Iniciar Sesión</a>
                     </li>
                     {% endif %}
+                    </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item ">
                         <button id="themeToggle" class="theme-toggle-btn" title="Cambiar tema">
                             <i class="bi bi-moon-stars"></i>
                         </button>
                     </li>
-                </ul>
+                
             </div>
         </div>
     </nav>
