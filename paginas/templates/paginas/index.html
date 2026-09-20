@@ -12,12 +12,171 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <style>
         body {
-            padding-top: 110px; /* ajusta este valor si tu navbar tiene otra altura */
+            padding-top: 110px;
         }
+
+        .comunidad-section { padding: 60px 0; }
+        .comunidad-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 28px 0 26px;
+        }
+        .comunidad-tab-btn {
+            border: 2px solid #03045e;
+            background: transparent;
+            color: #03045e;
+            border-radius: 999px;
+            padding: 9px 20px;
+            font-weight: 700;
+            font-size: .9rem;
+        }
+        .comunidad-tab-btn.active {
+            background: #62ff00;
+            border-color: #62ff00;
+            color: #03045e;
+        }
+        [data-bs-theme="dark"] .comunidad-tab-btn { border-color: #62ff00; color: #62ff00; }
+        [data-bs-theme="dark"] .comunidad-tab-btn.active { color: #03045e; }
+
+        .comunidad-panel { max-width: 820px; margin: 0 auto; }
+        .comunidad-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+
+        .comunidad-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 18px 22px;
+            box-shadow: 0 6px 24px rgba(3,4,94,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        [data-bs-theme="dark"] .comunidad-card {
+            background: #0d1b2a;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+        }
+        .comunidad-card .info { flex: 1; min-width: 200px; }
+        .comunidad-card .sede {
+            font-weight: 800;
+            color: #03045e;
+            font-size: 1.05rem;
+        }
+        [data-bs-theme="dark"] .comunidad-card .sede { color: #62ff00; }
+        .comunidad-card .meta {
+            font-size: .85rem;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+        .comunidad-card .faltan-badge {
+            display: inline-block;
+            margin-top: 6px;
+            font-size: .78rem;
+            font-weight: 700;
+            padding: 3px 12px;
+            border-radius: 999px;
+            background: rgba(98,255,0,0.18);
+            color: #146c00;
+        }
+        [data-bs-theme="dark"] .comunidad-card .faltan-badge { color: #62ff00; }
+        .comunidad-card .faltan-badge.completo {
+            background: rgba(25,135,84,0.15);
+            color: #198754;
+        }
+        .btn-unirse {
+            background-color: #62ff00;
+            color: #03045e;
+            border: none;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 9px 20px;
+            white-space: nowrap;
+        }
+        .btn-unirse:disabled { opacity: .5; }
+        .btn-reto {
+            background-color: #03045e;
+            color: #fff;
+            border: none;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 9px 20px;
+            white-space: nowrap;
+        }
+        .btn-reto:disabled { opacity: .5; }
+
+        .muro-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 18px 22px;
+            box-shadow: 0 6px 24px rgba(3,4,94,0.08);
+        }
+        [data-bs-theme="dark"] .muro-card {
+            background: #0d1b2a;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+        }
+        .muro-card .autor {
+            font-weight: 700;
+            color: #03045e;
+            font-size: .85rem;
+            margin-bottom: 4px;
+        }
+        [data-bs-theme="dark"] .muro-card .autor { color: #62ff00; }
+        .muro-card .texto { color: inherit; }
+
+        .btn-comunidad {
+            display: block;
+            margin: 0 auto;
+            border: 2px dashed #03045e;
+            background: transparent;
+            color: #03045e;
+            border-radius: 16px;
+            padding: 12px 26px;
+            font-weight: 700;
+        }
+        .btn-comunidad:hover { background: rgba(98,255,0,0.15); }
+        [data-bs-theme="dark"] .btn-comunidad { border-color: #62ff00; color: #62ff00; }
+
+        .cf-toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            width: 100%;
+            padding: 0 16px;
+        }
+        .cf-toast {
+            background: #03045e;
+            color: #fff;
+            padding: 14px 22px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(3,4,94,0.35);
+            font-weight: 600;
+            font-size: .92rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 420px;
+            opacity: 0;
+            transform: translateY(-12px);
+            transition: opacity .25s ease, transform .25s ease;
+        }
+        .cf-toast.mostrar { opacity: 1; transform: translateY(0); }
+        .cf-toast.error { background: #b3261e; }
+        .cf-toast.success { background: #146c00; }
+        .cf-toast i { font-size: 1.15rem; flex-shrink: 0; }
     </style>
 </head>
 
 <body>
+
+    <div class="cf-toast-container" id="cfToastContainer"></div>
 
     <nav class="navbar navbar-expand-lg navbar-dark  shadow fixed-top">
         <div class="container d-flex align-items-center">
@@ -203,32 +362,152 @@
         </section>
     </div>
 
-    <div class="rf-header text-center">
-        <h2 class="rf-titulo">LO QUE DICE NUESTRA COMUNIDAD</h2>
-        <p class="rf-sub">Jugadores reales, experiencias reales en CanchaFácil</p>
-        <div class="rf-stats">
-            <div>
-                <span class="rf-stat-num" id="stat-total">5</span>
-                <span class="rf-stat-lbl">Reseñas</span>
+    <!-- ===== Comunidad: partidos abiertos + busca rival + muro ===== -->
+    <section class="comunidad-section">
+        <div class="container">
+            <h1 class="titulo-sec">LA COMUNIDAD CANCHAFÁCIL</h1>
+            <p class="subtitulo-seccion">Sumate a un partido, retá a otro equipo o mostrá el tuyo</p>
+
+            <div class="comunidad-tabs">
+                <button class="comunidad-tab-btn active" data-tab="partidos"><i class="bi bi-people-fill"></i> Partidos abiertos</button>
+                <button class="comunidad-tab-btn" data-tab="retos"><i class="bi bi-lightning-fill"></i> Busca rival</button>
+                <button class="comunidad-tab-btn" data-tab="muro"><i class="bi bi-camera-fill"></i> Muro</button>
             </div>
-            <div>
-                <span class="rf-stat-num" id="stat-prom">4.8</span>
-                <span class="rf-stat-lbl">Promedio</span>
-            </div>
-            <div>
-                <span class="rf-stat-num">98%</span>
-                <span class="rf-stat-lbl">Recomiendan</span>
+
+            <div class="comunidad-panel">
+                <div class="comunidad-tab-panel" data-panel="partidos">
+                    <div class="comunidad-list" id="listaPartidos"></div>
+                    {% if usuario_logueado %}
+                    <button class="btn-comunidad" data-bs-toggle="modal" data-bs-target="#modalPartido">+ Publicar partido</button>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="btn-comunidad text-decoration-none text-center">Iniciá sesión para publicar un partido</a>
+                    {% endif %}
+                </div>
+
+                <div class="comunidad-tab-panel d-none" data-panel="retos">
+                    <div class="comunidad-list" id="listaRetos"></div>
+                    {% if usuario_logueado %}
+                    <button class="btn-comunidad" data-bs-toggle="modal" data-bs-target="#modalReto">+ Publicar reto</button>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="btn-comunidad text-decoration-none text-center">Iniciá sesión para publicar un reto</a>
+                    {% endif %}
+                </div>
+
+                <div class="comunidad-tab-panel d-none" data-panel="muro">
+                    <div class="comunidad-list" id="listaMuro"></div>
+                    {% if usuario_logueado %}
+                    <button class="btn-comunidad" data-bs-toggle="modal" data-bs-target="#modalMuro">+ Compartir tu partido</button>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="btn-comunidad text-decoration-none text-center">Iniciá sesión para compartir en el muro</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
-        
-            <div class="mt-4">
-                <a href="{% url 'nosotros' %}#dejatureseña" class="btn btn-ver-reseñas">
-                    Ver reseñas
-                </a>
+    </section>
+
+    <!-- Modal: publicar partido -->
+    <div class="modal fade" id="modalPartido" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px;">
+                <form id="formPartido">
+                    <div class="modal-body p-4">
+                        <h5 class="fw-bold mb-3">Publicar partido</h5>
+
+                        <div class="mb-3">
+                            <label class="form-label">Elegí una de tus reservas pagadas</label>
+                            <select class="form-select" id="selectReservaPartido" required>
+                                <option value="" disabled selected>Cargando reservas...</option>
+                            </select>
+                            <small class="text-muted">Solo aparecen reservas confirmadas, pagadas por completo y futuras.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">¿Cuántos jugadores faltan?</label>
+                            <input type="number" class="form-control" id="inputFaltanPartido" min="1" max="21" value="3" required>
+                        </div>
+
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="checkCobraPartido">
+                            <label class="form-check-label" for="checkCobraPartido">Quien se apunte debe pagar un aporte</label>
+                        </div>
+                        <div class="mb-3 d-none" id="wrapperValorPartido">
+                            <label class="form-label">Valor del aporte (COP)</label>
+                            <input type="number" class="form-control" id="inputValorPartido" min="1000" max="500000" placeholder="Ej: 10000">
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn rounded-pill px-3 text-white" style="background-color:#03045e;">Publicar</button>
+                        </div>
+                    </div>
+                </form>
             </div>
+        </div>
+    </div>
 
+    <!-- Modal: publicar reto -->
+    <div class="modal fade" id="modalReto" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px;">
+                <form id="formReto">
+                    <div class="modal-body p-4">
+                        <h5 class="fw-bold mb-3">Publicar reto</h5>
 
+                        <div class="mb-2">
+                            <label class="form-label">Nombre de tu equipo</label>
+                            <input type="text" class="form-control" id="inputEquipoReto" placeholder="Ej: Los Tigres FC" required>
+                        </div>
 
+                        <div class="mb-3">
+                            <label class="form-label">Elegí una de tus reservas pagadas</label>
+                            <select class="form-select" id="selectReservaReto" required>
+                                <option value="" disabled selected>Cargando reservas...</option>
+                            </select>
+                            <small class="text-muted">Solo aparecen reservas confirmadas, pagadas por completo y futuras.</small>
+                        </div>
+
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="checkCobraReto">
+                            <label class="form-check-label" for="checkCobraReto">El rival debe pagar un aporte para aceptar</label>
+                        </div>
+                        <div class="mb-3 d-none" id="wrapperValorReto">
+                            <label class="form-label">Valor del aporte (COP)</label>
+                            <input type="number" class="form-control" id="inputValorReto" min="1000" max="500000" placeholder="Ej: 15000">
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn rounded-pill px-3 text-white" style="background-color:#03045e;">Publicar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: compartir en el muro -->
+    <div class="modal fade" id="modalMuro" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px;">
+                <form id="formMuro">
+                    <div class="modal-body p-4">
+                        <h5 class="fw-bold mb-3">Compartir tu partido</h5>
+                        <div class="mb-2">
+                            <label class="form-label">Tu nombre o el de tu equipo</label>
+                            <input type="text" class="form-control" id="inputAutorMuro" placeholder="Ej: Equipo Halcones" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contanos cómo les fue</label>
+                            <textarea class="form-control" id="inputTextoMuro" rows="3" placeholder="Ej: ¡Ganamos 5-3 en Arena Norte! 🔥" required></textarea>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn rounded-pill px-3 text-white" style="background-color:#03045e;">Publicar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <div class="container">
@@ -357,7 +636,284 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Script para el modo oscuro -->
     <script src="{% static 'js/theme.js' %}"></script>
+
+    <script>
+    (function () {
+        const usuarioLogueado = {% if usuario_logueado %}true{% else %}false{% endif %};
+        const URL_LOGIN = "{% url 'login' %}";
+
+        function getCookie(name) {
+            const match = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+            return match ? match.pop() : '';
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        function requiereSesion() {
+            if (!usuarioLogueado) {
+                mostrarAviso('Debes iniciar sesión para continuar', 'error');
+                setTimeout(() => { window.location.href = URL_LOGIN; }, 1300);
+                return true;
+            }
+            return false;
+        }
+
+        function mostrarAviso(mensaje, tipo = 'error', duracion = 3000) {
+            const cont = document.getElementById('cfToastContainer');
+            const toast = document.createElement('div');
+            toast.className = `cf-toast ${tipo}`;
+            const icono = tipo === 'error' ? 'bi-exclamation-circle-fill' : 'bi-check-circle-fill';
+            toast.innerHTML = `<i class="bi ${icono}"></i><span>${mensaje}</span>`;
+            cont.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('mostrar'));
+            setTimeout(() => {
+                toast.classList.remove('mostrar');
+                setTimeout(() => toast.remove(), 300);
+            }, duracion);
+        }
+
+        function manejarError(res) {
+            if (res._status === 401) {
+                mostrarAviso(res.error || 'Debes iniciar sesión para continuar', 'error');
+                setTimeout(() => { window.location.href = URL_LOGIN; }, 1300);
+                return true;
+            }
+            if (res.error) {
+                mostrarAviso(res.error, 'error');
+                return true;
+            }
+            return false;
+        }
+
+        function post(url, data) {
+            const body = new URLSearchParams(data);
+            return fetch(url, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken },
+                body
+            }).then(async r => {
+                const json = await r.json().catch(() => ({}));
+                return { ...json, _status: r.status };
+            });
+        }
+
+        function pesos(n) {
+            return '$' + Number(n).toLocaleString('es-CO');
+        }
+
+        // ---- Tabs ----
+        document.querySelectorAll('.comunidad-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.comunidad-tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const tab = btn.dataset.tab;
+                document.querySelectorAll('.comunidad-tab-panel').forEach(p => {
+                    p.classList.toggle('d-none', p.dataset.panel !== tab);
+                });
+            });
+        });
+
+        // ---- Cargar reservas disponibles en los selects de los modales ----
+        function cargarReservasEnSelect(select, tipo) {
+            select.innerHTML = '<option value="" disabled selected>Cargando...</option>';
+            if (!usuarioLogueado) {
+                select.innerHTML = '<option value="" disabled selected>Inicia sesión para ver tus reservas</option>';
+                return;
+            }
+            fetch(`/comunidad/mis-reservas/?tipo=${tipo}`).then(r => r.json()).then(({ reservas, error }) => {
+                if (error || !reservas || !reservas.length) {
+                    select.innerHTML = '<option value="" disabled selected>No tienes reservas pagadas disponibles</option>';
+                    return;
+                }
+                select.innerHTML = '<option value="" disabled selected>Elegí una reserva</option>';
+                reservas.forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r.id;
+                    opt.textContent = `${r.cancha} — ${r.sede} · ${r.fecha} ${r.hora_inicio}-${r.hora_fin} (pagaste ${pesos(r.precio)})`;
+                    select.appendChild(opt);
+                });
+            });
+        }
+
+        document.getElementById('modalPartido').addEventListener('show.bs.modal', () => {
+            cargarReservasEnSelect(document.getElementById('selectReservaPartido'), 'partido');
+        });
+        document.getElementById('modalReto').addEventListener('show.bs.modal', () => {
+            cargarReservasEnSelect(document.getElementById('selectReservaReto'), 'reto');
+        });
+
+        document.getElementById('checkCobraPartido').addEventListener('change', function () {
+            document.getElementById('wrapperValorPartido').classList.toggle('d-none', !this.checked);
+        });
+        document.getElementById('checkCobraReto').addEventListener('change', function () {
+            document.getElementById('wrapperValorReto').classList.toggle('d-none', !this.checked);
+        });
+
+        // ---- Partidos ----
+        function cargarPartidos() {
+            fetch('/comunidad/partidos/').then(r => r.json()).then(({ partidos }) => {
+                const cont = document.getElementById('listaPartidos');
+                cont.innerHTML = '';
+                partidos.forEach(p => {
+                    const completo = p.faltan <= 0 || p.ya_unido;
+                    const card = document.createElement('div');
+                    card.className = 'comunidad-card';
+                    card.innerHTML = `
+                        <div class="info">
+                            <div class="sede">${p.sede}</div>
+                            <div class="meta"><i class="bi bi-calendar-event"></i> ${p.fecha} · <i class="bi bi-clock"></i> ${p.horario}</div>
+                            <span class="faltan-badge ${completo ? 'completo' : ''}">
+                                ${p.faltan <= 0 ? '¡Equipo completo! ✅' : `Faltan ${p.faltan} jugador${p.faltan === 1 ? '' : 'es'}`}
+                            </span>
+                            ${p.cobra ? `<div class="mt-1"><small class="text-muted"><i class="bi bi-cash-coin"></i> Aporte de ${pesos(p.valor)}</small></div>` : ''}
+                        </div>
+                        <button class="btn-unirse" data-id="${p.id}" data-cobra="${p.cobra}" data-valor="${p.valor}" data-sede="${p.sede}" data-horario="${p.horario}" data-fecha="${p.fecha}" ${completo ? 'disabled' : ''}>
+                            ${p.ya_unido ? 'Ya estás dentro' : (p.faltan <= 0 ? 'Completo' : 'Me apunto')}
+                        </button>`;
+                    cont.appendChild(card);
+                });
+                cont.querySelectorAll('.btn-unirse:not([disabled])').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        if (requiereSesion()) return;
+                        const cobra = btn.dataset.cobra === 'true';
+                        const detalle = `${btn.dataset.sede}\n${btn.dataset.fecha} · ${btn.dataset.horario}` +
+                            (cobra ? `\n\nEste partido tiene un aporte de ${pesos(btn.dataset.valor)}. ¿Confirmas el pago para apuntarte?` : '\n\n¿Confirmas que quieres apuntarte? No debes pagar nada.');
+                        if (!confirm(detalle)) return;
+                        post(`/comunidad/partidos/${btn.dataset.id}/unirse/`, cobra ? { acepta_pago: '1' } : {}).then(res => {
+                            if (manejarError(res)) return;
+                            mostrarAviso(res.mensaje || '¡Te uniste al partido!', 'success');
+                            if (res.pago_url) window.open(res.pago_url, '_blank');
+                            cargarPartidos();
+                        });
+                    });
+                });
+            });
+        }
+
+        // ---- Retos ----
+        function cargarRetos() {
+            fetch('/comunidad/retos/').then(r => r.json()).then(({ retos }) => {
+                const cont = document.getElementById('listaRetos');
+                cont.innerHTML = '';
+                retos.forEach(r => {
+                    const card = document.createElement('div');
+                    card.className = 'comunidad-card';
+                    card.innerHTML = `
+                        <div class="info">
+                            <div class="sede">${r.equipo} busca rival</div>
+                            <div class="meta"><i class="bi bi-geo-alt"></i> ${r.sede} · <i class="bi bi-clock"></i> ${r.horario}</div>
+                            ${r.aceptado ? '<span class="faltan-badge completo">¡Reto aceptado! ✅</span>' : ''}
+                            ${r.cobra ? `<div class="mt-1"><small class="text-muted"><i class="bi bi-cash-coin"></i> Aporte de ${pesos(r.valor)}</small></div>` : ''}
+                        </div>
+                        <button class="btn-reto" data-id="${r.id}" data-cobra="${r.cobra}" data-valor="${r.valor}" data-equipo="${r.equipo}" data-sede="${r.sede}" data-horario="${r.horario}" ${r.aceptado ? 'disabled' : ''}>
+                            ${r.aceptado ? 'Aceptado' : 'Aceptar reto'}
+                        </button>`;
+                    cont.appendChild(card);
+                });
+                cont.querySelectorAll('.btn-reto:not([disabled])').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        if (requiereSesion()) return;
+                        const cobra = btn.dataset.cobra === 'true';
+                        const detalle = `Reto de ${btn.dataset.equipo}\n${btn.dataset.sede} · ${btn.dataset.horario}` +
+                            (cobra ? `\n\nEste reto tiene un aporte de ${pesos(btn.dataset.valor)}. ¿Confirmas el pago para aceptarlo?` : '\n\n¿Confirmas que quieres aceptar el reto? No debes pagar nada.');
+                        if (!confirm(detalle)) return;
+                        post(`/comunidad/retos/${btn.dataset.id}/aceptar/`, cobra ? { acepta_pago: '1' } : {}).then(res => {
+                            if (manejarError(res)) return;
+                            cargarRetos();
+                            mostrarAviso(res.mensaje || '¡Reto aceptado!', 'success');
+                            if (res.pago_url) window.open(res.pago_url, '_blank');
+                            const mensaje = `⚔️ ¡Aceptamos el reto de ${res.equipo}! Nos vemos en ${res.sede}, ${res.horario}. Coordinemos por acá 👇`;
+                            window.open('https://wa.me/?text=' + encodeURIComponent(mensaje), '_blank');
+                        });
+                    });
+                });
+            });
+        }
+
+        // ---- Muro ----
+        function cargarMuro() {
+            fetch('/comunidad/muro/').then(r => r.json()).then(({ publicaciones }) => {
+                const cont = document.getElementById('listaMuro');
+                cont.innerHTML = '';
+                (publicaciones || []).forEach(m => {
+                    const card = document.createElement('div');
+                    card.className = 'muro-card';
+                    card.innerHTML = `
+                        <div class="autor"><i class="bi bi-person-circle"></i> ${m.nombre_mostrar}</div>
+                        <div class="texto">${m.texto}</div>`;
+                    cont.appendChild(card);
+                });
+            });
+        }
+
+        cargarPartidos();
+        cargarRetos();
+        cargarMuro();
+
+        // ---- Formularios ----
+        document.getElementById('formPartido').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (requiereSesion()) return;
+            const cobra = document.getElementById('checkCobraPartido').checked;
+            const valor = document.getElementById('inputValorPartido').value;
+            if (cobra && !valor) {
+                mostrarAviso('Ingresa el valor del aporte', 'error');
+                return;
+            }
+            post('/comunidad/partidos/crear/', {
+                reserva_id: document.getElementById('selectReservaPartido').value,
+                faltan: document.getElementById('inputFaltanPartido').value,
+                cobra: cobra ? '1' : '0',
+                valor: cobra ? valor : '0',
+            }).then(res => {
+                if (manejarError(res)) return;
+                cargarPartidos();
+                mostrarAviso('¡Partido publicado!', 'success');
+                e.target.reset();
+                document.getElementById('wrapperValorPartido').classList.add('d-none');
+                bootstrap.Modal.getInstance(document.getElementById('modalPartido')).hide();
+            });
+        });
+
+        document.getElementById('formReto').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (requiereSesion()) return;
+            const cobra = document.getElementById('checkCobraReto').checked;
+            const valor = document.getElementById('inputValorReto').value;
+            if (cobra && !valor) {
+                mostrarAviso('Ingresa el valor del aporte', 'error');
+                return;
+            }
+            post('/comunidad/retos/crear/', {
+                reserva_id: document.getElementById('selectReservaReto').value,
+                equipo: document.getElementById('inputEquipoReto').value.trim(),
+                cobra: cobra ? '1' : '0',
+                valor: cobra ? valor : '0',
+            }).then(res => {
+                if (manejarError(res)) return;
+                cargarRetos();
+                mostrarAviso('¡Reto publicado!', 'success');
+                e.target.reset();
+                document.getElementById('wrapperValorReto').classList.add('d-none');
+                bootstrap.Modal.getInstance(document.getElementById('modalReto')).hide();
+            });
+        });
+
+        document.getElementById('formMuro').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (requiereSesion()) return;
+            post('/comunidad/muro/crear/', {
+                nombre_mostrar: document.getElementById('inputAutorMuro').value.trim(),
+                texto: document.getElementById('inputTextoMuro').value.trim(),
+            }).then(res => {
+                if (manejarError(res)) return;
+                cargarMuro();
+                mostrarAviso('¡Publicado en el muro!', 'success');
+                e.target.reset();
+                bootstrap.Modal.getInstance(document.getElementById('modalMuro')).hide();
+            });
+        });
+    })();
+    </script>
 </body>
 </html>

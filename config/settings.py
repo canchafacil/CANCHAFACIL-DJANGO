@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'administracion',
     'contacto',
     'gestion_canchas',
+    'comunidad',
 ]
 
 MIDDLEWARE = [

@@ -7,6 +7,7 @@ from django.conf import settings
 from .models import Usuario
 from reservas.models import Reserva
 from contacto.models import Resena
+from comunidad.models import PartidoAbierto, Reto
 import random
 
 
@@ -360,6 +361,45 @@ ICONOS_BANDERAS = [
 
 
 # ---------------------------------------------------------------------
+# COMUNIDAD: partidos y retos del usuario, para el perfil
+# ---------------------------------------------------------------------
+
+def _contexto_comunidad(usuario):
+    """
+    Junta lo que el usuario publicó y en lo que participó dentro de
+    Comunidad (partidos abiertos y retos), para mostrarlo en el perfil.
+    """
+    partidos_creados = (
+        PartidoAbierto.objects
+        .filter(creador=usuario)
+        .select_related('reserva', 'cancha__sede')
+        .order_by('-creado')
+    )
+    partidos_unidos = (
+        usuario.partidos_unidos
+        .select_related('reserva', 'cancha__sede', 'creador')
+        .order_by('-creado')
+    )
+    retos_creados = (
+        Reto.objects
+        .filter(creador=usuario)
+        .select_related('reserva', 'cancha__sede', 'aceptado_por')
+        .order_by('-creado')
+    )
+    retos_aceptados = (
+        usuario.retos_aceptados
+        .select_related('reserva', 'cancha__sede', 'creador')
+        .order_by('-creado')
+    )
+    return {
+        'partidos_creados': partidos_creados,
+        'partidos_unidos': partidos_unidos,
+        'retos_creados': retos_creados,
+        'retos_aceptados': retos_aceptados,
+    }
+
+
+# ---------------------------------------------------------------------
 # PERFIL del usuario logueado
 # ---------------------------------------------------------------------
 
@@ -381,19 +421,18 @@ def perfil(request):
         estado__in=[Reserva.ESTADO_PENDIENTE, Reserva.ESTADO_CONFIRMADA]
     ).exists()
 
-    return render(
-        request,
-        'usuarios/perfil.html',
-        {
-            'usuario': usuario,
-            'reservas': reservas,
-            'resenas': resenas,
-            'tiene_reserva_activa': tiene_reserva_activa,
-            'iconos_jugadores': ICONOS_JUGADORES,
-            'iconos_banderas': ICONOS_BANDERAS,
-            'motivos_cancelacion': Reserva.MOTIVOS_CANCELACION,
-        }
-    )
+    contexto = {
+        'usuario': usuario,
+        'reservas': reservas,
+        'resenas': resenas,
+        'tiene_reserva_activa': tiene_reserva_activa,
+        'iconos_jugadores': ICONOS_JUGADORES,
+        'iconos_banderas': ICONOS_BANDERAS,
+        'motivos_cancelacion': Reserva.MOTIVOS_CANCELACION,
+    }
+    contexto.update(_contexto_comunidad(usuario))
+
+    return render(request, 'usuarios/perfil.html', contexto)
 
 
 def editar_perfil(request):
@@ -409,19 +448,17 @@ def editar_perfil(request):
         if nuevo_email != usuario.email and Usuario.objects.filter(email=nuevo_email).exists():
             reservas = Reserva.objects.filter(correo=usuario.email).order_by('-fecha', '-hora')
             resenas = Resena.objects.filter(correo=usuario.email, archivada=False).order_by('-fecha')
-            return render(
-                request,
-                'usuarios/perfil.html',
-                {
-                    'usuario': usuario,
-                    'reservas': reservas,
-                    'resenas': resenas,
-                    'iconos_jugadores': ICONOS_JUGADORES,
-                    'iconos_banderas': ICONOS_BANDERAS,
-                    'motivos_cancelacion': Reserva.MOTIVOS_CANCELACION,
-                    'error': 'Ese correo ya está en uso por otra cuenta',
-                }
-            )
+            contexto = {
+                'usuario': usuario,
+                'reservas': reservas,
+                'resenas': resenas,
+                'iconos_jugadores': ICONOS_JUGADORES,
+                'iconos_banderas': ICONOS_BANDERAS,
+                'motivos_cancelacion': Reserva.MOTIVOS_CANCELACION,
+                'error': 'Ese correo ya está en uso por otra cuenta',
+            }
+            contexto.update(_contexto_comunidad(usuario))
+            return render(request, 'usuarios/perfil.html', contexto)
 
         usuario.phone = request.POST.get('phone', usuario.phone).strip()
         usuario.email = nuevo_email
@@ -492,20 +529,18 @@ def render_error_perfil(request, usuario, mensaje):
     tiene_reserva_activa = reservas.filter(
         estado__in=[Reserva.ESTADO_PENDIENTE, Reserva.ESTADO_CONFIRMADA]
     ).exists()
-    return render(
-        request,
-        'usuarios/perfil.html',
-        {
-            'usuario': usuario,
-            'reservas': reservas,
-            'resenas': resenas,
-            'tiene_reserva_activa': tiene_reserva_activa,
-            'iconos_jugadores': ICONOS_JUGADORES,
-            'iconos_banderas': ICONOS_BANDERAS,
-            'motivos_cancelacion': Reserva.MOTIVOS_CANCELACION,
-            'error': mensaje,
-        }
-    )
+    contexto = {
+        'usuario': usuario,
+        'reservas': reservas,
+        'resenas': resenas,
+        'tiene_reserva_activa': tiene_reserva_activa,
+        'iconos_jugadores': ICONOS_JUGADORES,
+        'iconos_banderas': ICONOS_BANDERAS,
+        'motivos_cancelacion': Reserva.MOTIVOS_CANCELACION,
+        'error': mensaje,
+    }
+    contexto.update(_contexto_comunidad(usuario))
+    return render(request, 'usuarios/perfil.html', contexto)
 
 
 def _enviar_correo_cancelacion(reserva):

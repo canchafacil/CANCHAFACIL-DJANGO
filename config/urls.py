@@ -12,4 +12,5 @@ urlpatterns = [
     path('canchas/', include('gestion_canchas.urls')),
     path('panel_admin/', include('administracion.urls')),
     path('pagos/', include('pagos.urls')), 
+    path('comunidad/', include('comunidad.urls')), 
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

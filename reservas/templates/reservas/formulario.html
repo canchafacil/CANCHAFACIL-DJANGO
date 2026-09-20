@@ -1,6 +1,7 @@
 {% load static %}
 
 <!DOCTYPE html>
+
 <html lang="es">
 
 <head>
@@ -10,1059 +11,3025 @@
     <link rel="icon" href="{% static 'img/logo-green.png' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- Flatpickr: necesario para poder seleccionar VARIOS días (modo Torneo). El input date nativo solo permite un día. -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="{% static 'css/formulario.css' %}">
     <link rel="stylesheet" href="{% static 'css/obscuro.css' %}">
-    <style>
-        /* Refuerzo visual: horas ocupadas siempre se ven en rojo, sin importar lo que diga formulario.css */
-        .hora-btn.ocupada {
-            background-color: #dc3545 !important;
-            border-color: #b02a37 !important;
-            color: #fff !important;
-            text-decoration: line-through;
-            cursor: not-allowed !important;
-            opacity: 0.9;
-        }
 
-        /* Bloqueo visual de los pasos 1 y 2 cuando el usuario no ha iniciado sesión */
-        .paso-bloqueado {
-            pointer-events: none;
-            opacity: 0.5;
-            position: relative;
-        }
-        .paso-bloqueado::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: transparent;
-            cursor: not-allowed;
-        }
+```
+<style>
+    .hora-btn.ocupada {
+        background-color: #dc3545 !important;
+        border-color: #b02a37 !important;
+        color: #fff !important;
+        text-decoration: line-through;
+        cursor: not-allowed !important;
+        opacity: 0.9;
+    }
 
-        /* Botones de modo: Partido Normal / Torneo */
-        .modo-btn {
-            border: 2px solid #03045e;
-            color: #03045e;
-            font-weight: 700;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
-            transition: all .15s ease-in-out;
-        }
-        .modo-btn.active {
-            background-color: #03045e !important;
-            color: #fff !important;
-        }
-        .modo-btn:not(.active):hover {
-            background-color: #eef0fa;
-        }
-        .modo-ayuda {
-            font-size: 0.75rem;
-        }
+    .paso-bloqueado {
+        pointer-events: none;
+        opacity: 0.5;
+        position: relative;
+    }
 
-        /* Flatpickr: días seleccionados en modo torneo (selección múltiple) */
-        .flatpickr-day.selected,
-        .flatpickr-day.selected:hover {
-            background: #62ff00;
-            border-color: #4fd400;
-            color: #03045e;
-            font-weight: 700;
-        }
-        .flatpickr-day.today {
-            border-color: #03045e;
-        }
-    </style>
+    .paso-bloqueado::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: transparent;
+        cursor: not-allowed;
+    }
+
+    .modo-btn {
+        border: 2px solid #03045e;
+        color: #03045e;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        transition: all .15s ease-in-out;
+    }
+
+    .modo-btn.active {
+        background-color: #03045e !important;
+        color: #fff !important;
+    }
+
+    .modo-btn:not(.active):hover {
+        background-color: #eef0fa;
+    }
+
+    .modo-ayuda {
+        font-size: 0.75rem;
+    }
+
+    .flatpickr-day.selected,
+    .flatpickr-day.selected:hover {
+        background: #62ff00;
+        border-color: #4fd400;
+        color: #03045e;
+        font-weight: 700;
+    }
+
+    .flatpickr-day.today {
+        border-color: #03045e;
+    }
+
+    /* Campo nombre del equipo */
+    #contenedorNombreEquipo {
+        display: none;
+    }
+
+    #nombreEquipo {
+        border: 2px solid #03045e;
+    }
+
+    #nombreEquipo:focus {
+        border-color: #62ff00;
+        box-shadow: 0 0 0 0.2rem rgba(98, 255, 0, 0.15);
+    }
+</style>
+```
+
 </head>
 
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark  shadow fixed-top">
-        <div class="container d-flex align-items-center">
-            <a href="{% url 'inicio' %}" class="d-flex align-items-center text-decoration-none">
-                <img src="{% static 'img/logo-green.png' %}" style="height: 90px;" alt="">
-                <span class="navbar-brand fw-bold ms-2 mb-0" style="font-size: 2rem; color: white;">
-                    Cancha<span style="color:  #62ff00;">Fácil </span>
-                </span>
-            </a>
-            <ul class="navbar-nav ms 2 d-lg-none">
+```
+<nav class="navbar navbar-expand-lg navbar-dark shadow fixed-top">
+    <div class="container d-flex align-items-center">
+
+        <a href="{% url 'inicio' %}" class="d-flex align-items-center text-decoration-none">
+            <img src="{% static 'img/logo-green.png' %}" style="height: 90px;" alt="">
+            <span class="navbar-brand fw-bold ms-2 mb-0"
+                style="font-size: 2rem; color: white;">
+                Cancha<span style="color:#62ff00;">Fácil</span>
+            </span>
+        </a>
+
+        <ul class="navbar-nav ms 2 d-lg-none">
+            <li class="nav-item">
+                <a href="{% url 'login' %}"
+                    class="btn btn-info border-0 ms-2"
+                    style="background-color:#62ff00;color:#03045e;font-weight:bold;">
+                    Iniciar Sesión
+                </a>
+            </li>
+        </ul>
+
+        <button class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#menu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="menu">
+
+            <ul class="navbar-nav ms-auto align-items-center">
+
                 <li class="nav-item">
-                    <a href="{% url 'login' %}" class="btn btn-info border-0 ms-2" style="background-color: #62ff00; color: #03045e; font-weight: bold;">Iniciar Sesión</a>
+                    <a class="nav-link" href="{% url 'inicio' %}">Inicio</a>
                 </li>
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                        href="{% url 'gestion_canchas:canchas' %}">
+                        Reservar
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                        href="{% url 'nosotros' %}">
+                        Sobre Nosotros
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                        href="{% url 'contacto' %}">
+                        Contacto
+                    </a>
+                </li>
+
+                {% if request.session.usuario_id %}
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center"
+                        href="#"
+                        id="perfilDropdown"
+                        role="button"
+                        data-bs-toggle="dropdown">
+
+                        <i class="bi bi-person-circle me-1"
+                            style="font-size:1.3rem;"></i>
+
+                        {{ request.session.nombre }}
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+
+                        <li>
+                            <a class="dropdown-item"
+                                href="{% url 'perfil' %}">
+                                Mi perfil
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item text-danger"
+                                href="#"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalLogout">
+                                Cerrar sesión
+                            </a>
+                        </li>
+
+                    </ul>
+                </li>
+
+                {% else %}
+
+                <li class="nav-item d-none d-lg-block">
+                    <a href="{% url 'login' %}"
+                        class="btn btn-info border-0 ms-2"
+                        style="background-color:#62ff00;color:#03045e;font-weight:bold;">
+                        Iniciar Sesión
+                    </a>
+                </li>
+
+                {% endif %}
+
+                <li class="nav-item">
+                    <button id="themeToggle"
+                        class="theme-toggle-btn"
+                        title="Cambiar tema">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                </li>
+
             </ul>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="menu">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'inicio' %}">Inicio</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'gestion_canchas:canchas' %}">Reservar</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'nosotros' %}">Sobre Nosotros</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'contacto' %}">Contacto</a>
-                    </li>
-
-                    {% if request.session.usuario_id %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="perfilDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle me-1" style="font-size: 1.3rem;"></i> {{ request.session.nombre }}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{% url 'perfil' %}">Mi perfil</a></li>
-                            <li>
-                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#modalLogout">
-                                    Cerrar sesión
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    {% else %}
-                    <li class="nav-item d-none d-lg-block">
-                        <a href="{% url 'login' %}" class="btn btn-info border-0 ms-2" style="background-color: #62ff00; color: #03045e; font-weight: bold;">Iniciar Sesión</a>
-                    </li>
-                    {% endif %}
-                    </li>
-
-                    <li class="nav-item ">
-                        <button id="themeToggle" class="theme-toggle-btn" title="Cambiar tema">
-                            <i class="bi bi-moon-stars"></i>
-                        </button>
-                    </li>
-                
-            </div>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <div class="container mt-4">
 
-        <!-- PASO A PASO -->
-        <section class="seccion-pasos">
-            <h1 class="titulo-seccion">¿CÓMO RESERVAR?</h1>
-            <p class="subtitulo-seccion">Solo 3 pasos y estás listo para jugar</p>
-            <div class="row justify-content-center mt-4 px-3">
-                <div class="col-12 col-md-4 paso-item">
-                    <div class="paso-numero">1</div>
-                    <div class="paso-titulo">Elige tu Cancha</div>
-                    <p class="paso-texto">Explora el catálogo y selecciona la cancha que más te guste según el tipo de
-                        juego.</p>
-                    <div class="paso-linea d-none d-md-block"></div>
+<div class="container mt-4">
+
+    <!-- PASO A PASO -->
+
+    <section class="seccion-pasos">
+
+        <h1 class="titulo-seccion">¿CÓMO RESERVAR?</h1>
+
+        <p class="subtitulo-seccion">
+            Solo 3 pasos y estás listo para jugar
+        </p>
+
+        <div class="row justify-content-center mt-4 px-3">
+
+            <div class="col-12 col-md-4 paso-item">
+
+                <div class="paso-numero">1</div>
+
+                <div class="paso-titulo">
+                    Elige tu Cancha
                 </div>
-                <div class="col-12 col-md-4 paso-item">
-                    <div class="paso-numero">2</div>
-                    <div class="paso-titulo">Selecciona el Horario</div>
-                    <p class="paso-texto">Consulta la disponibilidad en tiempo real y elige el día y la hora que más te
-                        convenga.</p>
-                    <div class="paso-linea d-none d-md-block"></div>
-                </div>
-                <div class="col-12 col-md-4 paso-item">
-                    <div class="paso-numero">3</div>
-                    <div class="paso-titulo">Confirma y Juega</div>
-                    <p class="paso-texto">Completa tu reserva, recibe la confirmación y llega a disfrutar. ¡Así de
-                        fácil!</p>
-                </div>
+
+                <p class="paso-texto">
+                    Explora el catálogo y selecciona la cancha que más te guste según el tipo de juego.
+                </p>
+
+                <div class="paso-linea d-none d-md-block"></div>
+
             </div>
-            <div class="text-center mt-4">
-                <a href="#seccionReserva"><button type="button" class="btn2">Reservar Ahora</button></a>
-            </div>
-        </section>
 
-        {% if not request.session.usuario_id %}
-        <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2 shadow-sm" id="alertaLoginTop">
-            <span><i class="bi bi-exclamation-triangle me-2"></i>Debes iniciar sesión para poder reservar una cancha.</span>
-            <a href="{% url 'login' %}" class="btn btn-sm text-white" style="background-color: #03045e;">Iniciar sesión</a>
+
+            <div class="col-12 col-md-4 paso-item">
+
+                <div class="paso-numero">2</div>
+
+                <div class="paso-titulo">
+                    Selecciona el Horario
+                </div>
+
+                <p class="paso-texto">
+                    Consulta la disponibilidad en tiempo real y elige el día y la hora que más te convenga.
+                </p>
+
+                <div class="paso-linea d-none d-md-block"></div>
+
+            </div>
+
+
+            <div class="col-12 col-md-4 paso-item">
+
+                <div class="paso-numero">3</div>
+
+                <div class="paso-titulo">
+                    Confirma y Juega
+                </div>
+
+                <p class="paso-texto">
+                    Completa tu reserva, recibe la confirmación y llega a disfrutar. ¡Así de fácil!
+                </p>
+
+            </div>
+
         </div>
-        {% endif %}
 
-        <div class="row g-4" id="seccionReserva">
 
-            <!-- RESUMEN -->
-            <div class="col-12 col-lg-4 order-1 order-lg-2">
-                <div class="card border-0 text-white sticky-summary">
-                    <div class="card-body p-3 p-md-4">
-                        <h5 class="fw-bold mb-3 border-bottom pb-2 text-uppercase text-center"
-                            style="color:#62ff00;font-size:1rem;">
-                            Resumen de tu Turno
-                        </h5>
-                        <div
-                            class="bg-black bg-opacity-25 rounded p-3 text-center mb-4 border border-secondary border-opacity-20 d-none d-md-block">
-                            <i class="bi bi-calendar-check text-white d-block mb-1" style="font-size:2.5rem;"></i>
-                            <small class="text-white-50 text-uppercase">CanchaFácil Booking</small>
-                        </div>
-                        <div class="mb-2 d-flex justify-content-between">
-                            <span class="text-white-50 small">Cancha:</span>
-                            <span id="resumenCancha" class="fw-bold text-end ms-2">No seleccionada</span>
-                        </div>
-                        <div class="mb-2 d-flex justify-content-between">
-                            <span class="text-white-50 small">Modalidad:</span>
-                            <span id="resumenModo" class="fw-bold">Partido Normal</span>
-                        </div>
-                        <div class="mb-2 d-flex justify-content-between">
-                            <span class="text-white-50 small">Fecha:</span>
-                            <span id="resumenFecha" class="fw-bold text-end ms-2">-- / -- / ----</span>
-                        </div>
-                        <div class="mb-2 d-flex justify-content-between">
-                            <span class="text-white-50 small">Hora:</span>
-                            <span id="resumenHora" class="fw-bold text-warning">Por elegir</span>
-                        </div>
-                        <div class="mb-2 d-flex justify-content-between">
-                            <span class="text-white-50 small">Duración:</span>
-                            <span id="resumenDuracion" class="fw-bold">1 Hora</span>
-                        </div>
-                        <div class="mb-4 d-flex justify-content-between">
-                            <span class="text-white-50 small">Nombre:</span>
-                            <span id="resumenNombre" class="fw-bold">—</span>
-                        </div>
-                        <hr class="bg-white my-3">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <span class="fs-5 text-white-50 fw-semibold">Total:</span>
-                            <span id="resumenPrecio" class="fs-3 fw-bold text-white">$ 0</span>
-                        </div>
-                        <button type="button" id="btnConfirmarReserva"
-                            class="btn btn-lg w-100 py-3 fw-bold text-uppercase shadow-sm"
-                            style="background-color:#62ff00;color:#03045e;border-radius:8px;"
-                            onclick="confirmarReserva()"
-                            {% if not request.session.usuario_id or tiene_reserva_activa %}disabled{% endif %}>
-                            <i class="bi bi-credit-card me-2"></i>
-                            {% if not request.session.usuario_id %}Inicia Sesión para Reservar{% else %}Confirmar e Ir a Pagar{% endif %}
-                        </button>
-                        <div class="text-center mt-2">
-                            <small class="text-white-50" style="font-size:0.72rem;">
-                                <i class="bi bi-shield-lock me-1"></i>Serás redirigido a nuestro módulo de pago seguro.
-                            </small>
-                        </div>
+        <div class="text-center mt-4">
+
+            <a href="#seccionReserva">
+                <button type="button" class="btn2">
+                    Reservar Ahora
+                </button>
+            </a>
+
+        </div>
+
+    </section>
+
+
+    {% if not request.session.usuario_id %}
+
+    <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2 shadow-sm"
+        id="alertaLoginTop">
+
+        <span>
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Debes iniciar sesión para poder reservar una cancha.
+        </span>
+
+        <a href="{% url 'login' %}"
+            class="btn btn-sm text-white"
+            style="background-color:#03045e;">
+            Iniciar sesión
+        </a>
+
+    </div>
+
+    {% endif %}
+
+
+    <div class="row g-4" id="seccionReserva">
+
+        <!-- RESUMEN -->
+
+        <div class="col-12 col-lg-4 order-1 order-lg-2">
+
+            <div class="card border-0 text-white sticky-summary">
+
+                <div class="card-body p-3 p-md-4">
+
+                    <h5 class="fw-bold mb-3 border-bottom pb-2 text-uppercase text-center"
+                        style="color:#62ff00;font-size:1rem;">
+                        Resumen de tu Turno
+                    </h5>
+
+
+                    <div class="bg-black bg-opacity-25 rounded p-3 text-center mb-4 border border-secondary border-opacity-20 d-none d-md-block">
+
+                        <i class="bi bi-calendar-check text-white d-block mb-1"
+                            style="font-size:2.5rem;"></i>
+
+                        <small class="text-white-50 text-uppercase">
+                            CanchaFácil Booking
+                        </small>
+
                     </div>
+
+
+                    <div class="mb-2 d-flex justify-content-between">
+
+                        <span class="text-white-50 small">
+                            Cancha:
+                        </span>
+
+                        <span id="resumenCancha"
+                            class="fw-bold text-end ms-2">
+                            No seleccionada
+                        </span>
+
+                    </div>
+
+
+                    <div class="mb-2 d-flex justify-content-between">
+
+                        <span class="text-white-50 small">
+                            Modalidad:
+                        </span>
+
+                        <span id="resumenModo"
+                            class="fw-bold">
+                            Partido Normal
+                        </span>
+
+                    </div>
+
+
+                    <!-- NOMBRE DEL EQUIPO EN EL RESUMEN -->
+
+                    <div id="resumenEquipoContenedor"
+                        class="mb-2 d-flex justify-content-between d-none">
+
+                        <span class="text-white-50 small">
+                            Equipo:
+                        </span>
+
+                        <span id="resumenEquipo"
+                            class="fw-bold text-end ms-2">
+                            —
+                        </span>
+
+                    </div>
+
+
+                    <div class="mb-2 d-flex justify-content-between">
+
+                        <span class="text-white-50 small">
+                            Fecha:
+                        </span>
+
+                        <span id="resumenFecha"
+                            class="fw-bold text-end ms-2">
+                            -- / -- / ----
+                        </span>
+
+                    </div>
+
+
+                    <div class="mb-2 d-flex justify-content-between">
+
+                        <span class="text-white-50 small">
+                            Hora:
+                        </span>
+
+                        <span id="resumenHora"
+                            class="fw-bold text-warning">
+                            Por elegir
+                        </span>
+
+                    </div>
+
+
+                    <div class="mb-2 d-flex justify-content-between">
+
+                        <span class="text-white-50 small">
+                            Duración:
+                        </span>
+
+                        <span id="resumenDuracion"
+                            class="fw-bold">
+                            1 Hora
+                        </span>
+
+                    </div>
+
+
+                    <div class="mb-4 d-flex justify-content-between">
+
+                        <span class="text-white-50 small">
+                            Nombre:
+                        </span>
+
+                        <span id="resumenNombre"
+                            class="fw-bold">
+                            —
+                        </span>
+
+                    </div>
+
+
+                    <hr class="bg-white my-3">
+
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+
+                        <span class="fs-5 text-white-50 fw-semibold">
+                            Total:
+                        </span>
+
+                        <span id="resumenPrecio"
+                            class="fs-3 fw-bold text-white">
+                            $ 0
+                        </span>
+
+                    </div>
+
+
+                    <button type="button"
+                        id="btnConfirmarReserva"
+                        class="btn btn-lg w-100 py-3 fw-bold text-uppercase shadow-sm"
+                        style="background-color:#62ff00;color:#03045e;border-radius:8px;"
+                        onclick="confirmarReserva()"
+                        {% if not request.session.usuario_id or tiene_reserva_activa %}disabled{% endif %}>
+
+                        <i class="bi bi-credit-card me-2"></i>
+
+                        {% if not request.session.usuario_id %}
+                            Inicia Sesión para Reservar
+                        {% else %}
+                            Confirmar e Ir a Pagar
+                        {% endif %}
+
+                    </button>
+
+
+                    <div class="text-center mt-2">
+
+                        <small class="text-white-50"
+                            style="font-size:0.72rem;">
+
+                            <i class="bi bi-shield-lock me-1"></i>
+                            Serás redirigido a nuestro módulo de pago seguro.
+
+                        </small>
+
+                    </div>
+
                 </div>
+
             </div>
 
-            <!-- COLUMNA PRINCIPAL -->
-            <div class="col-12 col-lg-8 order-2 order-lg-1">
+        </div>
 
-                <!-- PASO 1: Cancha elegida -->
-                <div class="card p-4 shadow-sm mb-4 {% if not request.session.usuario_id %}paso-bloqueado{% endif %}">
-                    <h5 class="text-uppercase fw-bold mb-3">
-                        <i class="bi bi-dribbble me-2" style="color:#62ff00;"></i>1. Cancha Seleccionada
-                    </h5>
 
-                    {% if cancha_id %}
-                        <!-- Cancha ya elegida desde el catálogo: se muestra fija, no editable -->
-                        <div id="cardCanchaFija"></div>
-                        <a href="{% url 'gestion_canchas:canchas' %}" class="small text-muted d-inline-block mt-2">
-                            <i class="bi bi-arrow-left-short"></i> Elegir otra cancha
-                        </a>
-                    {% else %}
-                        <div class="row g-3" id="contenedorListaCanchas">
-                            <!-- Se llena con JS solo si no viene una cancha ya elegida -->
-                        </div>
-                    {% endif %}
+        <!-- COLUMNA PRINCIPAL -->
+
+        <div class="col-12 col-lg-8 order-2 order-lg-1">
+
+
+            <!-- PASO 1 -->
+
+            <div class="card p-4 shadow-sm mb-4 {% if not request.session.usuario_id %}paso-bloqueado{% endif %}">
+
+                <h5 class="text-uppercase fw-bold mb-3">
+
+                    <i class="bi bi-dribbble me-2"
+                        style="color:#62ff00;"></i>
+
+                    1. Cancha Seleccionada
+
+                </h5>
+
+
+                {% if cancha_id %}
+
+                <div id="cardCanchaFija"></div>
+
+                <a href="{% url 'gestion_canchas:canchas' %}"
+                    class="small text-muted d-inline-block mt-2">
+
+                    <i class="bi bi-arrow-left-short"></i>
+                    Elegir otra cancha
+
+                </a>
+
+                {% else %}
+
+                <div class="row g-3"
+                    id="contenedorListaCanchas">
+
                 </div>
 
-                <!-- PASO 2: Fecha y horarios -->
-                <div class="card p-4 shadow-sm mb-4 {% if not request.session.usuario_id %}paso-bloqueado{% endif %}">
-                    <h5 class="text-uppercase fw-bold mb-3">
-                        <i class="bi bi-calendar3 me-2" style="color:#62ff00;"></i>2. Agenda tu Encuentro
-                    </h5>
-                    <div class="row g-4">
-                        <div class="col-md-4 border-end">
-                            <label class="form-label fw-bold text-secondary small">Modalidad</label>
-                            <div class="btn-group w-100 mb-3" role="group" aria-label="Modalidad de reserva">
-                                <button type="button" class="btn modo-btn active" id="btnModoNormal"
-                                    onclick="cambiarModoReserva('normal')">
-                                    <i class="bi bi-1-circle me-1"></i>Partido Normal
-                                </button>
-                                <button type="button" class="btn modo-btn" id="btnModoTorneo"
-                                    onclick="cambiarModoReserva('torneo')">
-                                    <i class="bi bi-trophy me-1"></i>Torneo
-                                </button>
-                            </div>
+                {% endif %}
 
-                            <label class="form-label fw-bold text-secondary small">Fecha del partido</label>
-                            <input type="text" id="fechaSeleccionada" placeholder="DD/MM/AAAA" readonly
-                                class="form-control form-control-lg shadow-sm mb-2" style="background:#fff;">
-                            <span class="text-muted small modo-ayuda" id="ayudaModo">
-                                Elige un día para tu partido.
-                            </span>
+            </div>
+
+
+
+            <!-- PASO 2 -->
+
+            <div class="card p-4 shadow-sm mb-4 {% if not request.session.usuario_id %}paso-bloqueado{% endif %}">
+
+                <h5 class="text-uppercase fw-bold mb-3">
+
+                    <i class="bi bi-calendar3 me-2"
+                        style="color:#62ff00;"></i>
+
+                    2. Agenda tu Encuentro
+
+                </h5>
+
+
+                <div class="row g-4">
+
+
+                    <div class="col-md-4 border-end">
+
+
+                        <label class="form-label fw-bold text-secondary small">
+                            Modalidad
+                        </label>
+
+
+                        <div class="btn-group w-100 mb-3"
+                            role="group"
+                            aria-label="Modalidad de reserva">
+
+                            <button type="button"
+                                class="btn modo-btn active"
+                                id="btnModoNormal"
+                                onclick="cambiarModoReserva('normal')">
+
+                                <i class="bi bi-1-circle me-1"></i>
+                                Partido Normal
+
+                            </button>
+
+
+                            <button type="button"
+                                class="btn modo-btn"
+                                id="btnModoTorneo"
+                                onclick="cambiarModoReserva('torneo')">
+
+                                <i class="bi bi-trophy me-1"></i>
+                                Torneo
+
+                            </button>
+
                         </div>
-                        <div class="col-md-8">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="fw-bold text-secondary small text-uppercase m-0">Horarios disponibles</h6>
-                                <div class="d-flex gap-2 align-items-center" style="font-size:0.75rem;">
-                                    <span class="leyenda-dot"
-                                        style="background:#62ff00;border:2px solid #4fd400;"></span> Libre
-                                    <span class="leyenda-dot ms-2"
-                                        style="background:#dc3545;border:2px solid #b02a37;"></span> Ocupada
-                                </div>
-                            </div>
-                            <div id="contenedorHorarios" class="d-flex flex-wrap gap-2 p-3 rounded bg-light border">
-                                <span class="text-muted small">Selecciona una fecha para ver disponibilidad.</span>
-                            </div>
-                            <span class="text-muted small d-block mt-2">Puedes seleccionar varias horas (máximo 12 por reserva).</span>
-                            <div id="avisoTodoOcupado" class="alert alert-danger py-2 px-3 mt-2 mb-0 d-none" style="font-size:0.85rem;">
-                                <i class="bi bi-exclamation-octagon-fill me-1"></i>
-                                Esta cancha ya está reservada por completo para la fecha seleccionada.
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- PASO 3: Datos -->
-                <div class="card p-4 shadow-sm mb-4">
-                    <h5 class="text-uppercase fw-bold mb-3">
-                        <i class="bi bi-person-fill me-2" style="color:#62ff00;"></i>3. Datos del Jugador
-                    </h5>
 
-                    {% if not request.session.usuario_id %}
-                    <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2">
-                        <span><i class="bi bi-exclamation-triangle me-2"></i>Tienes que iniciar sesión para poder reservar.</span>
-                        <a href="{% url 'login' %}" class="btn btn-sm text-white" style="background-color: #03045e;">Iniciar sesión</a>
-                    </div>
-                    {% elif tiene_reserva_activa %}
-                    <div class="alert alert-danger d-flex align-items-center">
-                        <i class="bi bi-exclamation-octagon-fill me-2"></i>
-                        <span>Ya tienes una reserva activa. Debes finalizarla o cancelarla antes de crear una nueva.</span>
-                    </div>
-                    {% endif %}
+                        <!-- NOMBRE DEL EQUIPO -->
 
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-secondary small">Nombre completo</label>
-                            <input type="text" id="nombre" class="form-control"
-                                value="{% if usuario %}{{ usuario.first_name }} {{ usuario.last_name }}{% endif %}"
-                                {% if usuario %}readonly{% else %}disabled placeholder="Inicia sesión primero"{% endif %}
+                        <div id="contenedorNombreEquipo"
+                            class="mb-3">
+
+                            <label for="nombreEquipo"
+                                class="form-label fw-bold text-secondary small">
+
+                                <i class="bi bi-people-fill me-1"
+                                    style="color:#03045e;"></i>
+
+                                Nombre del equipo
+
+                            </label>
+
+                            <input type="text"
+                                id="nombreEquipo"
+                                class="form-control"
+                                placeholder="Ej: Los Campeones"
+                                maxlength="100"
                                 oninput="actualizarResumen()">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-secondary small">Teléfono celular</label>
-                            <input type="tel" id="telefono" class="form-control"
-                                value="{% if usuario %}{{ usuario.phone }}{% endif %}"
-                                {% if usuario %}readonly{% else %}disabled{% endif %}>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-secondary small">Correo electrónico</label>
-                            <input type="email" id="correo" class="form-control"
-                                value="{% if usuario %}{{ usuario.email }}{% endif %}"
-                                {% if usuario %}readonly{% else %}disabled{% endif %}>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <footer class="mt-5" style="background:linear-gradient(to right,#1f252b,#2b333b);color:white;padding:30px 0;">
-        <div class="container">
-            <div class="row mb-2">
-                <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">Teléfono: <span style="color:#62ff00;">+57
-                        300 000 0000</span></div>
-                <div class="col-md-6 text-center text-md-end">Correo: <span
-                        style="color:#62ff00;">canchafacil@gmail.com</span></div>
-            </div>
-            <hr style="border-color:rgba(255,255,255,0.15);">
-            <div class="row align-items-center">
-                <div class="col-md-6 text-center text-md-start mb-2 mb-md-0 small">Copyright © 2026 CanchaFácil. Todos
-                    los derechos reservados.</div>
-                <div class="col-md-6 text-center text-md-end">
-                    <a href="#" style="color:#62ff00;"><i class="bi bi-youtube ms-2"></i></a>
-                    <a href="#" style="color:#62ff00;"><i class="bi bi-facebook ms-2"></i></a>
-                    <a href="#" style="color:#62ff00;"><i class="bi bi-instagram ms-2"></i></a>
-                    <a href="#" style="color:#62ff00;"><i class="bi bi-tiktok ms-2"></i></a>
-                </div>
-            </div>
-        </div>
-    </footer>
+                            <small class="text-muted">
+                                Escribe el nombre que tendrá tu equipo en el torneo.
+                            </small>
 
-    <!-- Modal Editar -->
-    <div class="modal fade" id="modalEditarReserva" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Editar Reserva</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="editId">
+                        </div>
 
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-secondary">Nombre</label>
-                            <input class="form-control" id="editNombre" placeholder="Nombre">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-secondary">Teléfono</label>
-                            <input class="form-control" id="editTelefono" placeholder="Teléfono">
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label small fw-bold text-secondary">Correo</label>
-                            <input class="form-control" id="editCorreo" placeholder="Correo">
-                        </div>
+
+                        <label class="form-label fw-bold text-secondary small">
+                            Fecha del partido
+                        </label>
+
+
+                        <input type="text"
+                            id="fechaSeleccionada"
+                            placeholder="DD/MM/AAAA"
+                            readonly
+                            class="form-control form-control-lg shadow-sm mb-2"
+                            style="background:#fff;">
+
+
+                        <span class="text-muted small modo-ayuda"
+                            id="ayudaModo">
+
+                            Elige un día para tu partido.
+
+                        </span>
+
                     </div>
 
-                    <hr>
 
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-secondary">Cancha</label>
-                            <select class="form-select" id="editCancha" onchange="onCambioCanchaEdit()"></select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-secondary">Fecha del partido</label>
-                            <input type="date" class="form-control" id="editFecha" onchange="onCambioFechaEdit()">
-                        </div>
-                    </div>
+                    <div class="col-md-8">
 
-                    <div class="mt-3">
+
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label small fw-bold text-secondary text-uppercase m-0">Horarios
-                                disponibles</label>
-                            <div class="d-flex gap-2 align-items-center" style="font-size:0.72rem;">
-                                <span class="leyenda-dot" style="background:#62ff00;border:2px solid #4fd400;"></span>
+
+                            <h6 class="fw-bold text-secondary small text-uppercase m-0">
+                                Horarios disponibles
+                            </h6>
+
+
+                            <div class="d-flex gap-2 align-items-center"
+                                style="font-size:0.75rem;">
+
+                                <span class="leyenda-dot"
+                                    style="background:#62ff00;border:2px solid #4fd400;">
+                                </span>
+
                                 Libre
+
+
                                 <span class="leyenda-dot ms-2"
-                                    style="background:#dc3545;border:2px solid #b02a37;"></span> Ocupada
+                                    style="background:#dc3545;border:2px solid #b02a37;">
+                                </span>
+
+                                Ocupada
+
                             </div>
+
                         </div>
-                        <div id="editContenedorHorarios"
-                            class="d-flex flex-wrap gap-2 p-3 rounded bg-light border"
-                            style="max-height:190px; overflow-y:auto;">
-                            <span class="text-muted small">Selecciona cancha y fecha.</span>
+
+
+                        <div id="contenedorHorarios"
+                            class="d-flex flex-wrap gap-2 p-3 rounded bg-light border">
+
+                            <span class="text-muted small">
+                                Selecciona una fecha para ver disponibilidad.
+                            </span>
+
                         </div>
-                        <span class="text-muted small d-block mt-2">Puedes seleccionar o quitar varias horas (máximo 12).</span>
+
+
+                        <span class="text-muted small d-block mt-2">
+
+                            Puedes seleccionar varias horas (máximo 12 por reserva).
+
+                        </span>
+
+
+                        <div id="avisoTodoOcupado"
+                            class="alert alert-danger py-2 px-3 mt-2 mb-0 d-none"
+                            style="font-size:0.85rem;">
+
+                            <i class="bi bi-exclamation-octagon-fill me-1"></i>
+
+                            Esta cancha ya está reservada por completo para la fecha seleccionada.
+
+                        </div>
+
                     </div>
 
-                    <div class="rounded p-3 mt-3 border" style="background-color:#f4f6fb;" id="editContenedorPrecio">
-                        <!-- Se llena dinámicamente con JS -->
+                </div>
+
+            </div>
+
+
+
+            <!-- PASO 3 -->
+
+            <div class="card p-4 shadow-sm mb-4">
+
+                <h5 class="text-uppercase fw-bold mb-3">
+
+                    <i class="bi bi-person-fill me-2"
+                        style="color:#62ff00;"></i>
+
+                    3. Datos del Jugador
+
+                </h5>
+
+
+                {% if not request.session.usuario_id %}
+
+                <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2">
+
+                    <span>
+
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Tienes que iniciar sesión para poder reservar.
+
+                    </span>
+
+                    <a href="{% url 'login' %}"
+                        class="btn btn-sm text-white"
+                        style="background-color:#03045e;">
+
+                        Iniciar sesión
+
+                    </a>
+
+                </div>
+
+                {% elif tiene_reserva_activa %}
+
+                <div class="alert alert-danger d-flex align-items-center">
+
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i>
+
+                    <span>
+                        Ya tienes una reserva activa. Debes finalizarla o cancelarla antes de crear una nueva.
+                    </span>
+
+                </div>
+
+                {% endif %}
+
+
+                <div class="row g-3">
+
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold text-secondary small">
+                            Nombre completo
+                        </label>
+
+                        <input type="text"
+                            id="nombre"
+                            class="form-control"
+                            value="{% if usuario %}{{ usuario.first_name }} {{ usuario.last_name }}{% endif %}"
+                            {% if usuario %}readonly{% else %}disabled placeholder="Inicia sesión primero"{% endif %}
+                            oninput="actualizarResumen()">
+
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button class="btn btn-success" onclick="guardarEdicion()">Guardar cambios</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Modal notificación -->
-    <div class="modal fade" id="modalNotificacion" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title fw-bold" id="modalNotiTitulo">Estatus</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body py-3 text-dark" id="modalNotiCuerpo">Operación efectuada.</div>
-            </div>
-        </div>
-    </div>
 
-    <div class="modal fade" id="modalLogout" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; border: none;">
-                <div class="modal-body text-center p-4">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <h5 class="mt-3 fw-bold">¿Cerrar sesión?</h5>
-                    <p class="text-muted">Vas a tener que volver a iniciar sesión para acceder a tu perfil.</p>
-                    <div class="d-flex justify-content-center gap-2 mt-3">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                        <a href="{% url 'logout' %}" class="btn rounded-pill px-4 text-white" style="background-color: #03045e;">Sí, cerrar sesión</a>
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold text-secondary small">
+                            Teléfono celular
+                        </label>
+
+                        <input type="tel"
+                            id="telefono"
+                            class="form-control"
+                            value="{% if usuario %}{{ usuario.phone }}{% endif %}"
+                            {% if usuario %}readonly{% else %}disabled{% endif %}>
+
                     </div>
+
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold text-secondary small">
+                            Correo electrónico
+                        </label>
+
+                        <input type="email"
+                            id="correo"
+                            class="form-control"
+                            value="{% if usuario %}{{ usuario.email }}{% endif %}"
+                            {% if usuario %}readonly{% else %}disabled{% endif %}>
+
+                    </div>
+
                 </div>
+
             </div>
+
         </div>
+
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Flatpickr: habilita selección de un solo día (Partido Normal) o varios días (Torneo) -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+</div>
+
+
+
+<footer class="mt-5"
+    style="background:linear-gradient(to right,#1f252b,#2b333b);color:white;padding:30px 0;">
+
+    <div class="container">
+
+        <div class="row mb-2">
+
+            <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+
+                Teléfono:
+                <span style="color:#62ff00;">
+                    +57 300 000 0000
+                </span>
+
+            </div>
+
+
+            <div class="col-md-6 text-center text-md-end">
+
+                Correo:
+                <span style="color:#62ff00;">
+                    canchafacil@gmail.com
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <hr style="border-color:rgba(255,255,255,0.15);">
+
+
+        <div class="row align-items-center">
+
+            <div class="col-md-6 text-center text-md-start mb-2 mb-md-0 small">
+
+                Copyright © 2026 CanchaFácil.
+                Todos los derechos reservados.
+
+            </div>
+
+
+            <div class="col-md-6 text-center text-md-end">
+
+                <a href="#" style="color:#62ff00;">
+                    <i class="bi bi-youtube ms-2"></i>
+                </a>
+
+                <a href="#" style="color:#62ff00;">
+                    <i class="bi bi-facebook ms-2"></i>
+                </a>
+
+                <a href="#" style="color:#62ff00;">
+                    <i class="bi bi-instagram ms-2"></i>
+                </a>
+
+                <a href="#" style="color:#62ff00;">
+                    <i class="bi bi-tiktok ms-2"></i>
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</footer>
+
+
+
+<!-- MODAL EDITAR -->
+
+<div class="modal fade"
+    id="modalEditarReserva"
+    tabindex="-1">
+
+    <div class="modal-dialog modal-lg">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title fw-bold">
+                    Editar Reserva
+                </h5>
+
+                <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <input type="hidden"
+                    id="editId">
+
+
+                <div class="row g-3 mb-3">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label small fw-bold text-secondary">
+                            Nombre
+                        </label>
+
+                        <input class="form-control"
+                            id="editNombre"
+                            placeholder="Nombre">
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <label class="form-label small fw-bold text-secondary">
+                            Teléfono
+                        </label>
+
+                        <input class="form-control"
+                            id="editTelefono"
+                            placeholder="Teléfono">
+
+                    </div>
+
+
+                    <div class="col-md-12">
+
+                        <label class="form-label small fw-bold text-secondary">
+                            Correo
+                        </label>
+
+                        <input class="form-control"
+                            id="editCorreo"
+                            placeholder="Correo">
+
+                    </div>
+
+                </div>
+
+
+                <hr>
+
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label small fw-bold text-secondary">
+                            Cancha
+                        </label>
+
+                        <select class="form-select"
+                            id="editCancha"
+                            onchange="onCambioCanchaEdit()">
+                        </select>
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <label class="form-label small fw-bold text-secondary">
+                            Fecha del partido
+                        </label>
+
+                        <input type="date"
+                            class="form-control"
+                            id="editFecha"
+                            onchange="onCambioFechaEdit()">
+
+                    </div>
+
+                </div>
+
+
+                <div class="mt-3">
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+
+                        <label class="form-label small fw-bold text-secondary text-uppercase m-0">
+                            Horarios disponibles
+                        </label>
+
+                        <div class="d-flex gap-2 align-items-center"
+                            style="font-size:0.72rem;">
+
+                            <span class="leyenda-dot"
+                                style="background:#62ff00;border:2px solid #4fd400;">
+                            </span>
+
+                            Libre
+
+                            <span class="leyenda-dot ms-2"
+                                style="background:#dc3545;border:2px solid #b02a37;">
+                            </span>
+
+                            Ocupada
+
+                        </div>
+
+                    </div>
+
+
+                    <div id="editContenedorHorarios"
+                        class="d-flex flex-wrap gap-2 p-3 rounded bg-light border"
+                        style="max-height:190px;overflow-y:auto;">
+
+                        <span class="text-muted small">
+                            Selecciona cancha y fecha.
+                        </span>
+
+                    </div>
+
+
+                    <span class="text-muted small d-block mt-2">
+                        Puedes seleccionar o quitar varias horas (máximo 12).
+                    </span>
+
+                </div>
+
+
+                <div class="rounded p-3 mt-3 border"
+                    style="background-color:#f4f6fb;"
+                    id="editContenedorPrecio">
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button class="btn btn-success"
+                    onclick="guardarEdicion()">
+                    Guardar cambios
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- MODAL NOTIFICACIÓN -->
+
+<div class="modal fade"
+    id="modalNotificacion"
+    tabindex="-1">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header border-0">
+
+                <h5 class="modal-title fw-bold"
+                    id="modalNotiTitulo">
+                    Estatus
+                </h5>
+
+                <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body py-3 text-dark"
+                id="modalNotiCuerpo">
+
+                Operación efectuada.
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- MODAL LOGOUT -->
+
+<div class="modal fade"
+    id="modalLogout"
+    tabindex="-1"
+    aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content"
+            style="border-radius:16px;border:none;">
+
+            <div class="modal-body text-center p-4">
+
+                <i class="bi bi-box-arrow-right"></i>
+
+                <h5 class="mt-3 fw-bold">
+                    ¿Cerrar sesión?
+                </h5>
+
+                <p class="text-muted">
+                    Vas a tener que volver a iniciar sesión para acceder a tu perfil.
+                </p>
+
+                <div class="d-flex justify-content-center gap-2 mt-3">
+
+                    <button type="button"
+                        class="btn btn-outline-secondary rounded-pill px-4"
+                        data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <a href="{% url 'logout' %}"
+                        class="btn rounded-pill px-4 text-white"
+                        style="background-color:#03045e;">
+                        Sí, cerrar sesión
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+
 <script>
-        // ── SESIÓN ─────────────────────────────────────────────────
-        const LOGUEADO = {% if request.session.usuario_id %}true{% else %}false{% endif %};
 
-        // ── RESTRICCIÓN: una reserva activa por cliente ─────────────
-        const TIENE_RESERVA_ACTIVA = {% if tiene_reserva_activa %}true{% else %}false{% endif %};
+    // ── SESIÓN ─────────────────────────────────────────────
 
-        // ── LÍMITE DE HORAS POR RESERVA ──────────────────────────────
-        const MAX_HORAS_POR_RESERVA = 12;
+    const LOGUEADO = {% if request.session.usuario_id %}true{% else %}false{% endif %};
 
-        // ── DATOS DESDE DJANGO ──────────────────────────────────────
-        const CANCHAS_DATA = [
-            {% for c in canchas %}
+
+    // ── RESTRICCIÓN ────────────────────────────────────────
+
+    const TIENE_RESERVA_ACTIVA = {% if tiene_reserva_activa %}true{% else %}false{% endif %};
+
+
+    // ── LÍMITE ─────────────────────────────────────────────
+
+    const MAX_HORAS_POR_RESERVA = 12;
+
+
+    // ── DATOS DESDE DJANGO ────────────────────────────────
+
+    const CANCHAS_DATA = [
+
+        {% for c in canchas %}
+
+        {
+            id: {{ c.id }},
+            nombre: "{{ c.nombre }}",
+            tipo: "{{ c.tipo }}",
+            precio: {{ c.precio }}
+        },
+
+        {% endfor %}
+
+    ];
+
+
+    // ── CANCHA PRESELECCIONADA ────────────────────────────
+
+    const PRESELECCIONAR_ID = {{ cancha_id|default:"null" }};
+
+
+    // ── RESERVAS EXISTENTES ───────────────────────────────
+
+    const RESERVAS_BD = [
+
+        {% for r in reservas %}
+
+            {% for h in r.get_horas %}
+
             {
-                id: {{ c.id }},
-                nombre: "{{ c.nombre }}",
-                tipo: "{{ c.tipo }}",
-                precio: {{ c.precio }}
+                id: {{ r.id }},
+                cancha: "{{ r.cancha|escapejs }}",
+                fecha: "{{ r.fecha|date:'Y-m-d' }}",
+                hora: "{{ h }}"
             },
+
             {% endfor %}
-        ];
 
-        // ID de la cancha a preseleccionar (si viene en la URL)
-        const PRESELECCIONAR_ID = {{ cancha_id|default:"null" }};
+        {% endfor %}
 
-        // ── RESERVAS EXISTENTES DESDE DJANGO ─────────────────────────
-        const RESERVAS_BD = [
-            {% for r in reservas %}
-                {% for h in r.get_horas %}
-                { id: {{ r.id }}, cancha: "{{ r.cancha|escapejs }}", fecha: "{{ r.fecha|date:'Y-m-d' }}", hora: "{{ h }}" },
-                {% endfor %}
-            {% endfor %}
-        ];
+    ];
 
-        const HORAS = [
-            '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
-            '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
-            '18:00', '19:00', '20:00', '21:00', '22:00'
-        ];
 
-        // ── ESTADO (formulario principal) ─────────────────────────
-        let canchaSeleccionada = null;
-        let horasSeleccionadas = [];
+    const HORAS = [
 
-        // 'normal' -> un solo día. 'torneo' -> varios días.
-        let modoReserva = 'normal';
-        // Siempre es un arreglo de fechas "YYYY-MM-DD", así sea uno solo (normal) o varios (torneo).
-        let fechasSeleccionadas = [];
-        let fpCalendario = null; // instancia de flatpickr
+        '06:00',
+        '07:00',
+        '08:00',
+        '09:00',
+        '10:00',
+        '11:00',
+        '12:00',
+        '13:00',
+        '14:00',
+        '15:00',
+        '16:00',
+        '17:00',
+        '18:00',
+        '19:00',
+        '20:00',
+        '21:00',
+        '22:00'
 
-        // ── ESTADO (modal de edición) ──────────────────────────────
-        let editIdActual = null;
-        let editHorasSeleccionadas = [];
-        let editPrecioOriginalTotal = 0;
+    ];
 
-        // ── RENDERIZAR CANCHAS (lista completa, cuando NO hay cancha fija) ──
-        function renderCanchas() {
-            const cont = document.getElementById('contenedorListaCanchas');
-            if (!cont) return;
 
-            if (CANCHAS_DATA.length === 0) {
-                cont.innerHTML = '<div class="col-12 text-muted">No hay canchas disponibles.</div>';
-                return;
-            }
-            cont.innerHTML = CANCHAS_DATA.map((c, i) => `
-                <div class="col-6 col-md-3">
-                    <div class="cancha-card text-center" id="cancha-${i}" onclick="seleccionarCancha(${i})" data-id="${c.id}">
-                        <i class="bi bi-dribbble fs-2 mb-1" style="color:#62ff00;"></i>
-                        <div class="fw-bold small">${c.nombre}</div>
-                        <div class="text-muted" style="font-size:0.75rem;">${c.tipo}</div>
-                        <div class="fw-bold mt-1">$${c.precio.toLocaleString('es-CO')}/h</div>
+    // ── ESTADO PRINCIPAL ─────────────────────────────────
+
+    let canchaSeleccionada = null;
+
+    let horasSeleccionadas = [];
+
+    let modoReserva = 'normal';
+
+    let fechasSeleccionadas = [];
+
+    let fpCalendario = null;
+
+
+    // ── ESTADO EDICIÓN ────────────────────────────────────
+
+    let editIdActual = null;
+
+    let editHorasSeleccionadas = [];
+
+    let editPrecioOriginalTotal = 0;
+
+
+
+    // ── RENDER CANCHAS ────────────────────────────────────
+
+    function renderCanchas() {
+
+        const cont = document.getElementById('contenedorListaCanchas');
+
+        if (!cont) return;
+
+
+        if (CANCHAS_DATA.length === 0) {
+
+            cont.innerHTML =
+                '<div class="col-12 text-muted">No hay canchas disponibles.</div>';
+
+            return;
+
+        }
+
+
+        cont.innerHTML = CANCHAS_DATA.map((c, i) => `
+
+            <div class="col-6 col-md-3">
+
+                <div class="cancha-card text-center"
+                    id="cancha-${i}"
+                    onclick="seleccionarCancha(${i})"
+                    data-id="${c.id}">
+
+                    <i class="bi bi-dribbble fs-2 mb-1"
+                        style="color:#62ff00;"></i>
+
+                    <div class="fw-bold small">
+                        ${c.nombre}
                     </div>
-                </div>
-            `).join('');
 
-            // Solo preseleccionar cancha desde la URL si el usuario ya inició sesión
-            if (PRESELECCIONAR_ID && LOGUEADO) {
-                const idx = CANCHAS_DATA.findIndex(c => c.id === PRESELECCIONAR_ID);
-                if (idx !== -1) {
-                    seleccionarCancha(idx);
-                    document.getElementById('seccionReserva').scrollIntoView({ behavior: 'smooth' });
-                }
-            }
-        }
-
-        // ── RENDERIZAR CANCHA FIJA (cuando el usuario ya eligió desde el catálogo) ──
-        function renderCanchaFija() {
-            const cont = document.getElementById('cardCanchaFija');
-            if (!cont) return; // el template no está en modo "cancha fija"
-
-            if (!PRESELECCIONAR_ID) {
-                cont.innerHTML = '<div class="alert alert-warning small mb-0">No se encontró la cancha seleccionada.</div>';
-                return;
-            }
-
-            const c = CANCHAS_DATA.find(x => x.id === PRESELECCIONAR_ID);
-            if (!c) {
-                cont.innerHTML = '<div class="alert alert-warning small mb-0">Esa cancha ya no está disponible.</div>';
-                return;
-            }
-
-            cont.innerHTML = `
-                <div class="cancha-card seleccionada d-flex align-items-center gap-3 p-3" style="cursor:default;">
-                    <i class="bi bi-dribbble fs-1" style="color:#62ff00;"></i>
-                    <div>
-                        <div class="fw-bold">${c.nombre}</div>
-                        <div class="text-muted small">${c.tipo}</div>
-                        <div class="fw-bold" style="color:#03045e;">$${c.precio.toLocaleString('es-CO')}/h</div>
+                    <div class="text-muted"
+                        style="font-size:0.75rem;">
+                        ${c.tipo}
                     </div>
-                </div>
-            `;
 
-            if (LOGUEADO) {
-                canchaSeleccionada = c;
-                actualizarResumen();
+                    <div class="fw-bold mt-1">
+                        $${c.precio.toLocaleString('es-CO')}/h
+                    </div>
+
+                </div>
+
+            </div>
+
+        `).join('');
+
+
+        if (PRESELECCIONAR_ID && LOGUEADO) {
+
+            const idx =
+                CANCHAS_DATA.findIndex(
+                    c => c.id === PRESELECCIONAR_ID
+                );
+
+            if (idx !== -1) {
+
+                seleccionarCancha(idx);
+
+                document
+                    .getElementById('seccionReserva')
+                    .scrollIntoView({
+                        behavior: 'smooth'
+                    });
+
             }
+
         }
 
-        function seleccionarCancha(i) {
-            // Bloqueo: no se puede elegir cancha sin haber iniciado sesión
-            if (!LOGUEADO) {
-                mostrarModal('Inicia sesión', 'Debes iniciar sesión para poder reservar una cancha.');
-                return;
-            }
-            canchaSeleccionada = CANCHAS_DATA[i];
-            document.querySelectorAll('.cancha-card').forEach(el => el.classList.remove('seleccionada'));
-            const el = document.getElementById(`cancha-${i}`);
-            if (el) el.classList.add('seleccionada');
-            horasSeleccionadas = [];
-            renderHorarios();
+    }
+
+
+
+    // ── RENDER CANCHA FIJA ────────────────────────────────
+
+    function renderCanchaFija() {
+
+        const cont =
+            document.getElementById('cardCanchaFija');
+
+        if (!cont) return;
+
+
+        if (!PRESELECCIONAR_ID) {
+
+            cont.innerHTML =
+                '<div class="alert alert-warning small mb-0">No se encontró la cancha seleccionada.</div>';
+
+            return;
+
+        }
+
+
+        const c =
+            CANCHAS_DATA.find(
+                x => x.id === PRESELECCIONAR_ID
+            );
+
+
+        if (!c) {
+
+            cont.innerHTML =
+                '<div class="alert alert-warning small mb-0">Esa cancha ya no está disponible.</div>';
+
+            return;
+
+        }
+
+
+        cont.innerHTML = `
+
+            <div class="cancha-card seleccionada d-flex align-items-center gap-3 p-3"
+                style="cursor:default;">
+
+                <i class="bi bi-dribbble fs-1"
+                    style="color:#62ff00;"></i>
+
+                <div>
+
+                    <div class="fw-bold">
+                        ${c.nombre}
+                    </div>
+
+                    <div class="text-muted small">
+                        ${c.tipo}
+                    </div>
+
+                    <div class="fw-bold"
+                        style="color:#03045e;">
+                        $${c.precio.toLocaleString('es-CO')}/h
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        if (LOGUEADO) {
+
+            canchaSeleccionada = c;
+
             actualizarResumen();
+
         }
 
-        // ── MODO: PARTIDO NORMAL vs TORNEO ───────────────────────────
-        function cambiarModoReserva(modo) {
-            if (!LOGUEADO) {
-                mostrarModal('Inicia sesión', 'Debes iniciar sesión para poder reservar una cancha.');
-                return;
-            }
-            if (modo === modoReserva) return;
+    }
 
-            modoReserva = modo;
 
-            document.getElementById('btnModoNormal').classList.toggle('active', modo === 'normal');
-            document.getElementById('btnModoTorneo').classList.toggle('active', modo === 'torneo');
 
-            document.getElementById('ayudaModo').textContent = modo === 'normal'
-                ? 'Elige un día para tu partido.'
-                : 'Elige todos los días del torneo. La(s) hora(s) que selecciones abajo se reservarán en cada día elegido.';
+    // ── SELECCIONAR CANCHA ────────────────────────────────
 
-            // Al cambiar de modo se reinicia la selección de fecha/horas para evitar inconsistencias.
-            fechasSeleccionadas = [];
-            horasSeleccionadas = [];
-            document.getElementById('fechaSeleccionada').value = '';
+    function seleccionarCancha(i) {
 
-            initFlatpickr();
-            renderHorarios();
-            actualizarResumen();
+        if (!LOGUEADO) {
+
+            mostrarModal(
+                'Inicia sesión',
+                'Debes iniciar sesión para poder reservar una cancha.'
+            );
+
+            return;
+
         }
 
-        function initFlatpickr() {
-            if (fpCalendario) {
-                fpCalendario.destroy();
-                fpCalendario = null;
-            }
-            fpCalendario = flatpickr('#fechaSeleccionada', {
-                locale: 'es',
-                mode: modoReserva === 'torneo' ? 'multiple' : 'single',
-                dateFormat: 'Y-m-d',
-                altInput: true,
-                altFormat: 'd / m / Y',
-                minDate: 'today',
-                onChange: function (selectedDates, dateStr, instance) {
-                    if (!LOGUEADO) {
-                        mostrarModal('Inicia sesión', 'Debes iniciar sesión para poder reservar una cancha.');
-                        instance.clear();
-                        fechasSeleccionadas = [];
-                        return;
-                    }
-                    fechasSeleccionadas = selectedDates
-                        .map(d => instance.formatDate(d, 'Y-m-d'))
-                        .sort();
-                    horasSeleccionadas = [];
-                    renderHorarios();
-                    actualizarResumen();
-                }
-            });
+
+        canchaSeleccionada =
+            CANCHAS_DATA[i];
+
+
+        document
+            .querySelectorAll('.cancha-card')
+            .forEach(el =>
+                el.classList.remove('seleccionada')
+            );
+
+
+        const el =
+            document.getElementById(`cancha-${i}`);
+
+
+        if (el)
+            el.classList.add('seleccionada');
+
+
+        horasSeleccionadas = [];
+
+        renderHorarios();
+
+        actualizarResumen();
+
+    }
+
+
+
+    // ── CAMBIAR MODO ──────────────────────────────────────
+
+    function cambiarModoReserva(modo) {
+
+        if (!LOGUEADO) {
+
+            mostrarModal(
+                'Inicia sesión',
+                'Debes iniciar sesión para poder reservar una cancha.'
+            );
+
+            return;
+
         }
 
-        // ── HORARIOS ──────────────────────────────────────────────
-        // Una hora se considera ocupada si ya está tomada en CUALQUIERA
-        // de las fechas seleccionadas (así, en modo torneo, la hora
-        // queda libre en todos los días elegidos antes de reservarla).
-        function getOcupadas(cancha, fechas, idExcluir = null) {
-            if (!cancha || !fechas || fechas.length === 0) return [];
-            const set = new Set();
-            RESERVAS_BD
-                .filter(r => r.cancha === cancha.nombre && fechas.includes(r.fecha) && r.id !== idExcluir)
-                .forEach(r => set.add(r.hora.substring(0, 5)));
-            return [...set];
+
+        if (modo === modoReserva)
+            return;
+
+
+        modoReserva = modo;
+
+
+        document
+            .getElementById('btnModoNormal')
+            .classList
+            .toggle('active', modo === 'normal');
+
+
+        document
+            .getElementById('btnModoTorneo')
+            .classList
+            .toggle('active', modo === 'torneo');
+
+
+        const contenedorEquipo =
+            document.getElementById('contenedorNombreEquipo');
+
+
+        const resumenEquipoContenedor =
+            document.getElementById('resumenEquipoContenedor');
+
+
+        if (modo === 'torneo') {
+
+            contenedorEquipo.style.display = 'block';
+
+            resumenEquipoContenedor.classList.remove('d-none');
+
+            document.getElementById('ayudaModo').textContent =
+                'Elige todos los días del torneo. La(s) hora(s) que selecciones abajo se reservarán en cada día elegido.';
+
+        } else {
+
+            contenedorEquipo.style.display = 'none';
+
+            resumenEquipoContenedor.classList.add('d-none');
+
+            document.getElementById('nombreEquipo').value = '';
+
+            document.getElementById('resumenEquipo').textContent = '—';
+
+            document.getElementById('ayudaModo').textContent =
+                'Elige un día para tu partido.';
+
         }
 
-        function renderHorarios() {
-            const cont = document.getElementById('contenedorHorarios');
-            const avisoTodoOcupado = document.getElementById('avisoTodoOcupado');
 
-            avisoTodoOcupado.classList.add('d-none');
+        fechasSeleccionadas = [];
 
-            if (fechasSeleccionadas.length === 0) {
-                cont.innerHTML = modoReserva === 'torneo'
-                    ? '<span class="text-muted small">Selecciona los días del torneo para ver disponibilidad.</span>'
-                    : '<span class="text-muted small">Selecciona una fecha para ver disponibilidad.</span>';
-                return;
-            }
-            if (!canchaSeleccionada) {
-                cont.innerHTML = '<span class="text-muted small">Primero selecciona una cancha.</span>';
-                return;
-            }
+        horasSeleccionadas = [];
 
-            const ocupadas = getOcupadas(canchaSeleccionada, fechasSeleccionadas);
+        document.getElementById('fechaSeleccionada').value = '';
 
-            cont.innerHTML = HORAS.map(h => {
-                const estaOcupada = ocupadas.includes(h);
-                const seleccionada = horasSeleccionadas.includes(h);
-                let cls = 'hora-btn';
-                if (estaOcupada) cls += ' ocupada';
-                if (seleccionada && !estaOcupada) cls += ' seleccionada';
-                const titulo = estaOcupada ? 'Hora ya reservada en una de las fechas elegidas' : `Seleccionar ${h}`;
-                return `<button class="${cls}" ${estaOcupada ? 'disabled' : ''} title="${titulo}"
-                    onclick="seleccionarHora('${h}')">${h}</button>`;
-            }).join('');
 
-            if (ocupadas.length >= HORAS.length) {
-                avisoTodoOcupado.classList.remove('d-none');
-            }
-        }
-
-        function seleccionarHora(h) {
-            // Bloqueo: no se puede elegir hora sin haber iniciado sesión
-            if (!LOGUEADO) {
-                mostrarModal('Inicia sesión', 'Debes iniciar sesión para poder reservar una cancha.');
-                return;
-            }
-            const idx = horasSeleccionadas.indexOf(h);
-            if (idx === -1) {
-                if (horasSeleccionadas.length >= MAX_HORAS_POR_RESERVA) {
-                    mostrarModal('Límite de horas', `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`);
-                    return;
-                }
-                horasSeleccionadas.push(h);
-            } else {
-                horasSeleccionadas.splice(idx, 1);
-            }
-            renderHorarios();
-            actualizarResumen();
-        }
-
-        // ── RESUMEN ────────────────────────────────────────────────
-        function actualizarResumen() {
-            const nombre = document.getElementById('nombre').value.trim();
-
-            document.getElementById('resumenCancha').textContent = canchaSeleccionada ? canchaSeleccionada.nombre : 'No seleccionada';
-            document.getElementById('resumenModo').textContent = modoReserva === 'torneo' ? 'Torneo' : 'Partido Normal';
-
-            document.getElementById('resumenFecha').textContent = fechasSeleccionadas.length
-                ? fechasSeleccionadas.map(formatearFecha).join(' , ')
-                : '-- / -- / ----';
-
-            const horasOrdenadas = [...horasSeleccionadas].sort();
-            document.getElementById('resumenHora').textContent = horasOrdenadas.length ? horasOrdenadas.join(', ') : 'Por elegir';
-
-            document.getElementById('resumenDuracion').textContent = calcularDuracionTexto(horasSeleccionadas.length, fechasSeleccionadas.length);
-            document.getElementById('resumenNombre').textContent = nombre || '—';
-
-            if (canchaSeleccionada && horasSeleccionadas.length > 0 && fechasSeleccionadas.length > 0) {
-                const total = canchaSeleccionada.precio * horasSeleccionadas.length * fechasSeleccionadas.length;
-                document.getElementById('resumenPrecio').textContent = '$ ' + total.toLocaleString('es-CO');
-            } else {
-                document.getElementById('resumenPrecio').textContent = '$ 0';
-            }
-        }
-
-        function calcularDuracionTexto(nHoras, nDias = 1) {
-            if (nHoras === 0) return '—';
-            const horasTxt = nHoras === 1 ? '1 Hora' : `${nHoras} Horas`;
-            if (nDias > 1) {
-                return `${horasTxt} x ${nDias} días`;
-            }
-            return horasTxt;
-        }
-
-        function formatearFecha(f) {
-            const [y, m, d] = f.split('-');
-            return `${d} / ${m} / ${y}`;
-        }
-
-        // ── CONFIRMAR RESERVA ──────────────────────────────────────
-        function confirmarReserva() {
-            if (!LOGUEADO) {
-                window.location.href = "{% url 'login' %}";
-                return;
-            }
-
-            if (TIENE_RESERVA_ACTIVA) {
-                mostrarModal('Reserva activa', 'Ya tienes una reserva activa. Debes finalizarla o cancelarla antes de crear una nueva.');
-                return;
-            }
-
-            const nombre = document.getElementById('nombre').value.trim();
-            const correo = document.getElementById('correo').value.trim();
-            const telefono = document.getElementById('telefono').value.trim();
-
-            if (!canchaSeleccionada) { mostrarModal('Falta información', 'Selecciona una cancha.'); return; }
-            if (fechasSeleccionadas.length === 0) {
-                mostrarModal('Falta información', modoReserva === 'torneo' ? 'Selecciona al menos un día del torneo.' : 'Selecciona una fecha.');
-                return;
-            }
-            if (horasSeleccionadas.length === 0) { mostrarModal('Falta información', 'Selecciona al menos una hora.'); return; }
-            if (horasSeleccionadas.length > MAX_HORAS_POR_RESERVA) {
-                mostrarModal('Límite de horas', `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`);
-                return;
-            }
-
-            const btn = document.getElementById('btnConfirmarReserva');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registrando reserva...';
-
-            const horasOrdenadas = [...horasSeleccionadas].sort();
-            const fechasOrdenadas = [...fechasSeleccionadas].sort();
-
-            fetch("{% url 'crear_reserva' %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRF(),
-                },
-                body: JSON.stringify({
-                    nombre, correo, telefono,
-                    modo: modoReserva,               // 'normal' o 'torneo'
-                    fecha: fechasOrdenadas[0],        // se mantiene por compatibilidad con reservas de un solo día
-                    fechas: fechasOrdenadas,          // arreglo completo de días (uno o varios, según el modo)
-                    hora: horasOrdenadas[0],
-                    horas: horasOrdenadas,
-                    cancha: canchaSeleccionada.nombre,
-                    duracion: calcularDuracionTexto(horasSeleccionadas.length, fechasSeleccionadas.length),
-                })
-            })
-                .then(r => {
-                    if (r.status === 401) {
-                        window.location.href = "{% url 'login' %}";
-                        return null;
-                    }
-                    return r.json().then(data => ({ status: r.status, data }));
-                })
-                .then(res => {
-                    if (!res) return;
-                    const { status, data } = res;
-                    if (status === 200 && data.status === 'ok') {
-                        window.location.href = "{% url 'pago' %}";
-                    } else if (status === 409) {
-                        mostrarModal('No se pudo reservar', data.mensaje || 'Esa fecha/hora ya está ocupada o ya tienes una reserva activa.');
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar';
-                        renderHorarios();
-                    } else {
-                        mostrarModal('No se pudo reservar', data.mensaje || 'Error al registrar la reserva.');
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar';
-                    }
-                })
-                .catch(() => {
-                    mostrarModal('Error de conexión', 'No se pudo conectar con el servidor. Intenta de nuevo.');
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar';
-                });
-        }
-
-        // ── EDITAR (sin cambios: la edición sigue siendo de un solo día) ──
-        function poblarSelectCanchasEdit() {
-            const sel = document.getElementById('editCancha');
-            sel.innerHTML = CANCHAS_DATA.map(c =>
-                `<option value="${c.nombre}">${c.nombre} ($${c.precio.toLocaleString('es-CO')}/h)</option>`
-            ).join('');
-        }
-
-        function obtenerPrecioCancha(nombre) {
-            const c = CANCHAS_DATA.find(x => x.nombre === nombre);
-            return c ? c.precio : 0;
-        }
-
-        function renderHorariosEdicion() {
-            const cont = document.getElementById('editContenedorHorarios');
-            const fecha = document.getElementById('editFecha').value;
-            const canchaNombre = document.getElementById('editCancha').value;
-
-            if (!fecha || !canchaNombre) {
-                cont.innerHTML = '<span class="text-muted small">Selecciona cancha y fecha.</span>';
-                return;
-            }
-
-            const ocupadas = getOcupadasParaEdicion(canchaNombre, fecha, editIdActual);
-
-            cont.innerHTML = HORAS.map(h => {
-                const estaOcupada = ocupadas.includes(h);
-                const seleccionada = editHorasSeleccionadas.includes(h);
-                let cls = 'hora-btn';
-                if (estaOcupada) cls += ' ocupada';
-                if (seleccionada && !estaOcupada) cls += ' seleccionada';
-                const titulo = estaOcupada ? 'Hora ya reservada' : `Seleccionar ${h}`;
-                return `<button type="button" class="${cls}" ${estaOcupada ? 'disabled' : ''} title="${titulo}"
-                    onclick="toggleHoraEdicion('${h}')">${h}</button>`;
-            }).join('');
-
-            actualizarResumenPrecioEdicion();
-        }
-
-        function getOcupadasParaEdicion(canchaNombre, fecha, idExcluir) {
-            return RESERVAS_BD
-                .filter(r => r.cancha === canchaNombre && r.fecha === fecha && r.id !== idExcluir)
-                .map(r => r.hora.substring(0, 5));
-        }
-
-        function toggleHoraEdicion(h) {
-            const idx = editHorasSeleccionadas.indexOf(h);
-            if (idx === -1) {
-                if (editHorasSeleccionadas.length >= MAX_HORAS_POR_RESERVA) {
-                    mostrarModal('Límite de horas', `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`);
-                    return;
-                }
-                editHorasSeleccionadas.push(h);
-            } else {
-                editHorasSeleccionadas.splice(idx, 1);
-            }
-            renderHorariosEdicion();
-        }
-
-        function onCambioCanchaEdit() {
-            editHorasSeleccionadas = [];
-            renderHorariosEdicion();
-        }
-
-        function onCambioFechaEdit() {
-            editHorasSeleccionadas = [];
-            renderHorariosEdicion();
-        }
-
-        function actualizarResumenPrecioEdicion() {
-            const canchaNombre = document.getElementById('editCancha').value;
-            const precioHora = obtenerPrecioCancha(canchaNombre);
-            const nuevoTotal = precioHora * editHorasSeleccionadas.length;
-            const diferencia = nuevoTotal - editPrecioOriginalTotal;
-
-            let mensaje = 'Sin cambios en el valor de la reserva.';
-            let colorClass = 'text-muted';
-            let icono = 'bi-check-circle';
-
-            if (diferencia > 0) {
-                mensaje = `Al agregar horas, deberás realizar un pago adicional de $${diferencia.toLocaleString('es-CO')}.`;
-                colorClass = 'text-danger';
-                icono = 'bi-exclamation-triangle-fill';
-            } else if (diferencia < 0) {
-                mensaje = `Al quitar horas, se devolverá $${Math.abs(diferencia).toLocaleString('es-CO')} a tu cuenta registrada.`;
-                colorClass = 'text-success';
-                icono = 'bi-arrow-return-left';
-            }
-
-            document.getElementById('editContenedorPrecio').innerHTML = `
-                <div class="d-flex justify-content-between small mb-1">
-                    <span class="text-muted">Precio actual de la reserva:</span>
-                    <span class="fw-bold">$${editPrecioOriginalTotal.toLocaleString('es-CO')}</span>
-                </div>
-                <div class="d-flex justify-content-between small mb-2">
-                    <span class="text-muted">Nuevo precio (${editHorasSeleccionadas.length} h seleccionada${editHorasSeleccionadas.length === 1 ? '' : 's'}):</span>
-                    <span class="fw-bold">$${nuevoTotal.toLocaleString('es-CO')}</span>
-                </div>
-                <div class="${colorClass} small fw-semibold d-flex align-items-start gap-1">
-                    <i class="bi ${icono} mt-1"></i><span>${mensaje}</span>
-                </div>
-            `;
-        }
-
-        function abrirEdicion(id, nombre, correo, telefono, fecha, horasReserva, cancha, duracion) {
-            editIdActual = parseInt(id);
-            document.getElementById('editId').value = id;
-            document.getElementById('editNombre').value = nombre;
-            document.getElementById('editCorreo').value = correo;
-            document.getElementById('editTelefono').value = telefono;
-
-            document.getElementById('editFecha').value =
-                (fecha && fecha !== "None") ? fecha.substring(0, 10) : new Date().toISOString().split('T')[0];
-
-            poblarSelectCanchasEdit();
-            document.getElementById('editCancha').value = cancha;
-
-            editHorasSeleccionadas = Array.isArray(horasReserva) ? [...horasReserva] : [horasReserva];
-            const precioHoraOriginal = obtenerPrecioCancha(cancha);
-            editPrecioOriginalTotal = precioHoraOriginal * editHorasSeleccionadas.length;
-
-            renderHorariosEdicion();
-            new bootstrap.Modal(document.getElementById('modalEditarReserva')).show();
-        }
-
-        function guardarEdicion() {
-            const id = document.getElementById('editId').value;
-            const fecha = document.getElementById('editFecha').value;
-            const cancha = document.getElementById('editCancha').value;
-
-            if (!id || !fecha) { mostrarModal('Falta información', 'Completa los campos requeridos.'); return; }
-            if (editHorasSeleccionadas.length === 0) { mostrarModal('Falta información', 'Selecciona al menos una hora.'); return; }
-            if (editHorasSeleccionadas.length > MAX_HORAS_POR_RESERVA) {
-                mostrarModal('Límite de horas', `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`);
-                return;
-            }
-
-            const horasOrdenadas = [...editHorasSeleccionadas].sort();
-            const precioHora = obtenerPrecioCancha(cancha);
-            const nuevoTotal = precioHora * horasOrdenadas.length;
-            const diferencia = nuevoTotal - editPrecioOriginalTotal;
-
-            let confirmMsg = '¿Guardar los cambios de esta reserva?';
-            if (diferencia > 0) {
-                confirmMsg = `El nuevo total es $${nuevoTotal.toLocaleString('es-CO')} (antes $${editPrecioOriginalTotal.toLocaleString('es-CO')}).\n\nSe requiere un pago adicional de $${diferencia.toLocaleString('es-CO')}. ¿Deseas continuar?`;
-            } else if (diferencia < 0) {
-                confirmMsg = `El nuevo total es $${nuevoTotal.toLocaleString('es-CO')} (antes $${editPrecioOriginalTotal.toLocaleString('es-CO')}).\n\nSe devolverá $${Math.abs(diferencia).toLocaleString('es-CO')} a tu cuenta registrada. ¿Deseas continuar?`;
-            }
-            if (!confirm(confirmMsg)) return;
-
-            fetch(`/reservas/editar/${id}/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
-                body: JSON.stringify({
-                    nombre: document.getElementById('editNombre').value,
-                    correo: document.getElementById('editCorreo').value,
-                    telefono: document.getElementById('editTelefono').value,
-                    fecha,
-                    hora: horasOrdenadas[0],
-                    horas: horasOrdenadas,
-                    cancha,
-                    duracion: calcularDuracionTexto(horasOrdenadas.length),
-                    diferencia_pago: diferencia,
-                })
-            })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.status === 'ok') {
-                        if (diferencia > 0) {
-                            window.location.href = "{% url 'pago' %}";
-                        } else {
-                            location.reload();
-                        }
-                    } else {
-                        mostrarModal('No se pudo actualizar', data.mensaje || 'Error al actualizar.');
-                    }
-                });
-        }
-
-        // ── UTILS ──────────────────────────────────────────────────
-        function getCSRF() {
-            const c = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
-            return c ? decodeURIComponent(c.split('=')[1]) : '';
-        }
-
-        function mostrarModal(titulo, cuerpo) {
-            document.getElementById('modalNotiTitulo').textContent = titulo;
-            document.getElementById('modalNotiCuerpo').textContent = cuerpo;
-            new bootstrap.Modal(document.getElementById('modalNotificacion')).show();
-        }
-
-        // ── INICIO ─────────────────────────────────────────────────
         initFlatpickr();
 
-        if (PRESELECCIONAR_ID) {
-            renderCanchaFija();
-        } else {
-            renderCanchas();
-        }
-        actualizarResumen();
-    </script>   
+        renderHorarios();
 
-    <script src="{% static 'js/theme.js' %}"></script>
+        actualizarResumen();
+
+    }
+
+
+
+    // ── CALENDARIO ─────────────────────────────────────────
+
+    function initFlatpickr() {
+
+        if (fpCalendario) {
+
+            fpCalendario.destroy();
+
+            fpCalendario = null;
+
+        }
+
+
+        fpCalendario =
+            flatpickr('#fechaSeleccionada', {
+
+                locale: 'es',
+
+                mode:
+                    modoReserva === 'torneo'
+                        ? 'multiple'
+                        : 'single',
+
+                dateFormat: 'Y-m-d',
+
+                altInput: true,
+
+                altFormat: 'd / m / Y',
+
+                minDate: 'today',
+
+
+                onChange:
+                    function(selectedDates, dateStr, instance) {
+
+                        if (!LOGUEADO) {
+
+                            mostrarModal(
+                                'Inicia sesión',
+                                'Debes iniciar sesión para poder reservar una cancha.'
+                            );
+
+                            instance.clear();
+
+                            fechasSeleccionadas = [];
+
+                            return;
+
+                        }
+
+
+                        fechasSeleccionadas =
+                            selectedDates
+                                .map(d =>
+                                    instance.formatDate(
+                                        d,
+                                        'Y-m-d'
+                                    )
+                                )
+                                .sort();
+
+
+                        horasSeleccionadas = [];
+
+                        renderHorarios();
+
+                        actualizarResumen();
+
+                    }
+
+            });
+
+    }
+
+
+
+    // ── HORARIOS OCUPADOS ─────────────────────────────────
+
+    function getOcupadas(
+        cancha,
+        fechas,
+        idExcluir = null
+    ) {
+
+        if (
+            !cancha ||
+            !fechas ||
+            fechas.length === 0
+        )
+            return [];
+
+
+        const set = new Set();
+
+
+        RESERVAS_BD
+
+            .filter(
+                r =>
+                    r.cancha === cancha.nombre &&
+                    fechas.includes(r.fecha) &&
+                    r.id !== idExcluir
+            )
+
+            .forEach(
+                r =>
+                    set.add(
+                        r.hora.substring(0, 5)
+                    )
+            );
+
+
+        return [...set];
+
+    }
+
+
+
+    // ── RENDER HORARIOS ──────────────────────────────────
+
+    function renderHorarios() {
+
+        const cont =
+            document.getElementById(
+                'contenedorHorarios'
+            );
+
+
+        const avisoTodoOcupado =
+            document.getElementById(
+                'avisoTodoOcupado'
+            );
+
+
+        avisoTodoOcupado.classList.add('d-none');
+
+
+        if (fechasSeleccionadas.length === 0) {
+
+            cont.innerHTML =
+                modoReserva === 'torneo'
+                    ?
+                    '<span class="text-muted small">Selecciona los días del torneo para ver disponibilidad.</span>'
+                    :
+                    '<span class="text-muted small">Selecciona una fecha para ver disponibilidad.</span>';
+
+            return;
+
+        }
+
+
+        if (!canchaSeleccionada) {
+
+            cont.innerHTML =
+                '<span class="text-muted small">Primero selecciona una cancha.</span>';
+
+            return;
+
+        }
+
+
+        const ocupadas =
+            getOcupadas(
+                canchaSeleccionada,
+                fechasSeleccionadas
+            );
+
+
+        cont.innerHTML =
+            HORAS.map(h => {
+
+                const estaOcupada =
+                    ocupadas.includes(h);
+
+
+                const seleccionada =
+                    horasSeleccionadas.includes(h);
+
+
+                let cls = 'hora-btn';
+
+
+                if (estaOcupada)
+                    cls += ' ocupada';
+
+
+                if (
+                    seleccionada &&
+                    !estaOcupada
+                )
+                    cls += ' seleccionada';
+
+
+                const titulo =
+                    estaOcupada
+                        ?
+                        'Hora ya reservada en una de las fechas elegidas'
+                        :
+                        `Seleccionar ${h}`;
+
+
+                return `
+
+                    <button
+                        class="${cls}"
+                        ${estaOcupada ? 'disabled' : ''}
+                        title="${titulo}"
+                        onclick="seleccionarHora('${h}')">
+
+                        ${h}
+
+                    </button>
+
+                `;
+
+            }).join('');
+
+
+        if (ocupadas.length >= HORAS.length) {
+
+            avisoTodoOcupado
+                .classList
+                .remove('d-none');
+
+        }
+
+    }
+
+
+
+    // ── SELECCIONAR HORA ─────────────────────────────────
+
+    function seleccionarHora(h) {
+
+        if (!LOGUEADO) {
+
+            mostrarModal(
+                'Inicia sesión',
+                'Debes iniciar sesión para poder reservar una cancha.'
+            );
+
+            return;
+
+        }
+
+
+        const idx =
+            horasSeleccionadas.indexOf(h);
+
+
+        if (idx === -1) {
+
+            if (
+                horasSeleccionadas.length >=
+                MAX_HORAS_POR_RESERVA
+            ) {
+
+                mostrarModal(
+                    'Límite de horas',
+                    `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`
+                );
+
+                return;
+
+            }
+
+
+            horasSeleccionadas.push(h);
+
+        } else {
+
+            horasSeleccionadas.splice(idx, 1);
+
+        }
+
+
+        renderHorarios();
+
+        actualizarResumen();
+
+    }
+
+
+
+    // ── RESUMEN ───────────────────────────────────────────
+
+    function actualizarResumen() {
+
+        const nombre =
+            document.getElementById('nombre')
+                .value
+                .trim();
+
+
+        const nombreEquipo =
+            document.getElementById('nombreEquipo')
+                ? document.getElementById('nombreEquipo').value.trim()
+                : '';
+
+
+        document.getElementById(
+            'resumenCancha'
+        ).textContent =
+            canchaSeleccionada
+                ?
+                canchaSeleccionada.nombre
+                :
+                'No seleccionada';
+
+
+        document.getElementById(
+            'resumenModo'
+        ).textContent =
+            modoReserva === 'torneo'
+                ?
+                'Torneo'
+                :
+                'Partido Normal';
+
+
+        if (modoReserva === 'torneo') {
+
+            document.getElementById(
+                'resumenEquipo'
+            ).textContent =
+                nombreEquipo || 'Por ingresar';
+
+        }
+
+
+        document.getElementById(
+            'resumenFecha'
+        ).textContent =
+
+            fechasSeleccionadas.length
+                ?
+                fechasSeleccionadas
+                    .map(formatearFecha)
+                    .join(' , ')
+                :
+                '-- / -- / ----';
+
+
+        const horasOrdenadas =
+            [...horasSeleccionadas]
+                .sort();
+
+
+        document.getElementById(
+            'resumenHora'
+        ).textContent =
+
+            horasOrdenadas.length
+                ?
+                horasOrdenadas.join(', ')
+                :
+                'Por elegir';
+
+
+        document.getElementById(
+            'resumenDuracion'
+        ).textContent =
+            calcularDuracionTexto(
+                horasSeleccionadas.length,
+                fechasSeleccionadas.length
+            );
+
+
+        document.getElementById(
+            'resumenNombre'
+        ).textContent =
+            nombre || '—';
+
+
+        if (
+            canchaSeleccionada &&
+            horasSeleccionadas.length > 0 &&
+            fechasSeleccionadas.length > 0
+        ) {
+
+            const total =
+                canchaSeleccionada.precio *
+                horasSeleccionadas.length *
+                fechasSeleccionadas.length;
+
+
+            document.getElementById(
+                'resumenPrecio'
+            ).textContent =
+                '$ ' +
+                total.toLocaleString('es-CO');
+
+        } else {
+
+            document.getElementById(
+                'resumenPrecio'
+            ).textContent =
+                '$ 0';
+
+        }
+
+    }
+
+
+
+    // ── DURACIÓN ──────────────────────────────────────────
+
+    function calcularDuracionTexto(
+        nHoras,
+        nDias = 1
+    ) {
+
+        if (nHoras === 0)
+            return '—';
+
+
+        const horasTxt =
+            nHoras === 1
+                ?
+                '1 Hora'
+                :
+                `${nHoras} Horas`;
+
+
+        if (nDias > 1) {
+
+            return `${horasTxt} x ${nDias} días`;
+
+        }
+
+
+        return horasTxt;
+
+    }
+
+
+
+    // ── FORMATEAR FECHA ───────────────────────────────────
+
+    function formatearFecha(f) {
+
+        const [y, m, d] =
+            f.split('-');
+
+
+        return `${d} / ${m} / ${y}`;
+
+    }
+
+
+
+    // ── CONFIRMAR RESERVA ─────────────────────────────────
+
+    function confirmarReserva() {
+
+        if (!LOGUEADO) {
+
+            window.location.href =
+                "{% url 'login' %}";
+
+            return;
+
+        }
+
+
+        if (TIENE_RESERVA_ACTIVA) {
+
+            mostrarModal(
+                'Reserva activa',
+                'Ya tienes una reserva activa. Debes finalizarla o cancelarla antes de crear una nueva.'
+            );
+
+            return;
+
+        }
+
+
+        const nombre =
+            document.getElementById('nombre')
+                .value
+                .trim();
+
+
+        const correo =
+            document.getElementById('correo')
+                .value
+                .trim();
+
+
+        const telefono =
+            document.getElementById('telefono')
+                .value
+                .trim();
+
+
+        const nombreEquipo =
+            document.getElementById('nombreEquipo')
+                .value
+                .trim();
+
+
+
+        if (!canchaSeleccionada) {
+
+            mostrarModal(
+                'Falta información',
+                'Selecciona una cancha.'
+            );
+
+            return;
+
+        }
+
+
+        if (
+            fechasSeleccionadas.length === 0
+        ) {
+
+            mostrarModal(
+                'Falta información',
+                modoReserva === 'torneo'
+                    ?
+                    'Selecciona al menos un día del torneo.'
+                    :
+                    'Selecciona una fecha.'
+            );
+
+            return;
+
+        }
+
+
+        if (
+            modoReserva === 'torneo' &&
+            nombreEquipo === ''
+        ) {
+
+            mostrarModal(
+                'Falta el nombre del equipo',
+                'Escribe el nombre de tu equipo para poder registrar el torneo.'
+            );
+
+            return;
+
+        }
+
+
+        if (
+            horasSeleccionadas.length === 0
+        ) {
+
+            mostrarModal(
+                'Falta información',
+                'Selecciona al menos una hora.'
+            );
+
+            return;
+
+        }
+
+
+        if (
+            horasSeleccionadas.length >
+            MAX_HORAS_POR_RESERVA
+        ) {
+
+            mostrarModal(
+                'Límite de horas',
+                `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`
+            );
+
+            return;
+
+        }
+
+
+        const btn =
+            document.getElementById(
+                'btnConfirmarReserva'
+            );
+
+
+        btn.disabled = true;
+
+
+        btn.innerHTML =
+            '<span class="spinner-border spinner-border-sm me-2"></span>Registrando reserva...';
+
+
+
+        const horasOrdenadas =
+            [...horasSeleccionadas]
+                .sort();
+
+
+        const fechasOrdenadas =
+            [...fechasSeleccionadas]
+                .sort();
+
+
+
+        fetch(
+            "{% url 'crear_reserva' %}",
+            {
+
+                method: 'POST',
+
+                headers: {
+
+                    'Content-Type':
+                        'application/json',
+
+                    'X-CSRFToken':
+                        getCSRF(),
+
+                },
+
+
+                body: JSON.stringify({
+
+                    nombre,
+
+                    correo,
+
+                    telefono,
+
+                    modo: modoReserva,
+
+                    /* NUEVO */
+                    equipo_nombre:
+                        modoReserva === 'torneo'
+                            ? nombreEquipo
+                            : '',
+
+                    fecha:
+                        fechasOrdenadas[0],
+
+                    fechas:
+                        fechasOrdenadas,
+
+                    hora:
+                        horasOrdenadas[0],
+
+                    horas:
+                        horasOrdenadas,
+
+                    cancha:
+                        canchaSeleccionada.nombre,
+
+                    duracion:
+                        calcularDuracionTexto(
+                            horasSeleccionadas.length,
+                            fechasSeleccionadas.length
+                        ),
+
+                })
+
+            }
+        )
+
+
+            .then(r => {
+
+                if (r.status === 401) {
+
+                    window.location.href =
+                        "{% url 'login' %}";
+
+                    return null;
+
+                }
+
+
+                return r.json()
+                    .then(
+                        data => ({
+                            status: r.status,
+                            data
+                        })
+                    );
+
+            })
+
+
+            .then(res => {
+
+                if (!res)
+                    return;
+
+
+                const {
+                    status,
+                    data
+                } = res;
+
+
+                if (
+                    status === 200 &&
+                    data.status === 'ok'
+                ) {
+
+                    window.location.href =
+                        "{% url 'pago' %}";
+
+                }
+
+                else if (status === 409) {
+
+                    mostrarModal(
+                        'No se pudo reservar',
+                        data.mensaje ||
+                        'Esa fecha/hora ya está ocupada o ya tienes una reserva activa.'
+                    );
+
+
+                    btn.disabled = false;
+
+
+                    btn.innerHTML =
+                        '<i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar';
+
+
+                    renderHorarios();
+
+                }
+
+                else {
+
+                    mostrarModal(
+                        'No se pudo reservar',
+                        data.mensaje ||
+                        'Error al registrar la reserva.'
+                    );
+
+
+                    btn.disabled = false;
+
+
+                    btn.innerHTML =
+                        '<i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar';
+
+                }
+
+            })
+
+
+            .catch(() => {
+
+                mostrarModal(
+                    'Error de conexión',
+                    'No se pudo conectar con el servidor. Intenta de nuevo.'
+                );
+
+
+                btn.disabled = false;
+
+
+                btn.innerHTML =
+                    '<i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar';
+
+            });
+
+    }
+
+
+
+    // ── EDICIÓN ───────────────────────────────────────────
+
+    function poblarSelectCanchasEdit() {
+
+        const sel =
+            document.getElementById(
+                'editCancha'
+            );
+
+
+        sel.innerHTML =
+            CANCHAS_DATA.map(c =>
+
+                `<option value="${c.nombre}">
+                    ${c.nombre} ($${c.precio.toLocaleString('es-CO')}/h)
+                </option>`
+
+            ).join('');
+
+    }
+
+
+
+    function obtenerPrecioCancha(nombre) {
+
+        const c =
+            CANCHAS_DATA.find(
+                x => x.nombre === nombre
+            );
+
+
+        return c
+            ?
+            c.precio
+            :
+            0;
+
+    }
+
+
+
+    function renderHorariosEdicion() {
+
+        const cont =
+            document.getElementById(
+                'editContenedorHorarios'
+            );
+
+
+        const fecha =
+            document.getElementById(
+                'editFecha'
+            ).value;
+
+
+        const canchaNombre =
+            document.getElementById(
+                'editCancha'
+            ).value;
+
+
+        if (!fecha || !canchaNombre) {
+
+            cont.innerHTML =
+                '<span class="text-muted small">Selecciona cancha y fecha.</span>';
+
+            return;
+
+        }
+
+
+        const ocupadas =
+            getOcupadasParaEdicion(
+                canchaNombre,
+                fecha,
+                editIdActual
+            );
+
+
+        cont.innerHTML =
+            HORAS.map(h => {
+
+                const estaOcupada =
+                    ocupadas.includes(h);
+
+
+                const seleccionada =
+                    editHorasSeleccionadas
+                        .includes(h);
+
+
+                let cls =
+                    'hora-btn';
+
+
+                if (estaOcupada)
+                    cls += ' ocupada';
+
+
+                if (
+                    seleccionada &&
+                    !estaOcupada
+                )
+                    cls += ' seleccionada';
+
+
+                const titulo =
+                    estaOcupada
+                        ?
+                        'Hora ya reservada'
+                        :
+                        `Seleccionar ${h}`;
+
+
+                return `
+
+                    <button
+                        type="button"
+                        class="${cls}"
+                        ${estaOcupada ? 'disabled' : ''}
+                        title="${titulo}"
+                        onclick="toggleHoraEdicion('${h}')">
+
+                        ${h}
+
+                    </button>
+
+                `;
+
+            }).join('');
+
+
+        actualizarResumenPrecioEdicion();
+
+    }
+
+
+
+    function getOcupadasParaEdicion(
+        canchaNombre,
+        fecha,
+        idExcluir
+    ) {
+
+        return RESERVAS_BD
+
+            .filter(
+                r =>
+                    r.cancha === canchaNombre &&
+                    r.fecha === fecha &&
+                    r.id !== idExcluir
+            )
+
+            .map(
+                r =>
+                    r.hora.substring(0, 5)
+            );
+
+    }
+
+
+
+    function toggleHoraEdicion(h) {
+
+        const idx =
+            editHorasSeleccionadas
+                .indexOf(h);
+
+
+        if (idx === -1) {
+
+            if (
+                editHorasSeleccionadas.length >=
+                MAX_HORAS_POR_RESERVA
+            ) {
+
+                mostrarModal(
+                    'Límite de horas',
+                    `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`
+                );
+
+                return;
+
+            }
+
+
+            editHorasSeleccionadas.push(h);
+
+        } else {
+
+            editHorasSeleccionadas.splice(
+                idx,
+                1
+            );
+
+        }
+
+
+        renderHorariosEdicion();
+
+    }
+
+
+
+    function onCambioCanchaEdit() {
+
+        editHorasSeleccionadas = [];
+
+        renderHorariosEdicion();
+
+    }
+
+
+
+    function onCambioFechaEdit() {
+
+        editHorasSeleccionadas = [];
+
+        renderHorariosEdicion();
+
+    }
+
+
+
+    function actualizarResumenPrecioEdicion() {
+
+        const canchaNombre =
+            document.getElementById(
+                'editCancha'
+            ).value;
+
+
+        const precioHora =
+            obtenerPrecioCancha(
+                canchaNombre
+            );
+
+
+        const nuevoTotal =
+            precioHora *
+            editHorasSeleccionadas.length;
+
+
+        const diferencia =
+            nuevoTotal -
+            editPrecioOriginalTotal;
+
+
+        let mensaje =
+            'Sin cambios en el valor de la reserva.';
+
+
+        let colorClass =
+            'text-muted';
+
+
+        let icono =
+            'bi-check-circle';
+
+
+        if (diferencia > 0) {
+
+            mensaje =
+                `Al agregar horas, deberás realizar un pago adicional de $${diferencia.toLocaleString('es-CO')}.`;
+
+            colorClass =
+                'text-danger';
+
+            icono =
+                'bi-exclamation-triangle-fill';
+
+        }
+
+        else if (diferencia < 0) {
+
+            mensaje =
+                `Al quitar horas, se devolverá $${Math.abs(diferencia).toLocaleString('es-CO')} a tu cuenta registrada.`;
+
+            colorClass =
+                'text-success';
+
+            icono =
+                'bi-arrow-return-left';
+
+        }
+
+
+        document.getElementById(
+            'editContenedorPrecio'
+        ).innerHTML = `
+
+            <div class="d-flex justify-content-between small mb-1">
+
+                <span class="text-muted">
+                    Precio actual de la reserva:
+                </span>
+
+                <span class="fw-bold">
+                    $${editPrecioOriginalTotal.toLocaleString('es-CO')}
+                </span>
+
+            </div>
+
+
+            <div class="d-flex justify-content-between small mb-2">
+
+                <span class="text-muted">
+                    Nuevo precio (${editHorasSeleccionadas.length} h seleccionada${editHorasSeleccionadas.length === 1 ? '' : 's'}):
+                </span>
+
+                <span class="fw-bold">
+                    $${nuevoTotal.toLocaleString('es-CO')}
+                </span>
+
+            </div>
+
+
+            <div class="${colorClass} small fw-semibold d-flex align-items-start gap-1">
+
+                <i class="bi ${icono} mt-1"></i>
+
+                <span>
+                    ${mensaje}
+                </span>
+
+            </div>
+
+        `;
+
+    }
+
+
+
+    function abrirEdicion(
+        id,
+        nombre,
+        correo,
+        telefono,
+        fecha,
+        horasReserva,
+        cancha,
+        duracion
+    ) {
+
+        editIdActual =
+            parseInt(id);
+
+
+        document.getElementById(
+            'editId'
+        ).value = id;
+
+
+        document.getElementById(
+            'editNombre'
+        ).value = nombre;
+
+
+        document.getElementById(
+            'editCorreo'
+        ).value = correo;
+
+
+        document.getElementById(
+            'editTelefono'
+        ).value = telefono;
+
+
+        document.getElementById(
+            'editFecha'
+        ).value =
+
+            (fecha &&
+                fecha !== "None")
+                ?
+                fecha.substring(0, 10)
+                :
+                new Date()
+                    .toISOString()
+                    .split('T')[0];
+
+
+        poblarSelectCanchasEdit();
+
+
+        document.getElementById(
+            'editCancha'
+        ).value = cancha;
+
+
+        editHorasSeleccionadas =
+            Array.isArray(horasReserva)
+                ?
+                [...horasReserva]
+                :
+                [horasReserva];
+
+
+        const precioHoraOriginal =
+            obtenerPrecioCancha(cancha);
+
+
+        editPrecioOriginalTotal =
+            precioHoraOriginal *
+            editHorasSeleccionadas.length;
+
+
+        renderHorariosEdicion();
+
+
+        new bootstrap.Modal(
+            document.getElementById(
+                'modalEditarReserva'
+            )
+        ).show();
+
+    }
+
+
+
+    function guardarEdicion() {
+
+        const id =
+            document.getElementById(
+                'editId'
+            ).value;
+
+
+        const fecha =
+            document.getElementById(
+                'editFecha'
+            ).value;
+
+
+        const cancha =
+            document.getElementById(
+                'editCancha'
+            ).value;
+
+
+        if (!id || !fecha) {
+
+            mostrarModal(
+                'Falta información',
+                'Completa los campos requeridos.'
+            );
+
+            return;
+
+        }
+
+
+        if (
+            editHorasSeleccionadas.length === 0
+        ) {
+
+            mostrarModal(
+                'Falta información',
+                'Selecciona al menos una hora.'
+            );
+
+            return;
+
+        }
+
+
+        if (
+            editHorasSeleccionadas.length >
+            MAX_HORAS_POR_RESERVA
+        ) {
+
+            mostrarModal(
+                'Límite de horas',
+                `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`
+            );
+
+            return;
+
+        }
+
+
+        const horasOrdenadas =
+            [...editHorasSeleccionadas]
+                .sort();
+
+
+        const precioHora =
+            obtenerPrecioCancha(
+                cancha
+            );
+
+
+        const nuevoTotal =
+            precioHora *
+            horasOrdenadas.length;
+
+
+        const diferencia =
+            nuevoTotal -
+            editPrecioOriginalTotal;
+
+
+        let confirmMsg =
+            '¿Guardar los cambios de esta reserva?';
+
+
+        if (diferencia > 0) {
+
+            confirmMsg =
+                `El nuevo total es $${nuevoTotal.toLocaleString('es-CO')} (antes $${editPrecioOriginalTotal.toLocaleString('es-CO')}).\n\nSe requiere un pago adicional de $${diferencia.toLocaleString('es-CO')}. ¿Deseas continuar?`;
+
+        }
+
+        else if (diferencia < 0) {
+
+            confirmMsg =
+                `El nuevo total es $${nuevoTotal.toLocaleString('es-CO')} (antes $${editPrecioOriginalTotal.toLocaleString('es-CO')}).\n\nSe devolverá $${Math.abs(diferencia).toLocaleString('es-CO')} a tu cuenta registrada. ¿Deseas continuar?`;
+
+        }
+
+
+        if (!confirm(confirmMsg))
+            return;
+
+
+        fetch(
+            `/reservas/editar/${id}/`,
+            {
+
+                method: 'POST',
+
+                headers: {
+
+                    'Content-Type':
+                        'application/json',
+
+                    'X-CSRFToken':
+                        getCSRF()
+
+                },
+
+
+                body: JSON.stringify({
+
+                    nombre:
+                        document.getElementById(
+                            'editNombre'
+                        ).value,
+
+                    correo:
+                        document.getElementById(
+                            'editCorreo'
+                        ).value,
+
+                    telefono:
+                        document.getElementById(
+                            'editTelefono'
+                        ).value,
+
+                    fecha,
+
+                    hora:
+                        horasOrdenadas[0],
+
+                    horas:
+                        horasOrdenadas,
+
+                    cancha,
+
+                    duracion:
+                        calcularDuracionTexto(
+                            horasOrdenadas.length
+                        ),
+
+                    diferencia_pago:
+                        diferencia
+
+                })
+
+            }
+        )
+
+            .then(r =>
+                r.json()
+            )
+
+            .then(data => {
+
+                if (
+                    data.status === 'ok'
+                ) {
+
+                    if (
+                        diferencia > 0
+                    ) {
+
+                        window.location.href =
+                            "{% url 'pago' %}";
+
+                    } else {
+
+                        location.reload();
+
+                    }
+
+                } else {
+
+                    mostrarModal(
+                        'No se pudo actualizar',
+                        data.mensaje ||
+                        'Error al actualizar.'
+                    );
+
+                }
+
+            });
+
+    }
+
+
+
+    // ── UTILIDADES ─────────────────────────────────────────
+
+    function getCSRF() {
+
+        const c =
+            document.cookie
+                .split(';')
+                .find(
+                    c =>
+                        c.trim()
+                            .startsWith(
+                                'csrftoken='
+                            )
+                );
+
+
+        return c
+            ?
+            decodeURIComponent(
+                c.split('=')[1]
+            )
+            :
+            '';
+
+    }
+
+
+
+    function mostrarModal(
+        titulo,
+        cuerpo
+    ) {
+
+        document.getElementById(
+            'modalNotiTitulo'
+        ).textContent =
+            titulo;
+
+
+        document.getElementById(
+            'modalNotiCuerpo'
+        ).textContent =
+            cuerpo;
+
+
+        new bootstrap.Modal(
+            document.getElementById(
+                'modalNotificacion'
+            )
+        ).show();
+
+    }
+
+
+
+    // ── INICIO ─────────────────────────────────────────────
+
+    initFlatpickr();
+
+
+    if (PRESELECCIONAR_ID) {
+
+        renderCanchaFija();
+
+    } else {
+
+        renderCanchas();
+
+    }
+
+
+    actualizarResumen();
+
+</script>
+
+
+<script src="{% static 'js/theme.js' %}"></script>
+```
 
 </body>
 

@@ -35,6 +35,18 @@ body.adm-body {
     padding: 0.5rem 1rem !important;
 }
 
+/* En tu archivo admi.css */
+.cancha-nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000; /* asegura que quede por encima del contenido */
+}
+main {
+  margin-top: 120px; /* ajusta según la altura del navbar */
+}
+
+
 .logo-text {
     font-weight: 800;
     font-size: 2rem;
