@@ -16,8 +16,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MERCADO_PAGO_ACCESS_TOKEN = os.getenv("MERCADOPAGO_ACCESS_TOKEN")
-MERCADO_PAGO_PUBLIC_KEY = os.getenv("MERCADOPAGO_PUBLIC_KEY")
+MERCADOPAGO_ACCESS_TOKEN = os.getenv('MERCADOPAGO_ACCESS_TOKEN')
+MERCADOPAGO_PUBLIC_KEY = os.getenv('MERCADOPAGO_PUBLIC_KEY')
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -31,8 +31,17 @@ SECRET_KEY = 'django-insecure-gskha0x&htkj_cd7fxv^$dc8pbfy@8+(31ou)_+q3h=@lcs@1)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    'primp-raft-cape.ngrok-free.dev',   # 🔥 Tu URL de ngrok (sin https://)
+]
+CSRF_TRUSTED_ORIGINS = [
+    'https://primp-raft-cape.ngrok-free.dev',
+]
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = False
 
 # Application definition
 

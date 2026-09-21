@@ -2,6 +2,7 @@ import json
 import mercadopago
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import EmailMultiAlternatives
@@ -16,7 +17,6 @@ from gestion_canchas.models import Cancha
 # CONSTANTES Y FUNCIONES AUXILIARES
 # =================================================================
 
-# Debe coincidir exactamente con el arreglo HORAS del frontend (formulario.html).
 HORAS_VALIDAS = [
     '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
     '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
@@ -25,21 +25,16 @@ HORAS_VALIDAS = [
 
 
 def _horas_son_consecutivas(horas):
-    """
-    Valida que una lista de horas 'HH:MM' sea un rango continuo dentro
-    de HORAS_VALIDAS, sin saltos (ej: ["10:00","11:00","12:00"] es válido,
-    ["10:00","13:00"] no lo es). También rechaza horas fuera de HORAS_VALIDAS
-    o listas con duplicados.
-    """
+    """Valida que las horas sean consecutivas y sin duplicados."""
     if not horas:
         return False
     if len(set(horas)) != len(horas):
-        return False  # duplicados
+        return False
 
     try:
         indices = sorted(HORAS_VALIDAS.index(h) for h in horas)
     except ValueError:
-        return False  # alguna hora no está en la lista permitida
+        return False
 
     for i in range(1, len(indices)):
         if indices[i] != indices[i - 1] + 1:
@@ -48,17 +43,13 @@ def _horas_son_consecutivas(horas):
 
 
 def _sincronizar_todas(queryset):
-    """Recorre un queryset y sincroniza el estado de cada reserva (confirmada -> completada si ya pasó)."""
+    """Sincroniza el estado de cada reserva (confirmada -> completada si ya pasó)."""
     for r in queryset:
         r.sincronizar_estado()
 
 
 def _horas_ocupadas(cancha, fecha, excluir_id=None):
-    """
-    Devuelve un set con TODAS las horas 'HH:MM' ocupadas para una cancha+fecha,
-    considerando el campo 'horas' (o 'hora' como fallback para reservas viejas).
-    Ignora reservas canceladas.
-    """
+    """Devuelve un set con todas las horas ocupadas para una cancha+fecha."""
     qs = Reserva.objects.filter(cancha=cancha, fecha=fecha).exclude(estado=Reserva.ESTADO_CANCELADA)
     if excluir_id is not None:
         qs = qs.exclude(id=excluir_id)
@@ -78,10 +69,8 @@ def pagina_reservas(request):
 
 
 def reservas(request, cancha_id=None):
-    # Se excluyen las canceladas: así el calendario público (RESERVAS_BD en el
-    # template) nunca las ve como ocupadas y las horas quedan libres de inmediato.
     todas = Reserva.objects.exclude(estado=Reserva.ESTADO_CANCELADA).order_by('-id')
-    _sincronizar_todas(todas)  # actualiza estados vencidos antes de mostrar el calendario
+    _sincronizar_todas(todas)
 
     canchas = Cancha.objects.filter(disponible=True)
 
@@ -92,9 +81,6 @@ def reservas(request, cancha_id=None):
 
     tiene_reserva_activa = False
     if usuario:
-        # "Activa" = pendiente (aún no pagada) o confirmada (ya pagada).
-        # Antes solo se revisaba 'confirmada', lo que permitía crear
-        # una segunda reserva mientras la primera seguía 'pendiente'.
         tiene_reserva_activa = Reserva.objects.filter(
             correo=usuario.email,
             estado__in=[Reserva.ESTADO_PENDIENTE, Reserva.ESTADO_CONFIRMADA],
@@ -118,8 +104,6 @@ def crear_reserva(request):
     try:
         usuario = Usuario.objects.get(id=usuario_id)
 
-        # "Activa" = pendiente o confirmada. Esta es la validación real de
-        # backend (la del frontend en reservas() solo controla la UI).
         ya_tiene_activa = Reserva.objects.filter(
             correo=usuario.email,
             estado__in=[Reserva.ESTADO_PENDIENTE, Reserva.ESTADO_CONFIRMADA],
@@ -150,9 +134,6 @@ def crear_reserva(request):
                 status=409
             )
 
-        # Nota: con la validación de arriba (ya_tiene_activa) esta línea ya no
-        # debería tener nada que cancelar en la práctica, pero se deja como
-        # medida de seguridad redundante por si quedara alguna pendiente suelta.
         Reserva.objects.filter(
             correo=usuario.email,
             estado=Reserva.ESTADO_PENDIENTE,
@@ -184,7 +165,7 @@ def editar_reserva(request, id):
 
         if not reserva.puede_editarse:
             return JsonResponse(
-                {"status": "error", "mensaje": "Esta reserva ya no se puede editar (está completada, cancelada o ya pasó su fecha)."},
+                {"status": "error", "mensaje": "Esta reserva ya no se puede editar."},
                 status=403
             )
 
@@ -229,9 +210,6 @@ def editar_reserva(request, id):
         return JsonResponse({"status": "error", "mensaje": str(e)}, status=400)
 
 
-# NOTA: eliminar_reserva y eliminar_reserva_perfil se eliminaron a propósito.
-# Ninguna reserva se puede borrar nunca, sin excepción.
-
 @require_POST
 def cancelar_reserva_perfil(request, id):
     usuario_id = request.session.get('usuario_id')
@@ -246,8 +224,6 @@ def cancelar_reserva_perfil(request, id):
 
     reserva.sincronizar_estado()
 
-    # Solo se puede cancelar si todavía se podría editar
-    # (pendiente/confirmada y la fecha no ha pasado)
     if not reserva.puede_editarse:
         return redirect('perfil')
 
@@ -255,19 +231,13 @@ def cancelar_reserva_perfil(request, id):
     detalle = request.POST.get('motivo_detalle', '').strip()
     motivos_validos = dict(Reserva.MOTIVOS_CANCELACION)
 
-    # Si el formulario no manda motivo válido, no cancelamos nada
-    # y devolvemos al perfil (evita cancelaciones "silenciosas" sin motivo).
     if motivo not in motivos_validos:
         return redirect('perfil')
 
     if motivo == 'otro' and len(detalle) < 10:
         return redirect('perfil')
 
-    # cancelar() cambia el estado a 'cancelada' y guarda motivo/detalle/fecha.
-    # Al quedar 'cancelada', _horas_ocupadas() la excluye automáticamente
-    # y las horas quedan libres en el calendario de inmediato.
     reserva.cancelar(motivo=motivo, detalle=detalle, por='usuario')
-
     _enviar_correo_cancelacion(reserva)
 
     return redirect('perfil')
@@ -307,7 +277,6 @@ def _enviar_correo_cancelacion(reserva):
 
 
 def pago(request):
-    """Vista que muestra el resumen de la reserva y el botón de Mercado Pago."""
     reserva_id = request.session.get("reserva_pendiente_id")
     reserva = None
     total = 0
@@ -327,10 +296,6 @@ def pago(request):
 
 @require_POST
 def confirmar_pago(request):
-    """
-    Vista de confirmación de pago (simulada o para abonos).
-    Se mantiene por si se usa con la pasarela anterior.
-    """
     reserva_id = request.session.get("reserva_pendiente_id")
     if not reserva_id:
         return JsonResponse({"status": "error", "mensaje": "No hay reserva pendiente"}, status=400)
@@ -343,11 +308,7 @@ def confirmar_pago(request):
         return JsonResponse({"status": "error", "mensaje": "Tipo de pago inválido"}, status=400)
 
     total = reserva.calcular_total()
-
-    if tipo_pago == Reserva.TIPO_PAGO_ABONO:
-        monto_a_pagar = reserva.calcular_abono_50()
-    else:
-        monto_a_pagar = total
+    monto_a_pagar = reserva.calcular_abono_50() if tipo_pago == Reserva.TIPO_PAGO_ABONO else total
 
     reserva.metodo_pago = data.get("metodo_pago", "Simulado")
     reserva.precio_total = total
@@ -359,8 +320,8 @@ def confirmar_pago(request):
     reserva.save()
 
     enviar_correo_confirmacion(reserva)
-
-    del request.session["reserva_pendiente_id"]
+    if "reserva_pendiente_id" in request.session:
+        del request.session["reserva_pendiente_id"]
 
     return JsonResponse({
         "status": "ok",
@@ -448,20 +409,20 @@ def editar_reserva_perfil(request, id):
 # =================================================================
 # VISTAS PARA MERCADO PAGO
 # =================================================================
+
 @csrf_exempt
 def crear_preferencia_mercadopago(request, reserva_id):
     """
     Crea una preferencia de pago en Mercado Pago y redirige al usuario.
-    """
 
+    - En local (127.0.0.1/localhost): URLs con http://, sin auto_return.
+    - En ngrok/producción: URLs con https://, con auto_return.
+    """
     if not request.session.get('usuario_id'):
         return redirect('login')
 
     reserva = get_object_or_404(Reserva, id=reserva_id)
-    usuario = get_object_or_404(
-        Usuario,
-        id=request.session['usuario_id']
-    )
+    usuario = get_object_or_404(Usuario, id=request.session['usuario_id'])
 
     if reserva.correo != usuario.email:
         return redirect('perfil')
@@ -469,12 +430,11 @@ def crear_preferencia_mercadopago(request, reserva_id):
     if reserva.estado == 'confirmada':
         return redirect('pago_exitoso_mp')
 
-    sdk = mercadopago.SDK(
-        settings.MERCADO_PAGO_ACCESS_TOKEN
-    )
+    # Configurar SDK
+    sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
 
+    # Monto a pagar (completo o abono 50%)
     monto_a_pagar = request.POST.get('monto_a_pagar')
-
     if monto_a_pagar:
         try:
             total = float(monto_a_pagar)
@@ -484,23 +444,30 @@ def crear_preferencia_mercadopago(request, reserva_id):
         total = float(reserva.calcular_total())
 
     total = int(total)
+    tipo_pago = request.POST.get('tipo_pago', 'completo')
 
-    tipo_pago = request.POST.get(
-        'tipo_pago',
-        'completo'
-    )
-
+    # 🔥 Detectar si estamos en local o en ngrok
     dominio = request.build_absolute_uri('/').rstrip('/')
+    es_local = ('127.0.0.1' in dominio) or ('localhost' in dominio)
 
-    success_url = f"{dominio}/reservas/mp/exito/"
-    failure_url = f"{dominio}/reservas/mp/cancelado/"
-    pending_url = f"{dominio}/reservas/mp/cancelado/"
+    # Construir URLs con el protocolo correcto
+    success_url = request.build_absolute_uri(reverse('pago_exitoso_mp'))
+    failure_url = request.build_absolute_uri(reverse('pago_cancelado_mp'))
+    pending_url = request.build_absolute_uri(reverse('pago_cancelado_mp'))
 
+    # Si NO es local, forzar https:// (Mercado Pago lo exige para auto_return)
+    if not es_local:
+        success_url = success_url.replace('http://', 'https://')
+        failure_url = failure_url.replace('http://', 'https://')
+        pending_url = pending_url.replace('http://', 'https://')
+
+    # Guardar datos en sesión para el retorno
     request.session['reserva_pendiente_id'] = reserva.id
     request.session['tipo_pago'] = tipo_pago
     request.session['monto_pagado'] = total
     request.session.modified = True
 
+    # Armar preferencia
     preference_data = {
         "items": [
             {
@@ -515,21 +482,17 @@ def crear_preferencia_mercadopago(request, reserva_id):
                 "unit_price": total,
             }
         ],
-
         "payer": {
             "email": usuario.email,
             "name": usuario.first_name or "Cliente",
             "surname": usuario.last_name or "CanchaFácil",
         },
-
         "back_urls": {
             "success": success_url,
             "failure": failure_url,
             "pending": pending_url,
         },
-
         "external_reference": str(reserva.id),
-
         "metadata": {
             "reserva_id": str(reserva.id),
             "tipo_pago": tipo_pago,
@@ -537,19 +500,20 @@ def crear_preferencia_mercadopago(request, reserva_id):
         }
     }
 
+    # 🔥 Solo agregar auto_return cuando NO estamos en local
+    if not es_local:
+        preference_data["auto_return"] = "approved"
+
+    # Crear preferencia en Mercado Pago
     try:
         result = sdk.preference().create(preference_data)
-
         response = result.get('response', {})
 
         if 'id' not in response:
-            error_msg = response.get(
-                'message',
-                'Error desconocido de Mercado Pago'
-            )
-
+            error_msg = response.get('message', 'Error desconocido de Mercado Pago')
             return HttpResponse(
-                f"Error de Mercado Pago: {error_msg}",
+                f"Error de Mercado Pago: {error_msg}<br><br>"
+                f"Respuesta: <pre>{json.dumps(response, indent=2, default=str)}</pre>",
                 status=400
             )
 
@@ -559,14 +523,14 @@ def crear_preferencia_mercadopago(request, reserva_id):
         return redirect(response['init_point'])
 
     except Exception as e:
-        return HttpResponse(
-            f"Error al crear preferencia: {e}",
-            status=400
-        )
+        return HttpResponse(f"Error al crear preferencia: {e}", status=400)
+
 
 def pago_exitoso_mp(request):
+    """Vista a la que Mercado Pago redirige después de un pago exitoso."""
     reserva_id = request.session.get("reserva_pendiente_id")
     reserva = None
+
     if reserva_id:
         try:
             reserva = Reserva.objects.get(id=reserva_id)
@@ -577,6 +541,7 @@ def pago_exitoso_mp(request):
                     reserva.precio_total = reserva.calcular_total()
                 reserva.numero_factura = f"FAC-{reserva.id:06d}"
                 reserva.save()
+                enviar_correo_confirmacion(reserva)
         except Reserva.DoesNotExist:
             pass
 
@@ -584,19 +549,13 @@ def pago_exitoso_mp(request):
 
 
 def pago_cancelado_mp(request):
-    """
-    Vista a la que redirige Mercado Pago si el usuario cancela el pago.
-    """
+    """Vista a la que Mercado Pago redirige si el usuario cancela."""
     return render(request, 'pagos/cancelado.html')
 
 
 @csrf_exempt
 def webhook_mercadopago(request):
-    """
-    Recibe las notificaciones de Mercado Pago
-    y confirma la reserva cuando el pago es aprobado.
-    """
-
+    """Webhook para notificaciones de Mercado Pago."""
     if request.method != 'POST':
         return HttpResponse(status=405)
 
@@ -607,57 +566,31 @@ def webhook_mercadopago(request):
             return HttpResponse(status=200)
 
         payment_id = data.get('data', {}).get('id')
-
         if not payment_id:
             return HttpResponse(status=200)
 
-        sdk = mercadopago.SDK(
-            settings.MERCADO_PAGO_ACCESS_TOKEN
-        )
-
+        sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
         payment_info = sdk.payment().get(payment_id)
         payment = payment_info.get('response', {})
 
         if payment.get('status') == 'approved':
-
-            external_reference = payment.get(
-                'external_reference'
-            )
-
+            external_reference = payment.get('external_reference')
             if external_reference:
-
                 try:
-                    reserva = Reserva.objects.get(
-                        id=external_reference
-                    )
-
+                    reserva = Reserva.objects.get(id=external_reference)
                     if reserva.estado != 'confirmada':
-
                         reserva.estado = 'confirmada'
                         reserva.metodo_pago = 'Mercado Pago'
-
-                        reserva.precio_total = (
-                            payment.get(
-                                'transaction_amount',
-                                reserva.calcular_total()
-                            )
-                        )
-
-                        reserva.numero_factura = (
-                            f"FAC-{reserva.id:06d}"
-                        )
-
+                        reserva.precio_total = payment.get('transaction_amount', reserva.calcular_total())
+                        reserva.numero_factura = f"FAC-{reserva.id:06d}"
                         reserva.save()
-
+                        enviar_correo_confirmacion(reserva)
                 except Reserva.DoesNotExist:
                     pass
 
     except json.JSONDecodeError:
         return HttpResponse(status=400)
-
     except Exception as e:
-        print(
-            f"Error en webhook Mercado Pago: {e}"
-        )
+        print(f"Error en webhook Mercado Pago: {e}")
 
     return HttpResponse(status=200)
