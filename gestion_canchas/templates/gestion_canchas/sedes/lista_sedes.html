@@ -38,13 +38,8 @@
                             Sedes
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="{% url 'gestion_canchas:cancha_admin' %}" class="btn btn-custom rounded-pill">
-                            Canchas
-                        </a>
-                    </li>
                     <li class="nav-item ms-3">
-                        <a href="{% url 'logout_admin' %}" class="btn btn-salir rounded-pill fw-bold py-2 px-4">
+                        <a href="{% url 'logout' %}" class="btn btn-salir rounded-pill fw-bold py-2 px-4">
                             Salir
                         </a>
                     </li>
@@ -61,7 +56,7 @@
                 <h2 class="fw-bold mb-0">
                     <i class="bi bi-building me-2" style="color:#62ff00;"></i>Gestión de Sedes
                 </h2>
-                <small class="text-muted">{{ sedes.count }} sede{{ sedes.count|pluralize }} registrada{{ sedes.count|pluralize }}</small>
+                <small>{{ sedes.count }} sede{{ sedes.count|pluralize }} registrada{{ sedes.count|pluralize }}</small>
             </div>
             <button class="btn fw-bold rounded-pill px-4 py-2"
                     style="background-color:#62ff00; color:black;"
@@ -85,7 +80,7 @@
             {% for sede in sedes %}
             <div class="col-md-6 col-lg-4">
                 <div class="card h-100 border-0 shadow-lg"
-                     style="background-color:#03045e; color:white;
+                    style="background-color:#03045e; color:white;
                             border-left: 4px solid {% if sede.activa %}#62ff00{% else %}#dc3545{% endif %} !important;">
                     <div class="card-body">
 
@@ -121,11 +116,11 @@
                         <div class="d-flex gap-2 flex-wrap">
                             <span class="badge rounded-pill"
                                   style="background-color:#62ff00; color:black; font-size:.8rem;">
-                                ⚽ {{ sede.canchas.count }}
+                                 {{ sede.canchas.count }}
                                 cancha{{ sede.canchas.count|pluralize }}
                             </span>
                             <span class="badge rounded-pill bg-success" style="font-size:.8rem;">
-                                ✅ {{ sede.canchas.filter.disponible }} disponibles
+                                 {{ sede.canchas.filter.disponible }} disponibles
                             </span>
                         </div>
                     </div>

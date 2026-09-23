@@ -14,50 +14,41 @@
 <body class="adm-body bg-dark text-white min-vh-100">
 
   <!-- Navbar -->
+  <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark shadow cancha-nav">
-    <div class="container">
-      <div class="d-flex align-items-center">
-        <img src="{% static 'img/logo-green.png' %}" style="height:90px;object-fit:contain;" alt="Logo" />
-        <a class="navbar-brand fw-bold ms-2 m-0 logo-text" href="#" style="font-size:2rem;color:white;">
+    <div class="container-fluid">
+      <div class="d-flex align-items-center ms-5">
+        <img src="{% static 'img/logo-green.png' %}" style="height:90px;object-fit:contain;" alt="Logo">
+        <a class="navbar-brand fw-bold ms-2 m-0 logo-text" href="#" style="font-size:2rem;color:#fff;">
           Cancha<span style="color:#62ff00;">Fácil</span>
         </a>
       </div>
-      <div class="d-flex align-items-center gap-3">
-        <span class="text-white fw-semibold">
-          {{ request.session.admin_nombre }}
-        </span>
-        <a href="{% url 'logout' %}" class="btn btn-salir rounded-pill fw-bold py-2 px-4">Salir</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end me-5" id="menuNav">
+        <ul class="nav navbar-nav gap-2 align-items-center">
+          <li class="nav-item">
+            <a href="{% url 'lista_usuarios' %}" class="btn btn-custom rounded-pill" style="background-color:#62ff00; color:black;">
+              Usuarios
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'gestion_canchas:lista_sedes' %}" class="btn btn-custom fw-bold">
+              Sedes
+            </a>
+          </li>
+          <li class="nav-item ms-3">
+            <a href="{% url 'logout' %}" class="btn btn-salir rounded-pill fw-bold py-2 px-4">
+              Salir
+            </a>
+          </li>
+        </ul>
       </div>
     </div>
   </nav>
 
   <div class="container mt-4">
-
-    <!-- Tabs de navegación -->
-    <ul class="nav nav-tabs mb-4" id="adminTabs" style="border-bottom: 2px solid #62ff00;">
-      <li class="nav-item">
-        <a class="nav-link {% if tab == 'usuarios' or not tab %}active{% endif %}" href="{% url 'lista_usuarios' %}"
-          style="color: #62ff00; background: transparent; border: none;
-                          {% if tab == 'usuarios' or not tab %}border-bottom: 3px solid #62ff00;{% endif %}">
-          Usuarios
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link {% if tab == 'sedes' %}active{% endif %}" href="{% url 'gestion_canchas:lista_sedes' %}"
-          style="color: #62ff00; background: transparent; border: none;
-                          {% if tab == 'sedes' %}border-bottom: 3px solid #62ff00;{% endif %}">
-          Sedes
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link {% if tab == 'canchas' %}active{% endif %}" href="{% url 'gestion_canchas:cancha_admin' %}"
-          style="color: #62ff00; background: transparent; border: none;
-                          {% if tab == 'canchas' %}border-bottom: 3px solid #62ff00;{% endif %}">
-          Canchas
-        </a>
-      </li>
-    </ul>
-
     <!-- Encabezado + botón crear -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2 class="fw-bold m-0">Lista de Usuarios</h2>

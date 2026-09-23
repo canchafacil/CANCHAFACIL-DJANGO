@@ -214,7 +214,7 @@ def editar_reserva(request, id):
 def cancelar_reserva_perfil(request, id):
     usuario_id = request.session.get('usuario_id')
     if not usuario_id:
-        return redirect('login_admin')
+        return redirect('login')
 
     usuario = get_object_or_404(Usuario, id=usuario_id)
     reserva = get_object_or_404(Reserva, id=id)
@@ -379,7 +379,7 @@ def enviar_correo_confirmacion(reserva):
 def editar_reserva_perfil(request, id):
     usuario_id = request.session.get('usuario_id')
     if not usuario_id:
-        return redirect('login_admin')
+        return redirect('login')
 
     usuario = get_object_or_404(Usuario, id=usuario_id)
     reserva = get_object_or_404(Reserva, id=id)

@@ -39,7 +39,7 @@ def canchas(request):
 
 def cancha_admin(request):
     if not es_admin(request):
-        return redirect('login_admin')
+        return redirect('logout')
 
     canchas = Cancha.objects.all().order_by('-creada')
     sedes = Sede.objects.filter(activa=True).order_by('nombre')
@@ -53,7 +53,7 @@ def cancha_admin(request):
 
 def agregar_cancha(request):
     if not es_admin(request):
-        return redirect('login_admin')
+        return redirect('logout')
 
     if request.method == 'POST':
         form = CanchaForm(request.POST, request.FILES)
@@ -76,7 +76,7 @@ def agregar_cancha(request):
 
 def editar_cancha(request, id):
     if not es_admin(request):
-        return redirect('login_admin')
+        return redirect('logout')
 
     cancha = get_object_or_404(Cancha, id=id)
 
@@ -98,7 +98,7 @@ def editar_cancha(request, id):
 
 def eliminar_cancha(request, id):
     if not es_admin(request):
-        return redirect('login_admin')
+        return redirect('logout')
     get_object_or_404(Cancha, id=id).delete()
     return redirect('gestion_canchas:cancha_admin')
 
@@ -106,17 +106,24 @@ def eliminar_cancha(request, id):
 # ==================== SUPERADMIN — SEDES ====================
 
 def lista_sedes(request):
+
     if not es_superadmin(request):
-        return redirect('login_admin')
+        return redirect('login')
+
     sedes = Sede.objects.prefetch_related('canchas').all()
-    return render(request, 'gestion_canchas/sedes/lista_sedes.html', {
-        'sedes': sedes,
-    })
+
+    return render(
+        request,
+        'gestion_canchas/sedes/lista_sedes.html',
+        {
+            'sedes': sedes,
+        }
+    )
 
 
 def crear_sede(request):
     if not es_superadmin(request):
-        return redirect('login_admin')
+        return redirect('logout')
 
     if request.method == 'POST':
         nombre    = request.POST.get('nombre', '').strip()
@@ -146,15 +153,18 @@ def crear_sede(request):
 
 def editar_sede(request, id):
     if not es_superadmin(request):
-        return redirect('login_admin')
+        return redirect('login')
+
     sede = get_object_or_404(Sede, id=id)
 
     if request.method == 'POST':
-        sede.nombre    = request.POST.get('nombre', sede.nombre)
-        sede.direccion = request.POST.get('direccion', sede.direccion)
-        sede.ciudad    = request.POST.get('ciudad', sede.ciudad)
-        sede.telefono  = request.POST.get('telefono', sede.telefono)
+        sede.nombre = request.POST.get('nombre', '').strip()
+        sede.direccion = request.POST.get('direccion', '').strip()
+        sede.ciudad = request.POST.get('ciudad', '').strip()
+        sede.telefono = request.POST.get('telefono', '').strip()
+
         sede.save()
+
         return redirect('gestion_canchas:lista_sedes')
 
     return render(request, 'gestion_canchas/sedes/editar_sede.html', {
@@ -164,14 +174,14 @@ def editar_sede(request, id):
 
 def eliminar_sede(request, id):
     if not es_superadmin(request):
-        return redirect('login_admin')
+        return redirect('logout')
     get_object_or_404(Sede, id=id).delete()
     return redirect('gestion_canchas:lista_sedes')
 
 
 def toggle_sede(request, id):
     if not es_superadmin(request):
-        return redirect('login_admin')
+        return redirect('logout')
     sede = get_object_or_404(Sede, id=id)
     sede.activa = not sede.activa
     sede.save()
@@ -180,7 +190,7 @@ def toggle_sede(request, id):
 
 def canchas_por_sede(request, sede_id):
     if not es_superadmin(request):
-        return redirect('login_admin')
+        return redirect('logout')
     sede    = get_object_or_404(Sede, id=sede_id)
     canchas = sede.canchas.all().order_by('-creada')
     return render(request, 'gestion_canchas/sedes/canchas_sede.html', {
