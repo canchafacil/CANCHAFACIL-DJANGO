@@ -1,4 +1,3 @@
-from urllib import request
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.template.loader import render_to_string
@@ -11,31 +10,29 @@ from comunidad.models import PartidoAbierto, Reto
 import random
 
 
+# ---------------------------------------------------------------------
+# REGISTRO
+# ---------------------------------------------------------------------
+
 def registro(request):
-
     if request.method == 'POST':
-
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
         email = request.POST.get('email')
         phone = request.POST.get('phone')
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
-        rol='CLIENTE'
+        rol = 'CLIENTE'
 
         if password != confirm_password:
-            return render(
-                request,
-                'usuarios/registro.html',
-                {'error': 'Las contraseñas no coinciden'}
-            )
+            return render(request, 'usuarios/registro.html', {
+                'error': 'Las contraseñas no coinciden'
+            })
 
         if Usuario.objects.filter(email=email).exists():
-            return render(
-            request,
-            'usuarios/registro.html',
-            {'error': 'Este correo ya está registrado'}
-    )
+            return render(request, 'usuarios/registro.html', {
+                'error': 'Este correo ya está registrado'
+            })
 
         Usuario.objects.create(
             first_name=first_name,
@@ -50,68 +47,61 @@ def registro(request):
 
     return render(request, 'usuarios/registro.html')
 
+
+# ---------------------------------------------------------------------
+# LOGIN (único para CLIENTE, ADMIN y SUPERADMIN)
+# ---------------------------------------------------------------------
+
 def login_view(request):
-
     if request.method == 'POST':
-
         email = request.POST.get('email', '').strip().lower()
         password = request.POST.get('password', '')
 
         usuario = Usuario.objects.filter(email__iexact=email).first()
 
         if usuario is None:
-            return render(
-                request,
-                'usuarios/login.html',
-                {
-                    'error': 'El correo no está registrado.'
-                }
-            )
+            return render(request, 'usuarios/login.html', {
+                'error': 'El correo no está registrado.'
+            })
 
         if usuario.password != password:
-            return render(
-                request,
-                'usuarios/login.html',
-                {
-                    'error': 'La contraseña es incorrecta.'
-                }
-            )
+            return render(request, 'usuarios/login.html', {
+                'error': 'La contraseña es incorrecta.'
+            })
 
         if not usuario.activo:
-            return render(
-                request,
-                'usuarios/login.html',
-                {
-                    'error': 'Tu cuenta está deshabilitada. Contacta con el Superadministrador.'
-                }
-            )
+            return render(request, 'usuarios/login.html', {
+                'error': 'Tu cuenta está deshabilitada. Contacta con el Superadministrador.'
+            })
 
+        # Sesión genérica para todos los roles
         request.session['usuario_id'] = usuario.id
         request.session['rol'] = usuario.rol
         request.session['nombre'] = usuario.first_name
         request.session['correo'] = usuario.email
 
+        # Redirección según rol
         if usuario.rol == 'SUPERADMIN':
             return redirect('lista_usuarios')
-
         elif usuario.rol == 'ADMIN':
             return redirect('panel_principal')
-
         else:
             return redirect('inicio')
+
     return render(request, 'usuarios/login.html')
 
+
+# ---------------------------------------------------------------------
+# RECUPERACIÓN DE CONTRASEÑA
+# ---------------------------------------------------------------------
+
 def recuperar_contra(request):
-
     if request.method == 'POST':
-
         email = request.POST.get('email')
 
         try:
-
             usuario = Usuario.objects.get(email=email)
-
-            codigo = random.randint(100000,999999)
+            codigo = random.randint(100000, 999999)
 
             request.session['codigo'] = codigo
             request.session['correo'] = email
@@ -135,40 +125,29 @@ No compartas este código con nadie.
             return redirect('verificar_codigo')
 
         except Usuario.DoesNotExist:
+            return render(request, 'usuarios/recuperar_contra.html', {
+                'error': 'No existe una cuenta con ese correo.'
+            })
 
-            return render(
-                request,
-                'usuarios/recuperar_contra.html',
-                {
-                    'error':'No existe una cuenta con ese correo.'
-                }
-            )
+    return render(request, 'usuarios/recuperar_contra.html')
 
-    return render(
-        request,
-        'usuarios/recuperar_contra.html'
-    )
 
 def verificar_codigo(request):
-
     if request.method == 'POST':
-
         codigo_ingresado = request.POST.get('codigo')
         codigo_guardado = str(request.session.get('codigo'))
 
         if codigo_ingresado == codigo_guardado:
             return redirect('cambiar_contra')
 
-        return render(
-            request,
-            'usuarios/verificar_codigo.html',
-            {'error': 'Código incorrecto'}
-        )
+        return render(request, 'usuarios/verificar_codigo.html', {
+            'error': 'Código incorrecto'
+        })
 
     return render(request, 'usuarios/verificar_codigo.html')
 
-def cambiar_contra(request):
 
+def cambiar_contra(request):
     email = request.session.get('correo')
 
     if not email:
@@ -177,19 +156,13 @@ def cambiar_contra(request):
     usuario = Usuario.objects.get(email=email)
 
     if request.method == 'POST':
-
         password = request.POST.get('password')
         confirmar = request.POST.get('confirmar')
 
         if password != confirmar:
-
-            return render(
-                request,
-                'usuarios/cambiar_contra.html',
-                {
-                    'error': 'Las contraseñas no coinciden'
-                }
-            )
+            return render(request, 'usuarios/cambiar_contra.html', {
+                'error': 'Las contraseñas no coinciden'
+            })
 
         usuario.password = password
         usuario.save()
@@ -199,67 +172,12 @@ def cambiar_contra(request):
 
         return redirect('login')
 
-    return render(
-        request,
-        'usuarios/cambiar_contra.html'
-    )
+    return render(request, 'usuarios/cambiar_contra.html')
 
-def login_admin(request):
 
-    if request.method == 'POST':
-
-        email = request.POST.get('email', '').strip().lower()
-        password = request.POST.get('password', '')
-
-        usuario = Usuario.objects.filter(email__iexact=email).first()
-
-        if usuario is None:
-            return render(
-                request,
-                'usuarios/login_admin.html',
-                {
-                    'error': 'El correo no está registrado.'
-                }
-            )
-
-        if usuario.password != password:
-            return render(
-                request,
-                'usuarios/login_admin.html',
-                {
-                    'error': 'La contraseña es incorrecta.'
-                }
-            )
-
-        if not usuario.activo:
-            return render(
-                request,
-                'usuarios/login_admin.html',
-                {
-                    'error': 'Tu cuenta está deshabilitada. Contacta con el Superadministrador.'
-                }
-            )
-
-        if usuario.rol not in ('ADMIN', 'SUPERADMIN'):
-            return render(
-                request,
-                'usuarios/login_admin.html',
-                {
-                    'error': 'Esta cuenta no tiene permisos de administrador.'
-                }
-            )
-
-        request.session['admin_id'] = usuario.id
-        request.session['admin_rol'] = usuario.rol
-        request.session['admin_nombre'] = usuario.first_name
-        request.session['admin_correo'] = usuario.email
-
-        if usuario.rol == 'SUPERADMIN':
-            return redirect('lista_usuarios')
-
-        return redirect('panel_principal')
-
-    return render(request, 'usuarios/login_admin.html')
+# ---------------------------------------------------------------------
+# LOGOUT (uno solo para todos los roles)
+# ---------------------------------------------------------------------
 
 def logout_view(request):
     request.session.pop('usuario_id', None)
@@ -268,39 +186,39 @@ def logout_view(request):
     request.session.pop('correo', None)
     return redirect('inicio')
 
-def logout_admin(request):
-    request.session.pop('admin_id', None)
-    request.session.pop('admin_rol', None)
-    request.session.pop('admin_nombre', None)
-    request.session.pop('admin_correo', None)
-    return redirect('login_admin')
+
+# ---------------------------------------------------------------------
+# LISTA DE USUARIOS (solo SUPERADMIN)
+# ---------------------------------------------------------------------
 
 def lista_usuarios(request):
-
-    if request.session.get('admin_rol') != 'SUPERADMIN':
+    if request.session.get('rol') != 'SUPERADMIN':
         return redirect('inicio')
 
     usuarios = Usuario.objects.all()
 
-    return render(
-        request,
-        'usuarios/lista_usuarios.html',
-        {'usuarios': usuarios}
-    )
+    return render(request, 'usuarios/lista_usuarios.html', {
+        'usuarios': usuarios
+    })
+
 
 def eliminar_usuario(request, id):
+    if request.session.get('rol') != 'SUPERADMIN':
+        return redirect('inicio')
 
     usuario = Usuario.objects.get(id=id)
     usuario.delete()
 
     return redirect('lista_usuarios')
 
+
 def editar_usuario(request, id):
+    if request.session.get('rol') != 'SUPERADMIN':
+        return redirect('inicio')
 
     usuario = Usuario.objects.get(id=id)
 
     if request.method == 'POST':
-
         usuario.first_name = request.POST.get('first_name')
         usuario.last_name = request.POST.get('last_name')
         usuario.email = request.POST.get('email')
@@ -312,15 +230,13 @@ def editar_usuario(request, id):
 
         return redirect('lista_usuarios')
 
-    return render(
-        request,
-        'usuarios/editar_usuarios.html',
-        {'usuario': usuario}
-    )
+    return render(request, 'usuarios/editar_usuarios.html', {
+        'usuario': usuario
+    })
+
 
 def deshabilitar_usuario(request, id):
-
-    if request.session.get('admin_rol') != 'SUPERADMIN':
+    if request.session.get('rol') != 'SUPERADMIN':
         return redirect('inicio')
 
     usuario = Usuario.objects.get(id=id)
@@ -329,9 +245,9 @@ def deshabilitar_usuario(request, id):
 
     return redirect('lista_usuarios')
 
-def habilitar_usuario(request, id):
 
-    if request.session.get('admin_rol') != 'SUPERADMIN':
+def habilitar_usuario(request, id):
+    if request.session.get('rol') != 'SUPERADMIN':
         return redirect('inicio')
 
     usuario = Usuario.objects.get(id=id)
@@ -353,7 +269,6 @@ ICONOS_JUGADORES = [
 ]
 
 ICONOS_BANDERAS = [
-
     {'nombre': 'Colombia', 'ruta': 'img/colombia.jpg'},
     {'nombre': 'Argentina', 'ruta': 'img/argentina.jpg'},
     {'nombre': 'Brasil', 'ruta': 'img/brasil.jpg'},
@@ -365,10 +280,6 @@ ICONOS_BANDERAS = [
 # ---------------------------------------------------------------------
 
 def _contexto_comunidad(usuario):
-    """
-    Junta lo que el usuario publicó y en lo que participó dentro de
-    Comunidad (partidos abiertos y retos), para mostrarlo en el perfil.
-    """
     partidos_creados = (
         PartidoAbierto.objects
         .filter(creador=usuario)
@@ -514,8 +425,6 @@ def cancelar_reserva_perfil(request, reserva_id):
             'Si eliges "Otro motivo", explica brevemente qué pasó (mínimo 10 caracteres).'
         )
 
-    # Cancela: cambia el estado a 'cancelada', lo que libera automáticamente
-    # las horas en cualquier consulta de disponibilidad que excluya ese estado.
     reserva.cancelar(motivo=motivo, detalle=detalle, por='usuario')
 
     _enviar_correo_cancelacion(reserva)

@@ -11,7 +11,9 @@ body {
     color: #62ff00;
 }
 
-
+body {
+    padding-top: 110px; /* ajusta según la altura real de tu navbar */
+}
 
 .btn-custom {
     background: #03045E;

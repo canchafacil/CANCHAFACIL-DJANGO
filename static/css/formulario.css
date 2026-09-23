@@ -13,6 +13,10 @@
     font-family: 'Bebas Neue', sans-serif;
 }
 
+body {
+    padding-top: 110px !important;
+}
+
 /* ============ NAVBAR ============ */
 .navbar {
     background-color: #03045e !important;

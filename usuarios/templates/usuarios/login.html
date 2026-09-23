@@ -12,10 +12,10 @@
 <body class="d-flex align-items-center justify-content-center min-vh-100">
 
     <div class="login-card p-4 text-center shadow-lg">
-        
+
         <img src="{% static 'img/logo-green.png' %}" alt="Logo de CanchaFácil" class="mb-3 img-fluid" width="90" height="90">
-        
-        <h1 class="h3 mb-4 fw-bold text-white">Iniciar sesión</h1> 
+
+        <h1 class="h3 mb-4 fw-bold text-white">Iniciar sesión</h1>
 
         {% if error %}
         <div id="loginAlert" class="alert alert-danger" role="alert">
@@ -29,7 +29,8 @@
             <div class="mb-3 text-start">
                 <label class="form-label text-white fw-semibold">Correo</label>
                 <input type="email" name="email" class="form-control custom-input bg-dark text-white"
-                    placeholder="Ingrese su Correo" required>
+                    placeholder="Ingrese su Correo" required
+                    value="{{ request.POST.email|default:'' }}">
             </div>
 
             <div class="mb-4 text-start">
@@ -42,11 +43,10 @@
                 Iniciar sesión
             </button>
         </form>
-        
+
         <div class="login-links d-flex flex-column gap-2 mt-3">
             <a href="{% url 'registro' %}" class="text-decoration-none secondary-link"><h6>¿No tienes cuenta? Regístrate</h6></a>
             <a href="{% url 'recuperar_contra' %}" class="text-decoration-none secondary-link"><h6>¿Olvidaste tu contraseña?</h6></a>
-            <a href="{% url 'login_admin' %}" class="text-decoration-none secondary-link fw-semibold"><h6>Inicio administrador</h6></a>
             <a href="{% url 'inicio' %}" class="text-decoration-none secondary-link mt-2"><h6>Volver</h6></a>
         </div>
     </div>
