@@ -224,7 +224,10 @@ def cancelar_reserva_perfil(request, id):
 
     reserva.sincronizar_estado()
 
-    if not reserva.puede_editarse:
+    # Antes usaba reserva.puede_editarse, que también exige que la
+    # fecha/hora no haya pasado. Cancelar no debería depender de eso:
+    # solo importa que la reserva siga en un estado cancelable.
+    if reserva.estado not in (Reserva.ESTADO_PENDIENTE, Reserva.ESTADO_CONFIRMADA):
         return redirect('perfil')
 
     motivo = request.POST.get('motivo_cancelacion', '').strip()

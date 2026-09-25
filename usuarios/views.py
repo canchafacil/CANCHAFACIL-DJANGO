@@ -1,7 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.http import require_POST
-from django.template.loader import render_to_string
-from django.core.mail import send_mail, EmailMultiAlternatives
+from django.core.mail import send_mail
 from django.conf import settings
 from .models import Usuario
 from reservas.models import Reserva
@@ -394,85 +392,3 @@ def editar_perfil(request):
         return redirect('perfil')
 
     return redirect('perfil')
-
-
-# ---------------------------------------------------------------------
-# CANCELACIÓN DE RESERVA (desde el perfil del usuario)
-# ---------------------------------------------------------------------
-
-@require_POST
-def cancelar_reserva_perfil(request, reserva_id):
-    usuario_id = request.session.get('usuario_id')
-    if not usuario_id:
-        return redirect('login')
-
-    usuario = get_object_or_404(Usuario, id=usuario_id)
-    reserva = get_object_or_404(Reserva, id=reserva_id, correo=usuario.email)
-
-    if not reserva.puede_editarse:
-        return render_error_perfil(request, usuario, 'Esta reserva ya no se puede cancelar.')
-
-    motivo = request.POST.get('motivo_cancelacion', '').strip()
-    detalle = request.POST.get('motivo_detalle', '').strip()
-    motivos_validos = dict(Reserva.MOTIVOS_CANCELACION)
-
-    if motivo not in motivos_validos:
-        return render_error_perfil(request, usuario, 'Debes seleccionar un motivo válido de cancelación.')
-
-    if motivo == 'otro' and len(detalle) < 10:
-        return render_error_perfil(
-            request, usuario,
-            'Si eliges "Otro motivo", explica brevemente qué pasó (mínimo 10 caracteres).'
-        )
-
-    reserva.cancelar(motivo=motivo, detalle=detalle, por='usuario')
-
-    _enviar_correo_cancelacion(reserva)
-
-    return redirect('perfil')
-
-
-def render_error_perfil(request, usuario, mensaje):
-    reservas = Reserva.objects.filter(correo=usuario.email).order_by('-fecha', '-hora')
-    resenas = Resena.objects.filter(correo=usuario.email, archivada=False).order_by('-fecha')
-    tiene_reserva_activa = reservas.filter(
-        estado__in=[Reserva.ESTADO_PENDIENTE, Reserva.ESTADO_CONFIRMADA]
-    ).exists()
-    contexto = {
-        'usuario': usuario,
-        'reservas': reservas,
-        'resenas': resenas,
-        'tiene_reserva_activa': tiene_reserva_activa,
-        'iconos_jugadores': ICONOS_JUGADORES,
-        'iconos_banderas': ICONOS_BANDERAS,
-        'motivos_cancelacion': Reserva.MOTIVOS_CANCELACION,
-        'error': mensaje,
-    }
-    contexto.update(_contexto_comunidad(usuario))
-    return render(request, 'usuarios/perfil.html', contexto)
-
-
-def _enviar_correo_cancelacion(reserva):
-    contexto = {
-        'reserva': reserva,
-        'motivo': reserva.motivo_legible,
-        'detalle': reserva.motivo_detalle,
-    }
-    html = render_to_string('emails/cancelacion_reserva.html', contexto)
-    texto = (
-        f"Hola {reserva.nombre},\n\n"
-        f"Tu reserva del {reserva.fecha} a las {reserva.hora} "
-        f"en {reserva.cancha} fue CANCELADA.\n"
-        f"Motivo: {reserva.motivo_legible}\n"
-        f"{('Detalle: ' + reserva.motivo_detalle) if reserva.motivo_detalle else ''}\n\n"
-        "Las horas quedaron disponibles nuevamente. — CanchaFácil"
-    )
-    msg = EmailMultiAlternatives(
-        subject=f"Reserva cancelada — {reserva.cancha} ({reserva.fecha})",
-        body=texto,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[reserva.correo],
-        bcc=[settings.DEFAULT_FROM_EMAIL],
-    )
-    msg.attach_alternative(html, "text/html")
-    msg.send(fail_silently=True)
