@@ -26,7 +26,7 @@
             <div class="collapse navbar-collapse justify-content-end me-5">
                 <ul class="nav navbar-nav gap-2 align-items-center">
                     <li class="nav-item">
-                        <a href="{% url 'lista_usuarios' %}" class="btn btn-custom rounded-pill">
+                        <a href="{% url 'usuarios:lista_usuarios' %}" class="btn btn-custom rounded-pill">
                             <i class="bi bi-people-fill me-1"></i>Usuarios
                         </a>
                     </li>
@@ -43,7 +43,7 @@
                         </a>
                     </li>
                     <li class="nav-item ms-3">
-                        <a href="{% url 'logout' %}" class="btn btn-salir rounded-pill fw-bold py-2 px-4">
+                        <a href="{% url 'usuarios:logout' %}" class="btn btn-salir rounded-pill fw-bold py-2 px-4">
                             Salir
                         </a>
                     </li>

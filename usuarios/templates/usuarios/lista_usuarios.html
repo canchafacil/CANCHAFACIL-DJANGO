@@ -29,7 +29,7 @@
       <div class="collapse navbar-collapse justify-content-end me-5" id="menuNav">
         <ul class="nav navbar-nav gap-2 align-items-center">
           <li class="nav-item">
-            <a href="{% url 'lista_usuarios' %}" class="btn btn-custom rounded-pill" style="background-color:#62ff00; color:black;">
+            <a href="{% url 'usuarios:lista_usuarios' %}" class="btn btn-custom rounded-pill" style="background-color:#62ff00; color:black;">
               Usuarios
             </a>
           </li>
@@ -39,7 +39,7 @@
             </a>
           </li>
           <li class="nav-item ms-3">
-            <a href="{% url 'logout' %}" class="btn btn-salir rounded-pill fw-bold py-2 px-4">
+            <a href="{% url 'usuarios:logout' %}" class="btn btn-salir rounded-pill fw-bold py-2 px-4">
               Salir
             </a>
           </li>
@@ -52,7 +52,7 @@
     <!-- Encabezado + botón crear -->
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2 class="fw-bold m-0">Lista de Usuarios</h2>
-      <a href="{% url 'registro' %}" class="btn btn-success rounded-pill px-4">
+      <a href="{% url 'usuarios:registro' %}" class="btn btn-success rounded-pill px-4">
         + Nuevo Usuario
       </a>
     </div>
@@ -106,7 +106,7 @@
             <td>
               <div class="d-flex gap-2">
                 <!-- Editar -->
-                <a href="{% url 'editar_usuario' usuario.id %}" class="btn btn-warning btn-sm rounded-pill px-3">
+                <a href="{% url 'usuarios:editar_usuario' usuario.id %}" class="btn btn-warning btn-sm rounded-pill px-3">
                   Editar
                 </a>
                 <!-- Habilitar / Deshabilitar -->
@@ -116,7 +116,7 @@
                   Deshabilitar
                 </button>
                 {% else %}
-                <a href="{% url 'habilitar_usuario' usuario.id %}" class="btn btn-success btn-sm rounded-pill px-3">
+                <a href="{% url 'usuarios:habilitar_usuario' usuario.id %}" class="btn btn-success btn-sm rounded-pill px-3">
                   ✅ Habilitar
                 </a>
                 {% endif %}

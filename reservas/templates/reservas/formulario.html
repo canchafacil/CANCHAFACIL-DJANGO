@@ -96,124 +96,67 @@
 <body>
 
 
-<nav class="navbar navbar-expand-lg navbar-dark shadow fixed-top">
-    <div class="container d-flex align-items-center">
+<nav class="navbar navbar-expand-lg navbar-dark  shadow fixed-top">
+        <div class="container d-flex align-items-center">
+            <a href="{% url 'inicio' %}" class="d-flex align-items-center text-decoration-none">
+                <img src="{% static 'img/logo-green.png' %}" style="height: 90px;" alt="">
+                <span class="navbar-brand fw-bold ms-2 mb-0" style="font-size: 2rem; color: white;">
+                    Cancha<span style="color:  #62ff00;">Fácil </span>
+                </span>
+            </a>
 
-        <a href="{% url 'inicio' %}" class="d-flex align-items-center text-decoration-none">
-            <img src="{% static 'img/logo-green.png' %}" style="height: 90px;" alt="">
-            <span class="navbar-brand fw-bold ms-2 mb-0"
-                style="font-size: 2rem; color: white;">
-                Cancha<span style="color:#62ff00;">Fácil</span>
-            </span>
-        </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-        <ul class="navbar-nav ms 2 d-lg-none">
-            <li class="nav-item">
-                <a href="{% url 'login' %}"
-                    class="btn btn-info border-0 ms-2"
-                    style="background-color:#62ff00;color:#03045e;font-weight:bold;">
-                    Iniciar Sesión
-                </a>
-            </li>
-        </ul>
+            <div class="collapse navbar-collapse" id="menu">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'inicio' %}">Inicio</a>
+                    </li>
 
-        <button class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#menu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'gestion_canchas:canchas' %}">Reservar</a>
+                    </li>
 
-        <div class="collapse navbar-collapse" id="menu">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'nosotros' %}">Sobre Nosotros</a>
+                    </li>
 
-            <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'contacto' %}">Contacto</a>
+                    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'inicio' %}">Inicio</a>
-                </li>
+                    {% if request.session.usuario_id %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="perfilDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1" style="font-size: 1.3rem;"></i> {{ request.session.nombre }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'usuarios:perfil' %}">Mi perfil</a></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#modalLogout">
+                                    Cerrar sesión
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item d-none d-lg-block">
+                        <a href="{% url 'usuarios:login' %}" class="btn btn-info border-0 ms-2" style="background-color: #62ff00; color: #03045e; font-weight: bold;">Iniciar Sesión</a>
+                    </li>
+                    {% endif %}
+                    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link"
-                        href="{% url 'gestion_canchas:canchas' %}">
-                        Reservar
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link"
-                        href="{% url 'nosotros' %}">
-                        Sobre Nosotros
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link"
-                        href="{% url 'contacto' %}">
-                        Contacto
-                    </a>
-                </li>
-
-                {% if request.session.usuario_id %}
-
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center"
-                        href="#"
-                        id="perfilDropdown"
-                        role="button"
-                        data-bs-toggle="dropdown">
-
-                        <i class="bi bi-person-circle me-1"
-                            style="font-size:1.3rem;"></i>
-
-                        {{ request.session.nombre }}
-                    </a>
-
-                    <ul class="dropdown-menu dropdown-menu-end">
-
-                        <li>
-                            <a class="dropdown-item"
-                                href="{% url 'perfil' %}">
-                                Mi perfil
-                            </a>
-                        </li>
-
-                        <li>
-                            <a class="dropdown-item text-danger"
-                                href="#"
-                                data-bs-toggle="modal"
-                                data-bs-target="#modalLogout">
-                                Cerrar sesión
-                            </a>
-                        </li>
-
-                    </ul>
-                </li>
-
-                {% else %}
-
-                <li class="nav-item d-none d-lg-block">
-                    <a href="{% url 'login' %}"
-                        class="btn btn-info border-0 ms-2"
-                        style="background-color:#62ff00;color:#03045e;font-weight:bold;">
-                        Iniciar Sesión
-                    </a>
-                </li>
-
-                {% endif %}
-
-                <li class="nav-item">
-                    <button id="themeToggle"
-                        class="theme-toggle-btn"
-                        title="Cambiar tema">
-                        <i class="bi bi-moon-stars"></i>
-                    </button>
-                </li>
-
-            </ul>
-
+                    <li class="nav-item ">
+                        <button id="themeToggle" class="theme-toggle-btn" title="Cambiar tema">
+                            <i class="bi bi-moon-stars"></i>
+                        </button>
+                    </li>
+                
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
 
 <div class="container mt-4">
@@ -304,7 +247,7 @@
             Debes iniciar sesión para poder reservar una cancha.
         </span>
 
-        <a href="{% url 'login' %}"
+        <a href="{% url 'usuarios:login' %}"
             class="btn btn-sm text-white"
             style="background-color:#03045e;">
             Iniciar sesión
@@ -738,7 +681,7 @@
 
                     </span>
 
-                    <a href="{% url 'login' %}"
+                    <a href="{% url 'usuarios:login' %}"
                         class="btn btn-sm text-white"
                         style="background-color:#03045e;">
 
@@ -1148,7 +1091,7 @@
                         Cancelar
                     </button>
 
-                    <a href="{% url 'logout' %}"
+                    <a href="{% url 'usuarios:logout' %}"
                         class="btn rounded-pill px-4 text-white"
                         style="background-color:#03045e;">
                         Sí, cerrar sesión
@@ -2023,7 +1966,7 @@
         if (!LOGUEADO) {
 
             window.location.href =
-                "{% url 'login' %}";
+                "{% url 'usuarios:login' %}";
 
             return;
 
@@ -2231,7 +2174,7 @@
                 if (r.status === 401) {
 
                     window.location.href =
-                        "{% url 'login' %}";
+                        "{% url 'usuarios:login' %}";
 
                     return null;
 

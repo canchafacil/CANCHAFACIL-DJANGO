@@ -41,13 +41,13 @@ def registro(request):
             rol=rol
         )
 
-        return redirect('login')
+        return redirect('usuarios:login')
 
     return render(request, 'usuarios/registro.html')
 
 
 # ---------------------------------------------------------------------
-# LOGIN (único para CLIENTE, ADMIN y SUPERADMIN)
+# LOGIN
 # ---------------------------------------------------------------------
 
 def login_view(request):
@@ -80,7 +80,7 @@ def login_view(request):
 
         # Redirección según rol
         if usuario.rol == 'SUPERADMIN':
-            return redirect('lista_usuarios')
+            return redirect('usuarios:lista_usuarios')   # 🔥 CORREGIDO
         elif usuario.rol == 'ADMIN':
             return redirect('panel_principal')
         else:
@@ -120,7 +120,7 @@ No compartas este código con nadie.
                 fail_silently=False
             )
 
-            return redirect('verificar_codigo')
+            return redirect('usuarios:verificar_codigo')   # 🔥 CORREGIDO
 
         except Usuario.DoesNotExist:
             return render(request, 'usuarios/recuperar_contra.html', {
@@ -136,7 +136,7 @@ def verificar_codigo(request):
         codigo_guardado = str(request.session.get('codigo'))
 
         if codigo_ingresado == codigo_guardado:
-            return redirect('cambiar_contra')
+            return redirect('usuarios:cambiar_contra')   # 🔥 CORREGIDO
 
         return render(request, 'usuarios/verificar_codigo.html', {
             'error': 'Código incorrecto'
@@ -149,7 +149,7 @@ def cambiar_contra(request):
     email = request.session.get('correo')
 
     if not email:
-        return redirect('login')
+        return redirect('usuarios:login')   # 🔥 CORREGIDO
 
     usuario = Usuario.objects.get(email=email)
 
@@ -168,13 +168,13 @@ def cambiar_contra(request):
         request.session.pop('codigo', None)
         request.session.pop('correo', None)
 
-        return redirect('login')
+        return redirect('usuarios:login')   # 🔥 CORREGIDO
 
     return render(request, 'usuarios/cambiar_contra.html')
 
 
 # ---------------------------------------------------------------------
-# LOGOUT (uno solo para todos los roles)
+# LOGOUT
 # ---------------------------------------------------------------------
 
 def logout_view(request):
@@ -182,7 +182,7 @@ def logout_view(request):
     request.session.pop('rol', None)
     request.session.pop('nombre', None)
     request.session.pop('correo', None)
-    return redirect('inicio')
+    return redirect('inicio')   # No cambia (es de otra app)
 
 
 # ---------------------------------------------------------------------
@@ -207,7 +207,7 @@ def eliminar_usuario(request, id):
     usuario = Usuario.objects.get(id=id)
     usuario.delete()
 
-    return redirect('lista_usuarios')
+    return redirect('usuarios:lista_usuarios')   # 🔥 CORREGIDO
 
 
 def editar_usuario(request, id):
@@ -226,7 +226,7 @@ def editar_usuario(request, id):
 
         usuario.save()
 
-        return redirect('lista_usuarios')
+        return redirect('usuarios:lista_usuarios')   # 🔥 CORREGIDO
 
     return render(request, 'usuarios/editar_usuarios.html', {
         'usuario': usuario
@@ -241,7 +241,7 @@ def deshabilitar_usuario(request, id):
     usuario.activo = False
     usuario.save()
 
-    return redirect('lista_usuarios')
+    return redirect('usuarios:lista_usuarios')   # 🔥 CORREGIDO
 
 
 def habilitar_usuario(request, id):
@@ -252,7 +252,7 @@ def habilitar_usuario(request, id):
     usuario.activo = True
     usuario.save()
 
-    return redirect('lista_usuarios')
+    return redirect('usuarios:lista_usuarios')   # 🔥 CORREGIDO
 
 
 # ---------------------------------------------------------------------
@@ -274,7 +274,7 @@ ICONOS_BANDERAS = [
 
 
 # ---------------------------------------------------------------------
-# COMUNIDAD: partidos y retos del usuario, para el perfil
+# COMUNIDAD
 # ---------------------------------------------------------------------
 
 def _contexto_comunidad(usuario):
@@ -309,13 +309,13 @@ def _contexto_comunidad(usuario):
 
 
 # ---------------------------------------------------------------------
-# PERFIL del usuario logueado
+# PERFIL
 # ---------------------------------------------------------------------
 
 def perfil(request):
     usuario_id = request.session.get('usuario_id')
     if not usuario_id:
-        return redirect('login')
+        return redirect('usuarios:login')   # 🔥 CORREGIDO
 
     usuario = get_object_or_404(Usuario, id=usuario_id)
 
@@ -347,7 +347,7 @@ def perfil(request):
 def editar_perfil(request):
     usuario_id = request.session.get('usuario_id')
     if not usuario_id:
-        return redirect('login')
+        return redirect('usuarios:login')   # 🔥 CORREGIDO
 
     usuario = get_object_or_404(Usuario, id=usuario_id)
 
@@ -389,6 +389,6 @@ def editar_perfil(request):
 
         request.session['nombre'] = usuario.first_name
 
-        return redirect('perfil')
+        return redirect('usuarios:perfil')   # 🔥 CORREGIDO
 
-    return redirect('perfil')
+    return redirect('usuarios:perfil')   # 🔥 CORREGIDO{..}

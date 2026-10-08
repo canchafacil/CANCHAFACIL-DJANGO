@@ -186,11 +186,6 @@
                     Cancha<span style="color:  #62ff00;">Fácil </span>
                 </span>
             </a>
-            <ul class="navbar-nav ms 2 d-lg-none">
-                <li class="nav-item">
-                    <a href="{% url 'login' %}" class="btn btn-info border-0 ms-2" style="background-color: #62ff00; color: #03045e; font-weight: bold;">Iniciar Sesión</a>
-                </li>
-            </ul>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
                 <span class="navbar-toggler-icon"></span>
@@ -220,7 +215,7 @@
                             <i class="bi bi-person-circle me-1" style="font-size: 1.3rem;"></i> {{ request.session.nombre }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{% url 'perfil' %}">Mi perfil</a></li>
+                            <li><a class="dropdown-item" href="{% url 'usuarios:perfil' %}">Mi perfil</a></li>
                             <li>
                                 <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#modalLogout">
                                     Cerrar sesión
@@ -230,7 +225,7 @@
                     </li>
                     {% else %}
                     <li class="nav-item d-none d-lg-block">
-                        <a href="{% url 'login' %}" class="btn btn-info border-0 ms-2" style="background-color: #62ff00; color: #03045e; font-weight: bold;">Iniciar Sesión</a>
+                        <a href="{% url 'usuarios:login' %}" class="btn btn-info border-0 ms-2" style="background-color: #62ff00; color: #03045e; font-weight: bold;">Iniciar Sesión</a>
                     </li>
                     {% endif %}
                     </li>
@@ -380,7 +375,7 @@
                     {% if usuario_logueado %}
                     <button class="btn-comunidad" data-bs-toggle="modal" data-bs-target="#modalPartido">+ Publicar partido</button>
                     {% else %}
-                    <a href="{% url 'login' %}" class="btn-comunidad text-decoration-none text-center">Iniciá sesión para publicar un partido</a>
+                    <a href="{% url 'usuarios:login' %}" class="btn-comunidad text-decoration-none text-center">Iniciá sesión para publicar un partido</a>
                     {% endif %}
                 </div>
 
@@ -389,7 +384,7 @@
                     {% if usuario_logueado %}
                     <button class="btn-comunidad" data-bs-toggle="modal" data-bs-target="#modalReto">+ Publicar reto</button>
                     {% else %}
-                    <a href="{% url 'login' %}" class="btn-comunidad text-decoration-none text-center">Iniciá sesión para publicar un reto</a>
+                    <a href="{% url 'usuarios:login' %}" class="btn-comunidad text-decoration-none text-center">Iniciá sesión para publicar un reto</a>
                     {% endif %}
                 </div>
 
@@ -398,7 +393,7 @@
                     {% if usuario_logueado %}
                     <button class="btn-comunidad" data-bs-toggle="modal" data-bs-target="#modalMuro">+ Compartir tu partido</button>
                     {% else %}
-                    <a href="{% url 'login' %}" class="btn-comunidad text-decoration-none text-center">Iniciá sesión para compartir en el muro</a>
+                    <a href="{% url 'usuarios:login' %}" class="btn-comunidad text-decoration-none text-center">Iniciá sesión para compartir en el muro</a>
                     {% endif %}
                 </div>
             </div>
@@ -627,7 +622,7 @@
                     <p class="text-muted">Vas a tener que volver a iniciar sesión para acceder a tu perfil.</p>
                     <div class="d-flex justify-content-center gap-2 mt-3">
                         <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                        <a href="{% url 'logout' %}" class="btn rounded-pill px-4 text-white" style="background-color: #03045e;">Sí, cerrar sesión</a>
+                        <a href="{% url 'usuarios:logout' %}" class="btn rounded-pill px-4 text-white" style="background-color: #03045e;">Sí, cerrar sesión</a>
                     </div>
                 </div>
             </div>
@@ -641,7 +636,7 @@
     <script>
     (function () {
         const usuarioLogueado = {% if usuario_logueado %}true{% else %}false{% endif %};
-        const URL_LOGIN = "{% url 'login' %}";
+        const URL_LOGIN = "{% url 'usuarios:login' %}";
 
         function getCookie(name) {
             const match = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');

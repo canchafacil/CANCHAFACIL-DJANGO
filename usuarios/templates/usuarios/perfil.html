@@ -283,7 +283,7 @@ footer.bg-dark {
 
                             <li>
                                 <a class="dropdown-item"
-                                   href="{% url 'perfil' %}">
+                                   href="{% url 'usuarios:perfil' %}">
                                     Mi perfil
                                 </a>
                             </li>
@@ -307,7 +307,7 @@ footer.bg-dark {
 
                     <li class="nav-item">
 
-                        <a href="{% url 'login' %}"
+                        <a href="{% url 'usuarios:login' %}"
                            class="btn btn-info border-0 ms-2"
                            style="background-color: #39FF14;
                                   color: #03045e;
@@ -398,7 +398,7 @@ footer.bg-dark {
                     <div class="accordion-body">
 
                         <form method="post"
-                              action="{% url 'editar_perfil' %}"
+                              action="{% url 'usuarios:editar_perfil' %}"
                               enctype="multipart/form-data">
 
                             {% csrf_token %}
