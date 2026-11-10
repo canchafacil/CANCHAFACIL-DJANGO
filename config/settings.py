@@ -34,10 +34,11 @@ DEBUG = True
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
-    'primp-raft-cape.ngrok-free.dev',   # 🔥 Tu URL de ngrok (sin https://)
+    'jazz-recede-gawk.ngrok-free.dev',
 ]
+
 CSRF_TRUSTED_ORIGINS = [
-    'https://primp-raft-cape.ngrok-free.dev',
+    'https://jazz-recede-gawk.ngrok-free.dev',
 ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -170,5 +171,5 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'canchafacil9@gmail.com'          # tu correo emisor
-EMAIL_HOST_PASSWORD = 'hzibsmkluvfrirqk'        # contraseña de aplicación, NO tu clave normal
+EMAIL_HOST_PASSWORD = 'zgsisttvrjrivtwi'        # contraseña de aplicación, NO tu clave normal
 DEFAULT_FROM_EMAIL = 'CanchaFácil <canchafacil9@gmail.com>'

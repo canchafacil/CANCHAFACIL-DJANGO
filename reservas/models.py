@@ -58,6 +58,7 @@ class Reserva(models.Model):
 
     # ── MERCADO PAGO ──────────────────────────────────────────────
     mp_preference_id = models.CharField(max_length=255, blank=True, null=True)
+    mp_payment_id = models.CharField(max_length=64, blank=True, null=True, unique=True)
 
     # ── CANCELACIÓN ────────────────────────────────────────────────
     motivo_cancelacion = models.CharField(

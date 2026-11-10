@@ -1,4 +1,4 @@
-{% load static %}
+{% load static l10n %}
 <!doctype html>
 <html lang="es">
 
@@ -28,12 +28,7 @@
             color: #1c1e2b;
         }
 
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        .fw-display {
+        h1, h2, h3, h4, h5, .fw-display {
             font-family: 'Manrope', sans-serif;
         }
 
@@ -278,6 +273,7 @@
             background: #a0ccee;
             cursor: not-allowed;
             transform: none;
+            box-shadow: none;
         }
 
         .btn-mercadopago i {
@@ -293,18 +289,6 @@
             font-weight: 600;
             letter-spacing: 0.5px;
         }
-
-        .factura-btn {
-            transition: all 0.2s ease;
-        }
-
-        .factura-btn:hover {
-            transform: scale(1.02);
-        }
-
-        .oculto {
-            display: none;
-        }
     </style>
 </head>
 
@@ -314,7 +298,7 @@
             <div class="d-flex align-items-center ms-4">
                 <img src="{% static 'img/logo-green.png' %}" style="height:70px;object-fit:contain;"
                     alt="Logo CanchaFácil">
-                <a class="navbar-brand fw-bold ms-2 m-0" href="#"
+                <a class="navbar-brand fw-bold ms-2 m-0" href="/"
                     style="font-size:1.6rem;color:#fff;font-family:'Manrope',sans-serif;">
                     Cancha<span style="color:#62ff00;">Fácil</span>
                 </a>
@@ -322,28 +306,60 @@
         </div>
     </nav>
 
+    
+{% with retorno=retorno|default:"" %}
     <div class="container pago-shell my-5">
+
+        {% if messages %}
+        {% for m in messages %}
+        <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}{{ m.tags|default:'info' }}{% endif %}">{{ m }}</div>
+        {% endfor %}
+        {% endif %}
+
         {% if reserva %}
 
-        <!-- ✅ Si la reserva ya está confirmada, mostrar mensaje y factura -->
-        {% if reserva.estado == 'confirmada' %}
+        <!-- ✅ Reserva ya pagada y confirmada -->
+        {% if reserva.estado|lower == 'confirmada' %}
         <div class="alert alert-success text-center">
             <i class="bi bi-check-circle-fill fs-3"></i>
             <h4>¡Pago confirmado!</h4>
-            <p>Tu reserva ya está pagada. Disfruta tu partido.</p>
-            <a href="{% url 'inicio' %}" class="btn btn-primary">Cancelar</a>
-            <a href="{% url 'formulario' %}" class="btn btn-outline-secondary">
+            <p>Tu reserva ya está pagada. Te enviamos el comprobante a <strong>{{ reserva.correo }}</strong>. Disfruta tu partido.</p>
+            <a href="/" class="btn btn-primary">Ir al inicio</a>
+            <a href="/reservas/" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i>Volver a reservas
             </a>
             <a href="{% url 'pagos:descargar_factura' reserva.id %}" class="btn btn-success" target="_blank">
                 <i class="bi bi-file-pdf me-2"></i>Descargar Factura
             </a>
         </div>
+        <script>
+            try { sessionStorage.removeItem('pagoIntentos'); } catch (e) {}
+        </script>
+
         {% else %}
+
+        <!-- Aviso al volver de Mercado Pago -->
+        {% if retorno == 'approved' %}
+        <div class="alert alert-info d-flex align-items-center gap-3" id="avisoVerificando">
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+            <div>
+                <strong>Estamos confirmando tu pago.</strong>
+                <div class="small" id="avisoVerificandoTexto">Esto toma unos segundos, no cierres esta página.</div>
+            </div>
+        </div>
+        {% elif retorno == 'pending' or retorno == 'in_process' %}
+        <div class="alert alert-warning">
+            <strong>Tu pago está pendiente.</strong> Cuando Mercado Pago lo apruebe, tu reserva se confirmará y te llegará el comprobante al correo.
+        </div>
+        {% elif retorno == 'rejected' or retorno == 'failure' or retorno == 'null' %}
+        <div class="alert alert-danger">
+            <strong>El pago no se completó.</strong> No se hizo ningún cobro. Puedes intentarlo de nuevo.
+        </div>
+        {% endif %}
 
         <div class="d-flex justify-content-between align-items-center mb-2">
             <div class="paso-eyebrow"><i class="bi bi-lock-fill me-1"></i>Pago seguro</div>
-            <a href="{% url 'reservas' %}" class="volver-link">
+            <a href="/reservas/" class="volver-link">
                 <i class="bi bi-arrow-left"></i>Volver a reservas
             </a>
         </div>
@@ -387,7 +403,7 @@
             <!-- ── COLUMNA DERECHA: FORMULARIO DE PAGO ── -->
             <div class="panel-formulario">
 
-                <!-- Paso 1: tipo de pago (Completo / Abono 50%) -->
+                <!-- Paso 1: tipo de pago -->
                 <div class="seccion-titulo"><i class="bi bi-1-circle-fill"></i>¿Cómo deseas pagar?</div>
                 <div class="opciones-monto">
                     <div class="opcion-pago seleccionada" id="opcionCompleto" onclick="seleccionarTipoPago('completo')">
@@ -417,7 +433,7 @@
                         directamente en la cancha antes de jugar.</div>
                 </div>
 
-                <!-- Paso 2: Método de pago (solo Mercado Pago) -->
+                <!-- Paso 2: Método de pago -->
                 <div class="seccion-titulo"><i class="bi bi-2-circle-fill"></i>Método de pago</div>
 
                 <div class="text-center py-3">
@@ -430,12 +446,11 @@
                         Mercado Pago.</p>
                 </div>
 
-                <form action="{% url 'crear_preferencia_mercadopago' reserva.id %}" method="POST">
+                <form action="{% url 'crear_preferencia_mercadopago' reserva.id %}" method="POST" id="formPago">
                     {% csrf_token %}
                     <input type="hidden" name="tipo_pago" id="tipoPagoInput" value="completo">
-                    <input type="hidden" name="monto_a_pagar" id="montoAPagarInput" value="{{ total|floatformat:"0" }}">
+                    <input type="hidden" name="monto_a_pagar" id="montoAPagarInput" value="{{ total|unlocalize }}">
 
-                    <!-- Mostrar el monto que se va a cobrar -->
                     <div class="alert alert-info text-center py-2 mb-3">
                         <small class="text-muted">Monto a cobrar:</small>
                         <strong id="montoACobrarMP" style="font-size:1.2rem;">$0</strong>
@@ -455,33 +470,38 @@
                 </div>
 
                 <div class="mt-3 text-center">
-                    <a href="{% url 'reservas' %}" class="btn btn-outline-secondary btn-sm">
+                    <a href="/reservas/" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-arrow-left me-1"></i>Volver a reservas
                     </a>
                 </div>
-
-                <!-- Mensajes de resultado -->
-                <div id="resultadoPago" class="mt-3"></div>
             </div>
         </div>
 
         {% endif %}
 
         {% else %}
-        <div class="alert alert-warning">
-            No hay ninguna reserva pendiente de pago. por el momento realiza otra
-            reserva <a href="{% url 'reservas' %}">Volver a reservas</a>.
+        {% if retorno == 'approved' %}
+        <div class="alert alert-success text-center">
+            <i class="bi bi-check-circle-fill fs-3"></i>
+            <h4>¡Recibimos tu pago!</h4>
+            <p>Te enviaremos el comprobante a tu correo. Puedes ver tus reservas en tu perfil.</p>
+            <a href="/" class="btn btn-primary">Ir al inicio</a>
         </div>
+        {% else %}
+        <div class="alert alert-warning">
+            No hay ninguna reserva pendiente de pago por el momento. Realiza otra
+            reserva <a href="/reservas/">Volver a reservas</a>.
+        </div>
+        {% endif %}
         {% endif %}
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        {% if reserva %}
-        // Obtener el total de la reserva
-        const TOTAL_RESERVA = {{ total|default:0 }};
-        const MONTO_ABONO_50 = TOTAL_RESERVA / 2;
+        {% if reserva and reserva.estado|lower != 'confirmada' %}
+        const TOTAL_RESERVA = Number("{{ total|default:0|unlocalize }}") || 0;
+        const MONTO_ABONO_50 = Math.round(TOTAL_RESERVA / 2);
         let tipoPagoSeleccionado = 'completo';
 
         function formatoMoneda(n) {
@@ -489,27 +509,14 @@
         }
 
         function pintarMontosPago() {
-            const montoActual = (tipoPagoSeleccionado === 'abono') ? MONTO_ABONO_50 : TOTAL_RESERVA;
-            
-            // Actualizar resumen
+            const montoActual = (tipoPagoSeleccionado === 'abono') ? MONTO_ABONO_50 : Math.round(TOTAL_RESERVA);
+
             document.getElementById('montoAPagarAhora').textContent = formatoMoneda(montoActual);
             document.getElementById('montoCompletoTexto').textContent = formatoMoneda(TOTAL_RESERVA);
             document.getElementById('montoAbonoTexto').textContent = formatoMoneda(MONTO_ABONO_50);
-            
-            // Actualizar campo oculto con el monto a pagar
             document.getElementById('montoAPagarInput').value = montoActual;
-            
-            // Actualizar el monto que se muestra
-            const montoMP = document.getElementById('montoACobrarMP');
-            if (montoMP) {
-                montoMP.textContent = formatoMoneda(montoActual);
-            }
-            
-            // Actualizar texto del botón
-            const btnTexto = document.getElementById('btnTextoMP');
-            if (btnTexto) {
-                btnTexto.textContent = `Pagar ${formatoMoneda(montoActual)} con Mercado Pago`;
-            }
+            document.getElementById('montoACobrarMP').textContent = formatoMoneda(montoActual);
+            document.getElementById('btnTextoMP').textContent = `Pagar ${formatoMoneda(montoActual)} con Mercado Pago`;
         }
 
         function seleccionarTipoPago(tipo) {
@@ -517,7 +524,7 @@
             document.getElementById('opcionCompleto').classList.toggle('seleccionada', tipo === 'completo');
             document.getElementById('opcionAbono').classList.toggle('seleccionada', tipo === 'abono');
             document.getElementById('tipoPagoInput').value = tipo;
-            
+
             const avisoSaldo = document.getElementById('avisoSaldoPendiente');
             if (tipo === 'abono') {
                 avisoSaldo.style.display = 'flex';
@@ -525,15 +532,42 @@
             } else {
                 avisoSaldo.style.display = 'none';
             }
-            
+
             pintarMontosPago();
         }
 
-        // Inicializar
-        pintarMontosPago();
+        // Evita cobros duplicados por doble clic
+        document.getElementById('formPago').addEventListener('submit', function () {
+            const btn = document.getElementById('btnPagarMP');
+            btn.disabled = true;
+            document.getElementById('btnTextoMP').textContent = 'Redirigiendo a Mercado Pago...';
+        });
+
         seleccionarTipoPago('completo');
+
+        {% if retorno == 'approved' %}
+        // Volvió aprobado de Mercado Pago pero la reserva aún no figura confirmada:
+        // recarga cada 4 s (máx. 8 veces) esperando que el servidor registre el pago.
+        (function () {
+            const MAX = 8;
+            let n = 0;
+            try { n = parseInt(sessionStorage.getItem('pagoIntentos') || '0', 10); } catch (e) {}
+
+            if (n < MAX) {
+                try { sessionStorage.setItem('pagoIntentos', String(n + 1)); } catch (e) {}
+                setTimeout(() => location.reload(), 4000);
+            } else {
+                const t = document.getElementById('avisoVerificandoTexto');
+                if (t) t.textContent = 'Tu pago fue aprobado, pero aún no se refleja. Si ya pagaste, el comprobante llegará a tu correo en unos minutos.';
+                const av = document.getElementById('avisoVerificando');
+                if (av) { const sp = av.querySelector('.spinner-border'); if (sp) sp.remove(); }
+            }
+        })();
+        {% endif %}
         {% endif %}
     </script>
+
+    {% endwith %}
 </body>
 
 </html>

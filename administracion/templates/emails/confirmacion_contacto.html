@@ -1,0 +1,28 @@
+{% extends "emails/base_email.html" %}
+
+{% block contenido %}
+  <h2 style="margin:0 0 20px;font-size:24px;color:#03045e;">Recibimos tu mensaje</h2>
+
+  <p style="margin:0 0 20px;">
+    Hola <strong>{{ nombre }}</strong>, gracias por escribirnos. Ya recibimos tu consulta y pronto nos comunicaremos contigo.
+  </p>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f7f9;border-left:4px solid #62ff00;border-radius:10px;margin:0 0 20px;">
+    <tr>
+      <td style="padding:14px 20px 6px;font-size:14px;font-weight:bold;color:#555;width:35%;">Asunto:</td>
+      <td style="padding:14px 20px 6px;font-size:14px;">{{ asunto }}</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 20px;font-size:14px;font-weight:bold;color:#555;">Fecha:</td>
+      <td style="padding:6px 20px;font-size:14px;">{{ fecha }}</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 20px 14px;font-size:14px;font-weight:bold;color:#555;vertical-align:top;">Tu mensaje:</td>
+      <td style="padding:6px 20px 14px;font-size:14px;white-space:pre-line;">{{ mensaje }}</td>
+    </tr>
+  </table>
+
+  <p style="margin:0;">
+    Te responderemos a este mismo correo. ¡Gracias por confiar en CanchaFácil!
+  </p>
+{% endblock %}

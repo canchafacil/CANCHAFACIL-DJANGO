@@ -38,16 +38,22 @@ class Resena(models.Model):
 class MensajeContacto(models.Model):
     """
     Mensajes enviados desde el formulario público de Contáctanos.
-    Solo lectura desde el panel admin, salvo el campo 'respondido'.
+    El admin puede marcarlos como leídos y responderlos por correo.
     """
-    nombre    = models.CharField(max_length=100)
-    apellido  = models.CharField(max_length=100, blank=True)
-    correo    = models.EmailField()
-    telefono  = models.CharField(max_length=20, blank=True)
-    asunto    = models.CharField(max_length=100)
-    mensaje   = models.TextField()
-    fecha     = models.DateTimeField(auto_now_add=True)
-    respondido = models.BooleanField(default=False)
+    nombre     = models.CharField(max_length=100)
+    apellido   = models.CharField(max_length=100, blank=True)
+    correo     = models.EmailField()
+    telefono   = models.CharField(max_length=20, blank=True)
+    asunto     = models.CharField(max_length=100)
+    mensaje    = models.TextField()
+    fecha      = models.DateTimeField(auto_now_add=True)
+
+    # Estado
+    leido            = models.BooleanField(default=False)
+    fecha_lectura    = models.DateTimeField(null=True, blank=True)
+    respondido       = models.BooleanField(default=False)
+    respuesta        = models.TextField(blank=True, default='')
+    fecha_respuesta  = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ['-fecha']

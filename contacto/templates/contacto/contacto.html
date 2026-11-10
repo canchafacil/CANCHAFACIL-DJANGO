@@ -252,14 +252,22 @@
   </div>
 </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+        <script>
+    const URL_CONTACTO = "{% url 'contacto' %}";
+
+    function esc(s) {
+        const d = document.createElement('div');
+        d.textContent = s ?? '';
+        return d.innerHTML;
+    }
+
     function abrirConfirmacion() {
-        const nombre  = document.getElementById('inp-nombre').value.trim();
-        const apellido= document.getElementById('inp-apellido').value.trim();
-        const email   = document.getElementById('inp-email').value.trim();
-        const tel     = document.getElementById('inp-tel').value.trim();
-        const asunto  = document.getElementById('inp-asunto').value;
-        const mensaje = document.getElementById('inp-mensaje').value.trim();
+        const nombre   = document.getElementById('inp-nombre').value.trim();
+        const apellido = document.getElementById('inp-apellido').value.trim();
+        const email    = document.getElementById('inp-email').value.trim();
+        const tel      = document.getElementById('inp-tel').value.trim();
+        const asunto   = document.getElementById('inp-asunto').value;
+        const mensaje  = document.getElementById('inp-mensaje').value.trim();
 
         if (!nombre || !email || !asunto || !mensaje) {
             alert('Por favor completa los campos obligatorios: Nombre, Correo, Asunto y Mensaje.');
@@ -267,11 +275,11 @@
         }
 
         document.getElementById('resumenDatos').innerHTML = `
-            <div class="mb-1"><strong>Nombre:</strong> ${nombre} ${apellido}</div>
-            <div class="mb-1"><strong>Correo:</strong> ${email}</div>
-            <div class="mb-1"><strong>Teléfono:</strong> ${tel || '—'}</div>
-            <div class="mb-1"><strong>Asunto:</strong> ${asunto}</div>
-            <div class="mb-0"><strong>Mensaje:</strong> ${mensaje}</div>
+            <div class="mb-1"><strong>Nombre:</strong> ${esc(nombre)} ${esc(apellido)}</div>
+            <div class="mb-1"><strong>Correo:</strong> ${esc(email)}</div>
+            <div class="mb-1"><strong>Teléfono:</strong> ${esc(tel) || '—'}</div>
+            <div class="mb-1"><strong>Asunto:</strong> ${esc(asunto)}</div>
+            <div class="mb-0"><strong>Mensaje:</strong> ${esc(mensaje)}</div>
         `;
 
         document.getElementById('modalConfirm').classList.add('show');
@@ -281,23 +289,67 @@
         document.getElementById('modalConfirm').classList.remove('show');
     }
 
-    function enviarFormulario() {
-        cerrarConfirmacion();
-
-        // Limpiar formulario
-        ['inp-nombre','inp-apellido','inp-email','inp-tel','inp-mensaje'].forEach(id => {
-            document.getElementById(id).value = '';
-        });
-        document.getElementById('inp-asunto').value = '';
-
-        // Mostrar toast
+    function mostrarToast(texto, ok) {
         const toast = document.getElementById('toastEnviado');
+        toast.innerHTML = (ok ? '<span>✔</span> ' : '<span>⚠</span> ') + esc(texto);
         toast.style.display = 'block';
-        setTimeout(() => { toast.style.display = 'none'; }, 4000);
+        setTimeout(() => { toast.style.display = 'none'; }, 5000);
+    }
+
+    async function enviarFormulario() {
+        const btn = document.querySelector('.btn-enviar-final');
+        const textoOriginal = btn.innerHTML;
+
+        const datos = new FormData();
+        datos.append('nombre',   document.getElementById('inp-nombre').value.trim());
+        datos.append('apellido', document.getElementById('inp-apellido').value.trim());
+        datos.append('correo',   document.getElementById('inp-email').value.trim());
+        datos.append('telefono', document.getElementById('inp-tel').value.trim());
+        datos.append('asunto',   document.getElementById('inp-asunto').value);
+        datos.append('mensaje',  document.getElementById('inp-mensaje').value.trim());
+
+        const csrf = document.querySelector('#formContacto [name=csrfmiddlewaretoken]').value;
+
+        btn.disabled = true;
+        btn.innerHTML = 'Enviando...';
+
+        try {
+            const resp = await fetch(URL_CONTACTO, {
+                method: 'POST',
+                body: datos,
+                headers: { 'X-CSRFToken': csrf },
+            });
+            const data = await resp.json();
+
+            if (data.status === 'ok') {
+                cerrarConfirmacion();
+
+                // Limpiar formulario solo si se guardó
+                ['inp-nombre','inp-apellido','inp-email','inp-tel','inp-mensaje'].forEach(id => {
+                    document.getElementById(id).value = '';
+                });
+                document.getElementById('inp-asunto').value = '';
+
+                if (data.correo_enviado === false) {
+                    mostrarToast(data.mensaje || 'Tu mensaje se guardó, pero no pudimos enviarte el correo de confirmación.', true);
+                } else {
+                    mostrarToast('¡Mensaje enviado! Revisa tu correo, te enviamos una confirmación.', true);
+                }
+            } else {
+                cerrarConfirmacion();
+                mostrarToast(data.mensaje || 'No se pudo enviar el mensaje.', false);
+            }
+        } catch (err) {
+            cerrarConfirmacion();
+            mostrarToast('Error de conexión. Intenta de nuevo.', false);
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
     }
 
     // Cerrar modal al hacer clic fuera
-    document.getElementById('modalConfirm').addEventListener('click', function(e) {
+    document.getElementById('modalConfirm').addEventListener('click', function (e) {
         if (e.target === this) cerrarConfirmacion();
     });
     </script>

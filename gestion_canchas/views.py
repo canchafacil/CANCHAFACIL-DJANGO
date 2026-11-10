@@ -1,5 +1,6 @@
+from django.conf import settings
+from django.http import Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
 from .models import Sede, Cancha
 from .forms import CanchaForm
 
@@ -69,8 +70,7 @@ def editar_cancha(request, id):
         if form.is_valid():
             form.save()
             return redirect('gestion_canchas:cancha_admin')
-        else:
-            print("Errores del formulario editar:", form.errors)
+        # Si no es válido, cae al render de abajo y el form muestra sus errores
     else:
         form = CanchaForm(instance=cancha)
 
@@ -133,11 +133,22 @@ def editar_sede(request, id):
     sede = get_object_or_404(Sede, id=id)
 
     if request.method == 'POST':
-        sede.nombre = request.POST.get('nombre', '').strip()
-        sede.direccion = request.POST.get('direccion', '').strip()
-        sede.ciudad = request.POST.get('ciudad', '').strip()
-        sede.telefono = request.POST.get('telefono', '').strip()
+        nombre    = request.POST.get('nombre', '').strip()
+        direccion = request.POST.get('direccion', '').strip()
+        ciudad    = request.POST.get('ciudad', '').strip()
+        telefono  = request.POST.get('telefono', '').strip()
 
+        # Antes se guardaba aunque nombre/dirección/ciudad llegaran vacíos
+        if not (nombre and direccion and ciudad):
+            return render(request, 'gestion_canchas/sedes/editar_sede.html', {
+                'sede': sede,
+                'error': 'Nombre, dirección y ciudad son obligatorios.',
+            })
+
+        sede.nombre = nombre
+        sede.direccion = direccion
+        sede.ciudad = ciudad
+        sede.telefono = telefono
         sede.save()
 
         return redirect('gestion_canchas:lista_sedes')
@@ -174,6 +185,8 @@ def canchas_por_sede(request, sede_id):
 # ==================== DEBUG ====================
 
 def debug_canchas(request):
-    """Vista de depuración: devuelve JSON con las canchas."""
+    """Vista de depuración: solo funciona con DEBUG=True."""
+    if not settings.DEBUG:
+        raise Http404()
     data = list(Cancha.objects.all().values('id', 'nombre', 'disponible', 'sede__nombre'))
     return JsonResponse({'canchas': data}, safe=False)

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CanchaFácil</title>
+</head>
+<body style="margin:0;padding:0;background:#f1f1f1;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f1f1;padding:20px 10px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:500px;border-radius:16px;overflow:hidden;background:#ffffff;">
+
+          <!-- CABECERA -->
+          <tr>
+            <td style="background:#03045e;padding:30px 30px;">
+              <span style="font-size:28px;font-weight:bold;color:#62ff00;">Cancha</span><span style="font-size:28px;font-weight:bold;color:#ffffff;">Fácil</span>
+            </td>
+          </tr>
+
+          <!-- CONTENIDO -->
+          <tr>
+            <td style="padding:30px;color:#333333;font-size:16px;line-height:1.6;">
+              {% block contenido %}{% endblock %}
+            </td>
+          </tr>
+
+          <!-- PIE -->
+          <tr>
+            <td style="background:#03045e;padding:20px 30px;text-align:center;color:#ffffff;font-size:14px;font-weight:bold;">
+              Equipo CanchaFácil —
+              <a href="mailto:{{ correo_contacto|default:'canchafacil9@gmail.com' }}" style="color:#62ff00;">{{ correo_contacto|default:'canchafacil9@gmail.com' }}</a>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

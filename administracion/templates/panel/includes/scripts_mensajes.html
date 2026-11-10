@@ -1,67 +1,138 @@
 <script>
-function getCSRFToken() {
-    const match = document.cookie.match(/csrftoken=([^;]+)/);
-    return match ? match[1] : '';
-}
+(function () {
+    // Solo corre cuando la sección de mensajes está en pantalla
+    const root = document.getElementById('mensajes-contacto');
+    if (!root) return;
 
-document.addEventListener('DOMContentLoaded', function () {
+    const URL_DATA  = "{% url 'gestion_canchas:mensajes_data' %}";
+    const URL_LEIDO = id => "{% url 'gestion_canchas:mensaje_marcar_leido' 0 %}".replace('/0/', '/' + id + '/');
+    const URL_RESP  = id => "{% url 'gestion_canchas:mensaje_responder' 0 %}".replace('/0/', '/' + id + '/');
 
-    // Marcar como respondido (sin enviar correo)
-    document.querySelectorAll('.btn-marcar-respondido').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            const id = btn.dataset.id;
-            fetch(`/panel_admin/panel/mensajes/${id}/respondido/`, {
+    const csrf = () => root.querySelector('[name=csrfmiddlewaretoken]').value;
+    const esc = s => { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; };
+
+    let cache = { pendientes: [], historial: [] };
+    let actual = null;
+
+    function aviso(msg, tipo) {
+        const a = document.getElementById('mc-alert');
+        a.className = 'alert alert-' + tipo;
+        a.textContent = msg;
+        setTimeout(() => a.classList.add('d-none'), 4000);
+    }
+
+    async function cargar() {
+        try {
+            const r = await fetch(URL_DATA);
+            const d = await r.json();
+            if (!d.ok) { aviso(d.error || 'No autorizado', 'danger'); return; }
+            cache = d;
+            pintar();
+        } catch (e) {
+            aviso('No se pudieron cargar los mensajes.', 'danger');
+        }
+    }
+
+    function pintar() {
+        const pend = cache.pendientes;
+        const hist = cache.historial;
+
+        document.getElementById('mc-cnt-pend').textContent = pend.length;
+        document.getElementById('mc-cnt-hist').textContent = hist.length;
+
+        document.getElementById('mc-body-pend').innerHTML = pend.length ? pend.map(m => `
+            <tr>
+                <td>${esc(m.nombre)}</td>
+                <td>${esc(m.correo)}</td>
+                <td>${esc(m.asunto)}</td>
+                <td>${m.fecha}</td>
+                <td><span class="badge bg-warning text-dark">Pendiente</span></td>
+                <td class="text-nowrap">
+                    <button class="btn btn-sm btn-success" onclick="mcResponder(${m.id})">Responder</button>
+                    <button class="btn btn-sm btn-outline-light" onclick="mcLeido(${m.id})">Marcar leído</button>
+                </td>
+            </tr>`).join('')
+            : '<tr><td colspan="6" class="text-center text-secondary py-4">No hay mensajes pendientes.</td></tr>';
+
+        document.getElementById('mc-body-hist').innerHTML = hist.length ? hist.map(m => `
+            <tr>
+                <td>${esc(m.nombre)}</td>
+                <td>${esc(m.correo)}</td>
+                <td>${esc(m.asunto)}</td>
+                <td>${m.fecha_respuesta || m.fecha}</td>
+                <td>${m.respondido
+                    ? '<span class="badge bg-success">Respondido</span>'
+                    : '<span class="badge bg-secondary">Leído</span>'}</td>
+                <td class="text-nowrap">
+                    <button class="btn btn-sm btn-outline-info" onclick="mcVer(${m.id})">Ver</button>
+                    ${m.respondido ? '' : `<button class="btn btn-sm btn-success" onclick="mcResponder(${m.id})">Responder</button>`}
+                </td>
+            </tr>`).join('')
+            : '<tr><td colspan="6" class="text-center text-secondary py-4">El historial está vacío.</td></tr>';
+    }
+
+    window.mcResponder = function (id) {
+        actual = cache.pendientes.find(m => m.id === id) || cache.historial.find(m => m.id === id);
+        if (!actual) return;
+        document.getElementById('mc-resp-titulo').textContent = 'Responder a ' + actual.nombre;
+        document.getElementById('mc-resp-asunto').textContent = actual.asunto;
+        document.getElementById('mc-resp-original').textContent = actual.mensaje;
+        document.getElementById('mc-resp-correo').textContent = actual.correo;
+        document.getElementById('mc-resp-texto').value = '';
+        bootstrap.Modal.getOrCreateInstance('#mc-modal-responder').show();
+    };
+
+    window.mcLeido = async function (id) {
+        await fetch(URL_LEIDO(id), { method: 'POST', headers: { 'X-CSRFToken': csrf() } });
+        cargar();
+    };
+
+    window.mcVer = function (id) {
+        const m = cache.historial.find(x => x.id === id);
+        if (!m) return;
+        document.getElementById('mc-ver-titulo').textContent = m.asunto + ' — ' + m.nombre;
+        document.getElementById('mc-ver-mensaje').textContent = m.mensaje;
+        const wrap = document.getElementById('mc-ver-resp-wrap');
+        if (m.respondido) {
+            document.getElementById('mc-ver-fecha').textContent = m.fecha_respuesta;
+            document.getElementById('mc-ver-respuesta').textContent = m.respuesta;
+            wrap.classList.remove('d-none');
+        } else {
+            wrap.classList.add('d-none');
+        }
+        bootstrap.Modal.getOrCreateInstance('#mc-modal-ver').show();
+    };
+
+    document.getElementById('mc-resp-enviar').addEventListener('click', async function () {
+        const texto = document.getElementById('mc-resp-texto').value.trim();
+        if (!texto) { aviso('Escribe una respuesta.', 'warning'); return; }
+
+        const btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
+
+        try {
+            const r = await fetch(URL_RESP(actual.id), {
                 method: 'POST',
-                headers: { 'X-CSRFToken': getCSRFToken() },
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'ok') {
-                    location.reload();
-                } else {
-                    alert('No se pudo marcar el mensaje como respondido.');
-                }
-            })
-            .catch(() => alert('Error de conexión.'));
-        });
-    });
-
-    // Responder mensaje (guarda respuesta + envía correo)
-    document.querySelectorAll('.form-responder-mensaje').forEach(function (form) {
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const id = form.dataset.id;
-            const respuesta = form.querySelector('[name="respuesta"]').value;
-            const submitBtn = form.querySelector('button[type="submit"]');
-
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Enviando...';
-
-            fetch(`/mensajes/responder/${id}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCSRFToken(),
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `respuesta=${encodeURIComponent(respuesta)}`,
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'ok') {
-                    location.reload();
-                } else {
-                    alert(data.mensaje || 'No se pudo enviar la respuesta.');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Enviar respuesta';
-                }
-            })
-            .catch(() => {
-                alert('Error de conexión.');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Enviar respuesta';
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
+                body: JSON.stringify({ respuesta: texto }),
             });
-        });
+            const d = await r.json();
+            if (d.ok) {
+                bootstrap.Modal.getInstance('#mc-modal-responder').hide();
+                aviso('Respuesta enviada a ' + actual.correo, 'success');
+                cargar();
+            } else {
+                aviso(d.error || 'Error al enviar', 'danger');
+            }
+        } catch (e) {
+            aviso('Error de conexión', 'danger');
+        }
+
+        btn.disabled = false;
+        btn.textContent = 'Enviar respuesta';
     });
 
-});
+    cargar();
+})();
 </script>

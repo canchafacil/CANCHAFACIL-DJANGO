@@ -17,7 +17,17 @@ from gestion_canchas.models import Cancha
 from contacto.models import Resena, MensajeContacto
 from reservas.models import Reserva
 from .reportes import generar_reporte_general, generar_reporte_mes_actual
+from functools import wraps
+from contacto.views import _es_admin
 
+
+def admin_requerido(vista):
+    @wraps(vista)
+    def envoltura(request, *args, **kwargs):
+        if not _es_admin(request):
+            return redirect('login')
+        return vista(request, *args, **kwargs)
+    return envoltura
 
 ESTADOS_PAGADOS = [
     Reserva.ESTADO_CONFIRMADA,

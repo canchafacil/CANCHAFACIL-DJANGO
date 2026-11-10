@@ -1,75 +1,101 @@
-<div id="sec-mensajes-contacto">
-    <h4 class="mb-4">Mensajes de contacto</h4>
+﻿<div id="mensajes-contacto">
 
-    {% if mensajes_contacto %}
-    <div class="table-responsive">
-        <table class="table table-hover align-middle">
-            <thead>
-                <tr>
-                    <th>Estado</th>
-                    <th>Nombre</th>
-                    <th>Correo</th>
-                    <th>Asunto</th>
-                    <th>Mensaje</th>
-                    <th>Fecha</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for msg in mensajes_contacto %}
-                <tr class="{% if not msg.respondido %}table-warning{% endif %}">
-                    <td>
-                        {% if msg.respondido %}
-                        <span class="badge bg-success">Respondido</span>
-                        {% else %}
-                        <span class="badge bg-danger">Pendiente</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ msg.nombre }}</td>
-                    <td>{{ msg.correo }}</td>
-                    <td>{{ msg.asunto }}</td>
-                    <td style="max-width: 250px;">{{ msg.mensaje|truncatechars:80 }}</td>
-                    <td>{{ msg.fecha|date:"d/m/Y H:i" }}</td>
-                    <td>
-                        <button type="button" class="btn btn-sm btn-primary"
-                                data-bs-toggle="modal" data-bs-target="#modalResponder{{ msg.id }}">
-                            Responder
-                        </button>
-                        {% if not msg.respondido %}
-                        <button type="button" class="btn btn-sm btn-outline-secondary btn-marcar-respondido" data-id="{{ msg.id }}">
-                            Marcar leído
-                        </button>
-                        {% endif %}
-                    </td>
-                </tr>
+    {% csrf_token %}
 
-                <div class="modal fade" id="modalResponder{{ msg.id }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <form class="modal-content form-responder-mensaje" data-id="{{ msg.id }}">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Responder a {{ msg.nombre }}</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <p><strong>Asunto:</strong> {{ msg.asunto }}</p>
-                                <p><strong>Mensaje original:</strong><br>{{ msg.mensaje }}</p>
-                                <div class="mb-3">
-                                    <label class="form-label">Tu respuesta</label>
-                                    <textarea name="respuesta" class="form-control" rows="4" required></textarea>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                <button type="submit" class="btn btn-primary">Enviar respuesta</button>
-                            </div>
-                        </form>
+    <h3 class="mb-4">Mensajes de contacto</h3>
+
+    <div id="mc-alert" class="alert d-none"></div>
+
+    <ul class="nav nav-pills mb-4 gap-2">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#mc-pend">
+                Pendientes <span class="badge bg-warning text-dark ms-1" id="mc-cnt-pend">0</span>
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#mc-hist">
+                Historial <span class="badge bg-secondary ms-1" id="mc-cnt-hist">0</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+
+        <!-- PENDIENTES -->
+        <div class="tab-pane fade show active" id="mc-pend">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th><th>Correo</th><th>Asunto</th>
+                            <th>Fecha</th><th>Estado</th><th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mc-body-pend"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- HISTORIAL (leídos + respondidos) -->
+        <div class="tab-pane fade" id="mc-hist">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th><th>Correo</th><th>Asunto</th>
+                            <th>Fecha</th><th>Estado</th><th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mc-body-hist"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL RESPONDER -->
+    <div class="modal fade" id="mc-modal-responder" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="mc-resp-titulo">Responder</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-1"><strong>Asunto:</strong> <span id="mc-resp-asunto"></span></p>
+                    <p class="bg-black bg-opacity-25 p-3 rounded" id="mc-resp-original" style="white-space:pre-line;"></p>
+                    <label class="form-label">
+                        Tu respuesta (se enviará a <strong id="mc-resp-correo"></strong>)
+                    </label>
+                    <textarea id="mc-resp-texto" class="form-control bg-dark text-white border-secondary" rows="6"></textarea>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-success" id="mc-resp-enviar">Enviar respuesta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VER -->
+    <div class="modal fade" id="mc-modal-ver" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="mc-ver-titulo"></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-1"><strong>Mensaje:</strong></p>
+                    <p class="bg-black bg-opacity-25 p-3 rounded" id="mc-ver-mensaje" style="white-space:pre-line;"></p>
+                    <div id="mc-ver-resp-wrap">
+                        <p class="mb-1"><strong>Respuesta enviada (<span id="mc-ver-fecha"></span>):</strong></p>
+                        <p class="bg-black bg-opacity-25 p-3 rounded" id="mc-ver-respuesta" style="white-space:pre-line;"></p>
                     </div>
                 </div>
-                {% endfor %}
-            </tbody>
-        </table>
+            </div>
+        </div>
     </div>
-    {% else %}
-    <p class="text-muted">No hay mensajes de contacto.</p>
-    {% endif %}
+
 </div>
+
