@@ -14,106 +14,97 @@
     <link rel="stylesheet" href="{% static 'css/obscuro.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Exo+2:wght@300;400;600;700;900&display=swap"
         rel="stylesheet" />
-    <style>
-        body {
-            padding-top: 110px;
-        }
-
-        /* ── Estilos de sección por sede ── */
-        .sede-titulo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 40px 0 6px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #62ff00;
-        }
-        .sede-titulo i {
-            color: #62ff00;
-            font-size: 1.6rem;
-        }
-        .sede-titulo h3 {
-            margin: 0;
-            color: #03045e;
-            font-weight: 700;
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 2rem;
-            letter-spacing: 1px;
-        }
-        .sede-info {
-            color: #6b7280;
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-        }
-        .sede-info i {
-            color: #62ff00;
-            margin-right: 4px;
-        }
-        .sede-info span + span {
-            margin-left: 18px;
-        }
-    </style>
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark  shadow fixed-top">
-        <div class="container d-flex align-items-center">
-            <a href="{% url 'inicio' %}" class="d-flex align-items-center text-decoration-none">
-                <img src="{% static 'img/logo-green.png' %}" style="height: 90px;" alt="">
-                <span class="navbar-brand fw-bold ms-2 mb-0" style="font-size: 2rem; color: white;">
-                    Cancha<span style="color:  #62ff00;">Fácil </span>
-                </span>
+    <nav class="navbar navbar-expand-lg navbar-dark shadow">
+
+        <div class="container">
+
+            <img src="{% static 'img/logo-green.png' %}" style="height: 90px;" alt="Logo CanchaFácil">
+
+            <a class="navbar-brand fw-bold ms-2" href="#" style="font-size: 2rem; color: white;">
+
+                Cancha<span style="color: #39FF14;">Fácil</span>
+
             </a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+
                 <span class="navbar-toggler-icon"></span>
+
             </button>
 
             <div class="collapse navbar-collapse" id="menu">
+
                 <ul class="navbar-nav ms-auto align-items-center">
+
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'inicio' %}">Inicio</a>
+                        <a class="nav-link" href="{% url 'inicio' %}">
+                            Inicio
+                        </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'gestion_canchas:canchas' %}">Reservar</a>
+                        <a class="nav-link" href="{% url 'gestion_canchas:canchas' %}">
+                            Reservar
+                        </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'nosotros' %}">Sobre Nosotros</a>
+                        <a class="nav-link" href="{% url 'nosotros' %}">
+                            Sobre Nosotros
+                        </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'contacto' %}">Contacto</a>
+                        <a class="nav-link" href="{% url 'contacto' %}">
+                            Contacto
+                        </a>
                     </li>
 
                     {% if request.session.usuario_id %}
+
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="perfilDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle me-1" style="font-size: 1.3rem;"></i> {{ request.session.nombre }}
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="perfilDropdown"
+                            role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1" style="font-size: 1.3rem;"></i>
+                            {{ request.session.nombre }}
                         </a>
+
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{% url 'usuarios:perfil' %}">Mi perfil</a></li>
                             <li>
-                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#modalLogout">
+                                <a class="dropdown-item" href="{% url 'usuarios:perfil' %}">
+                                    Mi perfil
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#modalLogout">
                                     Cerrar sesión
                                 </a>
                             </li>
                         </ul>
                     </li>
+
                     {% else %}
-                    <li class="nav-item d-none d-lg-block">
-                        <a href="{% url 'usuarios:login' %}" class="btn btn-info border-0 ms-2" style="background-color: #62ff00; color: #03045e; font-weight: bold;">Iniciar Sesión</a>
-                    </li>
-                    {% endif %}
+
+                    <li class="nav-item">
+                        <a href="{% url 'usuarios:login' %}" class="btn btn-info border-0 ms-2" style="background-color: #39FF14;
+                                  color: #03045e;
+                                  font-weight: bold;">
+                            Iniciar Sesión
+                        </a>
                     </li>
 
-                    <li class="nav-item ">
+                    {% endif %}
+
+                    <li class="nav-item">
                         <button id="themeToggle" class="theme-toggle-btn" title="Cambiar tema">
                             <i class="bi bi-moon-stars"></i>
                         </button>
                     </li>
-                
+                </ul>
             </div>
         </div>
     </nav>
@@ -127,71 +118,71 @@
 
 
 
-            
+
             {% if sedes_con_canchas %}
-                {% for item in sedes_con_canchas %}
-                <!-- ══════════ SEDE: {{ item.sede.nombre }} ══════════ -->
-                <div class="sede-titulo"> 
-                    <i class="bi bi-geo-alt-fill"></i>
-                    <h3>{{ item.sede.nombre }}</h3>
-                </div>
+            {% for item in sedes_con_canchas %}
+            <!-- ══════════ SEDE: {{ item.sede.nombre }} ══════════ -->
+            <div class="sede-titulo">
+                <i class="bi bi-geo-alt-fill"></i>
+                <h3>{{ item.sede.nombre }}</h3>
+            </div>
 
-                <p class="sede-info">
-                    <span><i class="bi bi-pin-map-fill"></i>{{ item.sede.direccion }}</span>
-                    <span><i class="bi bi-building"></i>{{ item.sede.ciudad }}</span>
-                    {% if item.sede.telefono %}
-                    <span><i class="bi bi-telephone-fill"></i>{{ item.sede.telefono }}</span>
-                    {% endif %}
-                </p>
+            <p class="sede-info">
+                <span><i class="bi bi-pin-map-fill"></i>{{ item.sede.direccion }}</span>
+                <span><i class="bi bi-building"></i>{{ item.sede.ciudad }}</span>
+                {% if item.sede.telefono %}
+                <span><i class="bi bi-telephone-fill"></i>{{ item.sede.telefono }}</span>
+                {% endif %}
+            </p>
 
-                <div class="row g-4 cards-grid pt-2 pb-4">
-                    {% for cancha in item.canchas %}
-                    <div class="col-12 col-sm-6 col-xl-4 fade-up">
-                        <div class="cancha-card">
-                            <div class="card-img-wrap">
-                                <span class="card-rating"><i class="bi bi-star-fill"></i> 4.9</span>
-                                {% if cancha.imagen %}
-                                <img src="{{ cancha.imagen.url }}" alt="{{ cancha.nombre }}">
-                                {% else %}
-                                <img src="{% static 'img/default-cancha.jpg' %}" alt="Cancha sin imagen">
-                                {% endif %}
+            <div class="row g-4 cards-grid pt-2 pb-4">
+                {% for cancha in item.canchas %}
+                <div class="col-12 col-sm-6 col-xl-4 fade-up">
+                    <div class="cancha-card">
+                        <div class="card-img-wrap">
+                            <span class="card-rating"><i class="bi bi-star-fill"></i> 4.9</span>
+                            {% if cancha.imagen %}
+                            <img src="{{ cancha.imagen.url }}" alt="{{ cancha.nombre }}">
+                            {% else %}
+                            <img src="{% static 'img/default-cancha.jpg' %}" alt="Cancha sin imagen">
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <p class="card-location">
+                                <i class="bi bi-geo-alt-fill me-1" style="color: #62ff00;"></i>
+                                {{ item.sede.ciudad }}
+                            </p>
+                            <h3 class="card-name" style="color: #62ff00;">{{ cancha.nombre }}</h3>
+                            <p class="card-desc">{{ cancha.descripcion|default:"Sin descripción" }}</p>
+                            <div class="card-meta">
+                                <span class="meta-item">
+                                    <i class="bi bi-people-fill me-1" style="color: #62ff00;"></i>
+                                    {{ cancha.tipo }}
+                                </span>
+                                <span class="meta-item">
+                                    <i class="bi bi-clock-fill me-1" style="color: #62ff00;"></i> 60 min
+                                </span>
+                                <span class="meta-item">
+                                    <i class="bi bi-currency-dollar" style="color: #62ff00;"></i>
+                                    {{ cancha.precio|cop }}
+                                </span>
                             </div>
-                            <div class="card-body">
-                                <p class="card-location">
-                                    <i class="bi bi-geo-alt-fill me-1" style="color: #62ff00;"></i>
-                                    {{ item.sede.ciudad }}
-                                </p>
-                                <h3 class="card-name" style="color: #62ff00;">{{ cancha.nombre }}</h3>
-                                <p class="card-desc">{{ cancha.descripcion|default:"Sin descripción" }}</p>
-                                <div class="card-meta">
-                                    <span class="meta-item">
-                                        <i class="bi bi-people-fill me-1" style="color: #62ff00;"></i>
-                                        {{ cancha.tipo }}
-                                    </span>
-                                    <span class="meta-item">
-                                        <i class="bi bi-clock-fill me-1" style="color: #62ff00;"></i> 60 min
-                                    </span>
-                                    <span class="meta-item">
-                                        <i class="bi bi-currency-dollar" style="color: #62ff00;"></i>
-                                        {{ cancha.precio|cop }}
-                                    </span>
-                                </div>
-                                <button class="btn-reservar"
-                                    style="background-color: #62ff00; color: #03045e; cursor: pointer; width: 100%; border: none; padding: 10px; border-radius: 8px; font-weight: bold;"
-                                    onclick="window.location.href='{% url 'formulario_reservas_cancha' cancha.id %}'">
-                                    Reservar ahora
-                                </button>
-                            </div>
+                            <button class="btn-reservar"
+                                style="background-color: #62ff00; color: #03045e; cursor: pointer; width: 100%; border: none; padding: 10px; border-radius: 8px; font-weight: bold;"
+                                onclick="window.location.href='{% url 'formulario_reservas_cancha' cancha.id %}'">
+                                Reservar ahora
+                            </button>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
                 {% endfor %}
+            </div>
+            {% endfor %}
             {% else %}
-                <div class="alert alert-info text-center mt-5">
-                    <i class="bi bi-info-circle me-2"></i>
-                    No hay canchas disponibles en este momento.
-                </div>
+            <div class="alert alert-info text-center mt-5">
+                <i class="bi bi-info-circle me-2"></i>
+                No hay canchas disponibles en este momento.
+            </div>
             {% endif %}
 
         </div>
@@ -199,7 +190,55 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/theme.js' %}"></script>
+    <style>
+        /* ── Estilos de sección por sede ── */
+        .sede-titulo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 40px 0 6px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #62ff00;
+        }
 
+        .sede-titulo i {
+            color: #62ff00;
+            font-size: 1.6rem;
+        }
+
+        .sede-titulo h3 {
+            margin: 0;
+            color: #03045e;
+            font-weight: 700;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 1px;
+        }
+
+        .sede-info {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .sede-info i {
+            color: #62ff00;
+            margin-right: 4px;
+        }
+
+        .sede-info span+span {
+            margin-left: 18px;
+        }
+
+        [data-bs-theme="dark"] .sede-titulo h3 {
+            margin: 0;
+            color: white;
+            font-weight: 700;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 1px;
+        }
+    </style>
 </body>
 
 </html>

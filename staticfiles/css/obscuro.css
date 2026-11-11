@@ -232,7 +232,6 @@
     background: var(--dark-bg);
     border: 1.5px solid var(--verde-neon);
     border-radius: 16px;
-    padding: 22px;
     transition: border 0.25s, transform 0.2s, box-shadow 0.2s;
     box-shadow: 0 2px 8px rgba(3, 4, 94, 0.07);
 }
@@ -283,7 +282,6 @@
 [data-bs-theme="dark"] .card-body {
     background: var(--dark-bg);
     color: var(--blanco);
-    margin-bottom: 30px;
 }
 
 [data-bs-theme="dark"] .card{
@@ -316,8 +314,6 @@
     background-color: var(--verde-neon);
     color: var(--blanco);
 }
-
-
 
 
 

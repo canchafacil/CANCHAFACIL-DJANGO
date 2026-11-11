@@ -14,195 +14,220 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 
     <style>
+        body {
+            background-color: #f4f6f9;
+        }
+
+        .container.my-5 {
+            max-width: 960px;
+            margin-top: 3rem !important;
+            margin-bottom: 3rem !important;
+        }
+
+
+
+        .avatar-radio:checked+.avatar-img {
+            outline: 3px solid #39FF14;
+            outline-offset: 2px;
+        }
+
+        .avatar-option img {
+            transition: transform 0.15s ease, outline 0.15s ease;
+        }
+
+        .avatar-option:hover img {
+            transform: scale(1.06);
+            cursor: pointer;
+        }
+
+        .badge-estado {
+            font-size: 0.75rem;
+            padding: 0.35em 0.65em;
+        }
+
+        /* ============================================= */
+        /* ACORDEÓN PRINCIPAL */
+        /* ============================================= */
+
+        .perfil-accordion {
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: none;
+        }
+
+        .perfil-accordion .accordion-item {
+            border: none;
+            border-bottom: 1px solid #eee;
+        }
+
+        .perfil-accordion .accordion-item:last-child {
+            border-bottom: none;
+        }
+
+        .perfil-accordion .accordion-button {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: #03045e;
+            padding: 20px;
+        }
+
+        .perfil-accordion .accordion-button i {
+            color: #39FF14;
+        }
+
+        .perfil-accordion .accordion-button:not(.collapsed) {
+            background-color: #f1f3f8;
+            color: #03045e;
+            box-shadow: none;
+        }
+
+        .perfil-accordion .accordion-button:focus {
+            box-shadow: none;
+        }
+
+        .perfil-accordion .accordion-body {
+            padding: 28px;
+            background-color: #fff;
+        }
+
+        [data-bs-theme="dark"] .perfil-accordion .accordion-button {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: white;
+            padding: 20px;
+        }
+
+        [data-bs-theme="dark"] .perfil-accordion .accordion-body {
+            padding: 28px;
+            background-color: rgba(0, 0, 0, 0.08);
+        }
+        
+        [data-bs-theme="dark"] .accordion-button:not(.collapsed) {
+            background-color: rgba(0, 0, 0, 0.08);
+            box-shadow: none;
+        }
+        
+        .text-center.mb-4 {
+            margin-bottom: 30px !important;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.88rem;
+        }
+
+        .form-control:disabled {
+            background-color: #f1f1f1;
+        }
+
+        hr.my-4 {
+            border-top: 2px solid #eee;
+            opacity: 1;
+        }
+
+
+        .card.mb-3 {
+            border-radius: 12px;
+            border: 1px solid #eee;
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .card.mb-3:hover {
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        }
+
+        .card.border-warning {
+            border-left: 4px solid #ffc107 !important;
+        }
   
+        /* ============================================= */
+        /* ACORDEÓN SECUNDARIO */
+        /* ============================================= */
 
-    body {
-        background-color: #f4f6f9;
-    }
+        .comunidad-accordion .accordion-item {
+            background: #fafbfc;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+            overflow: hidden;
+        }
 
-    .container.my-5 {
-        max-width: 960px;
-        margin-top: 3rem !important;
-        margin-bottom: 3rem !important;
-    }
+        .comunidad-accordion .accordion-button {
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 15px 20px;
+        }
 
+        .comunidad-accordion .accordion-button i {
+            color: #39FF14;
+        }
 
+        .comunidad-accordion .accordion-button:not(.collapsed) {
+            background-color: #eef0f5;
+            color: #03045e;
+            box-shadow: none;
+        }
 
-    .avatar-radio:checked + .avatar-img {
-        outline: 3px solid #39FF14;
-        outline-offset: 2px;
-    }
+        .comunidad-accordion .accordion-button:focus {
+            box-shadow: none;
+        }
 
-    .avatar-option img {
-        transition: transform 0.15s ease, outline 0.15s ease;
-    }
+        .comunidad-accordion .accordion-body {
+            background-color: #fff;
+        }
 
-    .avatar-option:hover img {
-        transform: scale(1.06);
-        cursor: pointer;
-    }
+        .comunidad-accordion .border.rounded.p-3 {
+            border-color: #eee !important;
+            background-color: #fcfcfc;
+        }
 
-    .badge-estado {
-        font-size: 0.75rem;
-        padding: 0.35em 0.65em;
-    }
+        [data-bs-theme="dark"] .comunidad-accordion .accordion-item {
+            background-color: rgba(0, 0, 0, 0.08);
+        }
+        
+        [data-bs-theme="dark"] .comunidad-accordion .accordion-button:not(.collapsed) {
+            background-color: rgba(0, 0, 0, 0.08) ; 
+            color: white;
+        }
 
-    /* ============================================= */
-    /* ACORDEÓN PRINCIPAL */
-    /* ============================================= */
-
-    .perfil-accordion {
-        border-radius: 14px;
-        overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: none;
-    }
-
-    .perfil-accordion .accordion-item {
-        border: none;
-        border-bottom: 1px solid #eee;
-    }
-
-    .perfil-accordion .accordion-item:last-child {
-        border-bottom: none;
-    }
-
-    .perfil-accordion .accordion-button {
-        font-size: 1.15rem;
-        font-weight: bold;
-        color: #03045e;
-        padding: 20px;
-    }
-
-    .perfil-accordion .accordion-button i {
-        color: #39FF14;
-    }
-
-    .perfil-accordion .accordion-button:not(.collapsed) {
-        background-color: #f1f3f8;
-        color: #03045e;
-        box-shadow: none;
-    }
-
-    .perfil-accordion .accordion-button:focus {
-        box-shadow: none;
-    }
-
-    .perfil-accordion .accordion-body {
-        padding: 28px;
-        background-color: #fff;
-    }
-
-    
-
-    .text-center.mb-4 {
-        margin-bottom: 30px !important;
-    }
-
-    .form-label {
-        font-weight: 600;
-        color: #495057;
-        font-size: 0.88rem;
-    }
-
-    .form-control:disabled {
-        background-color: #f1f1f1;
-    }
-
-    hr.my-4 {
-        border-top: 2px solid #eee;
-        opacity: 1;
-    }
+        .alert {
+            border-radius: 10px;
+        }
 
 
-    .card.mb-3 {
-        border-radius: 12px;
-        border: 1px solid #eee;
-        transition: box-shadow 0.2s ease, transform 0.2s ease;
-    }
+        footer.bg-dark {
+            margin-top: 40px;
+        }
 
-    .card.mb-3:hover {
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-    }
+        html,
+        body {
+            height: 100%;
+        }
 
-    .card.border-warning {
-        border-left: 4px solid #ffc107 !important;
-    }
+        body {
+            background-color: #f4f6f9;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
 
+        /* Este div envuelve el contenido principal para empujar el footer */
+        .container.my-5 {
+            max-width: 960px;
+            margin-top: 3rem !important;
+            margin-bottom: 3rem !important;
+            flex: 1;
+        }
 
-    .comunidad-accordion .accordion-item {
-        background: #fafbfc;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        border: 1px solid #eee;
-        overflow: hidden;
-    }
-
-    .comunidad-accordion .accordion-button {
-        font-size: 1rem;
-        font-weight: 600;
-        padding: 15px 20px;
-    }
-
-    .comunidad-accordion .accordion-button i {
-        color: #39FF14;
-    }
-
-    .comunidad-accordion .accordion-button:not(.collapsed) {
-        background-color: #eef0f5;
-        color: #03045e;
-        box-shadow: none;
-    }
-
-    .comunidad-accordion .accordion-button:focus {
-        box-shadow: none;
-    }
-
-    .comunidad-accordion .accordion-body {
-        background-color: #fff;
-    }
-
-    .comunidad-accordion .border.rounded.p-3 {
-        border-color: #eee !important;
-        background-color: #fcfcfc;
-    }
-
-  
-
-    .alert {
-        border-radius: 10px;
-    }
-
-
-    footer.bg-dark {
-        margin-top: 40px;
-    }
-
-    html, body {
-    height: 100%;
-}
-
-body {
-    background-color: #f4f6f9;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    margin: 0;
-}
-
-/* Este div envuelve el contenido principal para empujar el footer */
-.container.my-5 {
-    max-width: 960px;
-    margin-top: 3rem !important;
-    margin-bottom: 3rem !important;
-    flex: 1;
-}
-
-footer.bg-dark {
-    margin-top: 0; /* ya no hace falta, el flex se encarga */
-    flex-shrink: 0;
-}
-</style>
+        footer.bg-dark {
+            margin-top: 0;
+            /* ya no hace falta, el flex se encarga */
+            flex-shrink: 0;
+        }
+    </style>
 </head>
 
 <body>
@@ -212,22 +237,15 @@ footer.bg-dark {
 
         <div class="container">
 
-            <img src="{% static 'img/logo-green.png' %}"
-                 style="height: 90px;"
-                 alt="Logo CanchaFácil">
+            <img src="{% static 'img/logo-green.png' %}" style="height: 90px;" alt="Logo CanchaFácil">
 
-            <a class="navbar-brand fw-bold ms-2"
-               href="#"
-               style="font-size: 2rem; color: white;">
+            <a class="navbar-brand fw-bold ms-2" href="#" style="font-size: 2rem; color: white;">
 
                 Cancha<span style="color: #39FF14;">Fácil</span>
 
             </a>
 
-            <button class="navbar-toggler"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#menu">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
 
                 <span class="navbar-toggler-icon"></span>
 
@@ -244,8 +262,7 @@ footer.bg-dark {
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link"
-                           href="{% url 'gestion_canchas:canchas' %}">
+                        <a class="nav-link" href="{% url 'gestion_canchas:canchas' %}">
                             Reservar
                         </a>
                     </li>
@@ -265,80 +282,47 @@ footer.bg-dark {
                     {% if request.session.usuario_id %}
 
                     <li class="nav-item dropdown">
-
-                        <a class="nav-link dropdown-toggle d-flex align-items-center"
-                           href="#"
-                           id="perfilDropdown"
-                           role="button"
-                           data-bs-toggle="dropdown">
-
-                            <i class="bi bi-person-circle me-1"
-                               style="font-size: 1.3rem;"></i>
-
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="perfilDropdown"
+                            role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1" style="font-size: 1.3rem;"></i>
                             {{ request.session.nombre }}
-
                         </a>
 
                         <ul class="dropdown-menu dropdown-menu-end">
-
                             <li>
-                                <a class="dropdown-item"
-                                   href="{% url 'usuarios:perfil' %}">
+                                <a class="dropdown-item" href="{% url 'usuarios:perfil' %}">
                                     Mi perfil
                                 </a>
                             </li>
-
                             <li>
-                                <a class="dropdown-item text-danger"
-                                   href="#"
-                                   data-bs-toggle="modal"
-                                   data-bs-target="#modalLogout">
-
+                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#modalLogout">
                                     Cerrar sesión
-
                                 </a>
                             </li>
-
                         </ul>
-
                     </li>
 
                     {% else %}
 
                     <li class="nav-item">
-
-                        <a href="{% url 'usuarios:login' %}"
-                           class="btn btn-info border-0 ms-2"
-                           style="background-color: #39FF14;
+                        <a href="{% url 'usuarios:login' %}" class="btn btn-info border-0 ms-2" style="background-color: #39FF14;
                                   color: #03045e;
                                   font-weight: bold;">
-
                             Iniciar Sesión
-
                         </a>
-
                     </li>
 
                     {% endif %}
 
                     <li class="nav-item">
-
-                        <button id="themeToggle"
-                                class="theme-toggle-btn"
-                                title="Cambiar tema">
-
+                        <button id="themeToggle" class="theme-toggle-btn" title="Cambiar tema">
                             <i class="bi bi-moon-stars"></i>
-
                         </button>
-
                     </li>
-
                 </ul>
-
             </div>
-
         </div>
-
     </nav>
 
 
@@ -361,8 +345,7 @@ footer.bg-dark {
         <!-- ACORDEÓN PRINCIPAL -->
         <!-- ================================================= -->
 
-        <div class="accordion perfil-accordion shadow-sm"
-             id="accordionPerfil">
+        <div class="accordion perfil-accordion shadow-sm" id="accordionPerfil">
 
 
             <!-- ============================================= -->
@@ -371,15 +354,10 @@ footer.bg-dark {
 
             <div class="accordion-item">
 
-                <h2 class="accordion-header"
-                    id="headingPerfil">
+                <h2 class="accordion-header" id="headingPerfil">
 
-                    <button class="accordion-button collapsed"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#collapsePerfil"
-                            aria-expanded="false"
-                            aria-controls="collapsePerfil">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapsePerfil" aria-expanded="false" aria-controls="collapsePerfil">
 
                         <i class="bi bi-person-circle me-2"></i>
 
@@ -390,16 +368,12 @@ footer.bg-dark {
                 </h2>
 
 
-                <div id="collapsePerfil"
-                     class="accordion-collapse collapse"
-                     aria-labelledby="headingPerfil"
-                     data-bs-parent="#accordionPerfil">
+                <div id="collapsePerfil" class="accordion-collapse collapse" aria-labelledby="headingPerfil"
+                    data-bs-parent="#accordionPerfil">
 
                     <div class="accordion-body">
 
-                        <form method="post"
-                              action="{% url 'usuarios:editar_perfil' %}"
-                              enctype="multipart/form-data">
+                        <form method="post" action="{% url 'usuarios:editar_perfil' %}" enctype="multipart/form-data">
 
                             {% csrf_token %}
 
@@ -410,26 +384,20 @@ footer.bg-dark {
 
                                 {% if usuario.foto %}
 
-                                <img src="{{ usuario.foto.url }}"
-                                     alt="Avatar"
-                                     class="rounded-circle border"
-                                     style="width: 110px;
+                                <img src="{{ usuario.foto.url }}" alt="Avatar" class="rounded-circle border" style="width: 110px;
                                             height: 110px;
                                             object-fit: cover;">
 
                                 {% elif usuario.avatar_icono %}
 
-                                <img src="{% static usuario.avatar_icono %}"
-                                     alt="Avatar"
-                                     class="rounded-circle border"
-                                     style="width: 110px;
+                                <img src="{% static usuario.avatar_icono %}" alt="Avatar" class="rounded-circle border"
+                                    style="width: 110px;
                                             height: 110px;
                                             object-fit: cover;">
 
                                 {% else %}
 
-                                <i class="bi bi-person-circle"
-                                   style="font-size: 110px;
+                                <i class="bi bi-person-circle" style="font-size: 110px;
                                           color: #03045e;">
                                 </i>
 
@@ -448,11 +416,8 @@ footer.bg-dark {
                                         Nombre
                                     </label>
 
-                                    <input type="text"
-                                           class="form-control"
-                                           value="{{ usuario.first_name }}"
-                                           disabled
-                                           readonly>
+                                    <input type="text" class="form-control" value="{{ usuario.first_name }}" disabled
+                                        readonly>
 
                                     <small class="text-muted">
                                         El nombre no se puede modificar.
@@ -467,11 +432,8 @@ footer.bg-dark {
                                         Apellido
                                     </label>
 
-                                    <input type="text"
-                                           class="form-control"
-                                           value="{{ usuario.last_name }}"
-                                           disabled
-                                           readonly>
+                                    <input type="text" class="form-control" value="{{ usuario.last_name }}" disabled
+                                        readonly>
 
                                     <small class="text-muted">
                                         El apellido no se puede modificar.
@@ -486,11 +448,8 @@ footer.bg-dark {
                                         Correo
                                     </label>
 
-                                    <input type="email"
-                                           name="email"
-                                           class="form-control"
-                                           value="{{ usuario.email }}"
-                                           required>
+                                    <input type="email" name="email" class="form-control" value="{{ usuario.email }}"
+                                        required>
 
                                 </div>
 
@@ -501,10 +460,7 @@ footer.bg-dark {
                                         Teléfono
                                     </label>
 
-                                    <input type="text"
-                                           name="phone"
-                                           class="form-control"
-                                           value="{{ usuario.phone }}">
+                                    <input type="text" name="phone" class="form-control" value="{{ usuario.phone }}">
 
                                 </div>
 
@@ -515,10 +471,8 @@ footer.bg-dark {
                                         Nueva contraseña (opcional)
                                     </label>
 
-                                    <input type="password"
-                                           name="password"
-                                           class="form-control"
-                                           placeholder="Dejar en blanco para no cambiarla">
+                                    <input type="password" name="password" class="form-control"
+                                        placeholder="Dejar en blanco para no cambiarla">
 
                                 </div>
 
@@ -535,11 +489,8 @@ footer.bg-dark {
 
                             <div class="mb-4">
 
-                                <input type="file"
-                                       name="foto"
-                                       accept="image/*"
-                                       class="form-control"
-                                       style="max-width: 350px;">
+                                <input type="file" name="foto" accept="image/*" class="form-control"
+                                    style="max-width: 350px;">
 
                                 <small class="text-muted">
                                     Subí una imagen JPG o PNG.
@@ -567,18 +518,11 @@ footer.bg-dark {
 
                                 <label class="avatar-option">
 
-                                    <input type="radio"
-                                           name="avatar_icono"
-                                           value="{{ icono.ruta }}"
-                                           class="d-none avatar-radio"
-                                           {% if usuario.avatar_icono == icono.ruta %}
-                                           checked
-                                           {% endif %}>
+                                    <input type="radio" name="avatar_icono" value="{{ icono.ruta }}"
+                                        {% if usuario.avatar_icono == icono.ruta %}checked{% endif %}>
 
-                                    <img src="{% static icono.ruta %}"
-                                         alt="{{ icono.nombre }}"
-                                         class="rounded-circle border avatar-img"
-                                         style="width: 70px;
+                                    <img src="{% static icono.ruta %}" alt="{{ icono.nombre }}"
+                                        class="rounded-circle border avatar-img" style="width: 70px;
                                                 height: 70px;
                                                 object-fit: cover;
                                                 cursor: pointer;">
@@ -600,18 +544,12 @@ footer.bg-dark {
 
                                 <label class="avatar-option">
 
-                                    <input type="radio"
-                                           name="avatar_icono"
-                                           value="{{ bandera.ruta }}"
-                                           class="d-none avatar-radio"
-                                           {% if usuario.avatar_icono == bandera.ruta %}
-                                           checked
-                                           {% endif %}>
+                                    <input type="radio" name="avatar_icono" value="{{ bandera.ruta }}"
+                                        class="d-none avatar-radio" {% if usuario.avatar_icono == bandera.ruta %} checked
+                                        {% endif %}>
 
-                                    <img src="{% static bandera.ruta %}"
-                                         alt="{{ bandera.nombre }}"
-                                         class="rounded-circle border avatar-img"
-                                         style="width: 70px;
+                                    <img src="{% static bandera.ruta %}" alt="{{ bandera.nombre }}"
+                                        class="rounded-circle border avatar-img" style="width: 70px;
                                                 height: 70px;
                                                 object-fit: cover;
                                                 cursor: pointer;">
@@ -623,9 +561,7 @@ footer.bg-dark {
                             </div>
 
 
-                            <button type="submit"
-                                    class="btn mt-3 text-white"
-                                    style="background-color: #03045e;">
+                            <button type="submit" class="btn mt-3 text-white" style="background-color: #03045e;">
 
                                 <i class="bi bi-check-lg me-1"></i>
 
@@ -648,15 +584,10 @@ footer.bg-dark {
 
             <div class="accordion-item">
 
-                <h2 class="accordion-header"
-                    id="headingReservas">
+                <h2 class="accordion-header" id="headingReservas">
 
-                    <button class="accordion-button collapsed"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#collapseReservas"
-                            aria-expanded="false"
-                            aria-controls="collapseReservas">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseReservas" aria-expanded="false" aria-controls="collapseReservas">
 
                         <i class="bi bi-calendar-check me-2"></i>
 
@@ -671,10 +602,8 @@ footer.bg-dark {
                 </h2>
 
 
-                <div id="collapseReservas"
-                     class="accordion-collapse collapse"
-                     aria-labelledby="headingReservas"
-                     data-bs-parent="#accordionPerfil">
+                <div id="collapseReservas" class="accordion-collapse collapse" aria-labelledby="headingReservas"
+                    data-bs-parent="#accordionPerfil">
 
                     <div class="accordion-body">
 
@@ -698,7 +627,8 @@ footer.bg-dark {
 
                         {% else %}
 
-                        <div class="alert alert-success d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div
+                            class="alert alert-success d-flex align-items-center justify-content-between flex-wrap gap-2">
 
                             <span>
 
@@ -709,9 +639,8 @@ footer.bg-dark {
 
                             </span>
 
-                            <a href="{% url 'formulario_reservas' %}"
-                               class="btn btn-sm text-white"
-                               style="background-color: #03045e;">
+                            <a href="{% url 'formulario_reservas' %}" class="btn btn-sm text-white"
+                                style="background-color: #03045e;">
 
                                 <i class="bi bi-plus-lg me-1"></i>
 
@@ -728,73 +657,74 @@ footer.bg-dark {
 
                         {% if reservas %}
 
-                            {% for reserva in reservas %}
+                        {% for reserva in reservas %}
 
-                            <div class="card mb-3 shadow-sm {% if reserva.estado == 'pendiente' %}border-warning{% endif %}">
+                        <div
+                            class="card mb-3 shadow-sm {% if reserva.estado == 'pendiente' %}border-warning{% endif %}">
 
-                                <div class="card-body">
+                            <div class="card-body">
 
-                                    <div class="d-flex justify-content-between align-items-start flex-wrap">
+                                <div class="d-flex justify-content-between align-items-start flex-wrap">
 
 
-                                        <!-- INFORMACIÓN -->
+                                    <!-- INFORMACIÓN -->
 
-                                        <div>
+                                    <div>
 
-                                            <strong>
-                                                {{ reserva.cancha }}
-                                            </strong>
+                                        <strong>
+                                            {{ reserva.cancha }}
+                                        </strong>
 
-                                            —
-                                            {{ reserva.fecha }}
-                                            a las
-                                            {{ reserva.hora }}
+                                        —
+                                        {{ reserva.fecha }}
+                                        a las
+                                        {{ reserva.hora }}
 
-                                            <br>
+                                        <br>
 
-                                            <small class="text-muted">
+                                        <small class="text-muted">
 
-                                                Duración:
-                                                {{ reserva.duracion }}
+                                            Duración:
+                                            {{ reserva.duracion }}
 
-                                                ·
-
-                                                {% if reserva.estado == 'pendiente' %}
-
-                                                <span class="badge bg-warning text-dark badge-estado">
-                                                    Pendiente
-                                                </span>
-
-                                                {% elif reserva.estado == 'confirmada' %}
-
-                                                <span class="badge bg-info text-dark badge-estado">
-                                                    Confirmada
-                                                </span>
-
-                                                {% elif reserva.estado == 'completada' %}
-
-                                                <span class="badge bg-success badge-estado">
-                                                    Completada
-                                                </span>
-
-                                                {% elif reserva.estado == 'cancelada' %}
-
-                                                <span class="badge bg-secondary badge-estado">
-                                                    Cancelada
-                                                </span>
-
-                                                {% else %}
-
-                                                <span class="badge bg-light text-dark badge-estado">
-                                                    {{ reserva.estado }}
-                                                </span>
-
-                                                {% endif %}
-
-                                            </small>
-
+                                            ·
 
                                             {% if reserva.estado == 'pendiente' %}
+
+                                            <span class="badge bg-warning text-dark badge-estado">
+                                                Pendiente
+                                            </span>
+
+                                            {% elif reserva.estado == 'confirmada' %}
+
+                                            <span class="badge bg-info text-dark badge-estado">
+                                                Confirmada
+                                            </span>
+
+                                            {% elif reserva.estado == 'completada' %}
+
+                                            <span class="badge bg-success badge-estado">
+                                                Completada
+                                            </span>
+
+                                            {% elif reserva.estado == 'cancelada' %}
+
+                                            <span class="badge bg-secondary badge-estado">
+                                                Cancelada
+                                            </span>
+
+                                            {% else %}
+
+                                            <span class="badge bg-light text-dark badge-estado">
+                                                {{ reserva.estado }}
+                                            </span>
+
+                                            {% endif %}
+
+                                        </small>
+
+
+                                        {% if reserva.estado == 'pendiente' %}
 
                                             <div class="mt-1">
 
@@ -805,347 +735,319 @@ footer.bg-dark {
 
                                             </div>
 
-                                            {% endif %}
-
-                                        </div>
-
-
-                                        <!-- BOTONES -->
-
-                                        <div class="d-flex flex-column align-items-end gap-2">
-
-                                            {% if reserva.estado == 'pendiente' %}
-
-                                            <a href="{% url 'pagos:pago' %}?reserva_id={{ reserva.id }}"
-                                               class="btn btn-sm text-white fw-bold"
-                                               style="background-color: #39FF14;
-                                                      color: #03045e !important;">
-
-                                                <i class="bi bi-credit-card me-1"></i>
-                                                Pagar ahora
-
-                                            </a>
-
-                                            {% endif %}
-
-
-                                            <div>
-
-                                                {% if reserva.puede_editarse %}
-
-                                                <button class="btn btn-sm btn-outline-secondary"
-                                                        type="button"
-                                                        data-bs-toggle="collapse"
-                                                        data-bs-target="#editar-reserva-{{ reserva.id }}">
-
-                                                    <i class="bi bi-pencil me-1"></i>
-                                                    Editar
-
-                                                </button>
-
-                                                {% endif %}
-
-
-                                                {% if reserva.estado == 'pendiente' or reserva.estado == 'confirmada' %}
-
-                                                <button type="button"
-                                                        class="btn btn-sm btn-outline-danger"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#modalCancelar-{{ reserva.id }}">
-
-                                                    <i class="bi bi-x-circle me-1"></i>
-                                                    Cancelar reserva
-
-                                                </button>
-
-                                                {% endif %}
-
-
-                                                {% if not reserva.puede_editarse and reserva.estado != 'pendiente' and reserva.estado != 'confirmada' %}
-
-                                                <span class="text-muted small">
-
-                                                    <i class="bi bi-lock-fill me-1"></i>
-                                                    No editable
-
-                                                </span>
-
-                                                {% endif %}
-
-                                            </div>
-
-
-                                            <!-- RESEÑA -->
-
-                                            {% if reserva.estado == 'completada' %}
-
-                                            <a href="{% url 'nosotros' %}?reserva_id={{ reserva.id }}"
-                                               class="btn btn-sm text-white"
-                                               style="background-color: #39FF14;
-                                                      color:#03045e !important;">
-
-                                                <i class="bi bi-star-fill me-1"></i>
-
-                                                Dejar reseña
-
-                                            </a>
-
-                                            {% elif reserva.estado == 'cancelada' %}
-
-                                            <span class="text-muted small">
-
-                                                <i class="bi bi-x-circle me-1"></i>
-
-                                                Reserva cancelada,
-                                                no se puede reseñar
-
-                                            </span>
-
-                                            {% else %}
-
-                                            <span class="text-muted small">
-
-                                                <i class="bi bi-lock-fill me-1"></i>
-
-                                                Disponible al finalizar
-
-                                            </span>
-
-                                            {% endif %}
-
-                                        </div>
+                                        {% endif %}
 
                                     </div>
 
 
-                                    <!-- EDITAR RESERVA -->
+                                    <!-- BOTONES -->
 
-                                    {% if reserva.puede_editarse %}
+                                    <div class="d-flex flex-column align-items-end gap-2">
 
-                                    <div class="collapse mt-3"
-                                         id="editar-reserva-{{ reserva.id }}">
+                                        {% if reserva.estado == 'pendiente' %}
 
-                                        <form method="post"
-                                              action="{% url 'editar_reserva_perfil' reserva.id %}">
+                                        <a href="{% url 'pagos:pago' %}?reserva_id={{ reserva.id }}"
+                                            class="btn btn-sm text-white fw-bold" style="background-color: #39FF14;
+                                                      color: #03045e !important;">
 
-                                            {% csrf_token %}
+                                            <i class="bi bi-credit-card me-1"></i>
+                                            Pagar ahora
 
-                                            <div class="row g-2">
+                                        </a>
 
-                                                <div class="col-md-3">
-
-                                                    <label class="form-label">
-                                                        Fecha
-                                                    </label>
-
-                                                    <input type="date"
-                                                           name="fecha"
-                                                           class="form-control"
-                                                           value="{{ reserva.fecha|date:'Y-m-d' }}">
-
-                                                </div>
+                                        {% endif %}
 
 
-                                                <div class="col-md-3">
+                                        <div>
 
-                                                    <label class="form-label">
-                                                        Hora
-                                                    </label>
+                                            {% if reserva.puede_editarse %}
 
-                                                    <input type="time"
-                                                           name="hora"
-                                                           class="form-control"
-                                                           value="{{ reserva.hora|time:'H:i' }}">
+                                            <button class="btn btn-sm btn-outline-secondary" type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#editar-reserva-{{ reserva.id }}">
 
-                                                </div>
-
-
-                                                <div class="col-md-3">
-
-                                                    <label class="form-label">
-                                                        Cancha
-                                                    </label>
-
-                                                    <input type="text"
-                                                           name="cancha"
-                                                           class="form-control"
-                                                           value="{{ reserva.cancha }}">
-
-                                                </div>
-
-
-                                                <div class="col-md-3">
-
-                                                    <label class="form-label">
-                                                        Duración
-                                                    </label>
-
-                                                    <input type="text"
-                                                           name="duracion"
-                                                           class="form-control"
-                                                           value="{{ reserva.duracion }}">
-
-                                                </div>
-
-                                            </div>
-
-
-                                            <button type="submit"
-                                                    class="btn btn-sm mt-2 text-white"
-                                                    style="background-color: #03045e;">
-
-                                                <i class="bi bi-check-lg me-1"></i>
-
-                                                Guardar
+                                                <i class="bi bi-pencil me-1"></i>
+                                                Editar
 
                                             </button>
 
-                                        </form>
-
-                                    </div>
-
-                                    {% endif %}
-
-                                </div>
-
-                            </div>
+                                            {% endif %}
 
 
-                            <!-- MODAL CANCELAR RESERVA -->
+                                            {% if reserva.estado == 'pendiente' or reserva.estado == 'confirmada' %}
 
-                            {% if reserva.estado == 'pendiente' or reserva.estado == 'confirmada' %}
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                data-bs-toggle="modal" data-bs-target="#modalCancelar-{{ reserva.id }}">
 
-                            <div class="modal fade"
-                                 id="modalCancelar-{{ reserva.id }}"
-                                 tabindex="-1"
-                                 aria-hidden="true">
+                                                <i class="bi bi-x-circle me-1"></i>
+                                                Cancelar reserva
 
-                                <div class="modal-dialog">
+                                            </button>
 
-                                    <div class="modal-content">
-
-                                        <form method="post"
-                                              action="{% url 'cancelar_reserva_perfil' reserva.id %}">
-
-                                            {% csrf_token %}
-
-                                            <div class="modal-header">
-
-                                                <h5 class="modal-title">
-                                                    Cancelar reserva
-                                                </h5>
-
-                                                <button type="button"
-                                                        class="btn-close"
-                                                        data-bs-dismiss="modal"
-                                                        aria-label="Cerrar">
-                                                </button>
-
-                                            </div>
+                                            {% endif %}
 
 
-                                            <div class="modal-body">
+                                            {% if not reserva.puede_editarse %}
+                                                {% if reserva.estado != 'pendiente' %}
+                                                    {% if reserva.estado != 'confirmada' %}
 
-                                                <p class="mb-3">
+                                                        <span class="text-muted small">
+                                                            <i class="bi bi-lock-fill me-1"></i>
+                                                            No editable
+                                                        </span>
 
-                                                    <strong>
-                                                        {{ reserva.cancha }}
-                                                    </strong>
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% endif %}
 
-                                                    —
-                                                    {{ reserva.fecha }}
-                                                    a las
-                                                    {{ reserva.hora }}
-
-                                                </p>
-
-
-                                                <div class="mb-3">
-
-                                                    <label class="form-label">
-                                                        ¿Por qué cancelas la reserva?
-                                                    </label>
-
-                                                    <select name="motivo_cancelacion"
-                                                            class="form-select motivo-select"
-                                                            required>
-
-                                                        <option value=""
-                                                                selected
-                                                                disabled>
-
-                                                            Selecciona un motivo
-
-                                                        </option>
-
-                                                        {% for valor, etiqueta in motivos_cancelacion %}
-
-                                                        <option value="{{ valor }}">
-                                                            {{ etiqueta }}
-                                                        </option>
-
-                                                        {% endfor %}
-
-                                                    </select>
-
-                                                </div>
+                                        </div>
 
 
-                                                <div class="mb-1 detalle-wrapper d-none">
+                                        <!-- RESEÑA -->
 
-                                                    <label class="form-label">
-                                                        Cuéntanos un poco más
-                                                        (mínimo 10 caracteres)
-                                                    </label>
+                                        {% if reserva.estado == 'completada' %}
 
-                                                    <textarea name="motivo_detalle"
-                                                              class="form-control detalle-input"
-                                                              rows="3"
-                                                              minlength="10"
-                                                              placeholder="Escribe el detalle aquí..."></textarea>
+                                        <a href="{% url 'nosotros' %}?reserva_id={{ reserva.id }}"
+                                            class="btn btn-sm text-white" style="background-color: #39FF14;
+                                                      color:#03045e !important;">
 
-                                                </div>
+                                            <i class="bi bi-star-fill me-1"></i>
 
-                                            </div>
+                                            Dejar reseña
 
+                                        </a>
 
-                                            <div class="modal-footer">
+                                        {% elif reserva.estado == 'cancelada' %}
 
-                                                <button type="button"
-                                                        class="btn btn-secondary"
-                                                        data-bs-dismiss="modal">
+                                        <span class="text-muted small">
 
-                                                    Volver
+                                            <i class="bi bi-x-circle me-1"></i>
 
-                                                </button>
+                                            Reserva cancelada,
+                                            no se puede reseñar
 
-                                                <button type="submit"
-                                                        class="btn btn-danger">
+                                        </span>
 
-                                                    Confirmar cancelación
+                                        {% else %}
 
-                                                </button>
+                                        <span class="text-muted small">
 
-                                            </div>
+                                            <i class="bi bi-lock-fill me-1"></i>
 
-                                        </form>
+                                            Disponible al finalizar
+
+                                        </span>
+
+                                        {% endif %}
 
                                     </div>
 
                                 </div>
 
+
+                                <!-- EDITAR RESERVA -->
+
+                                {% if reserva.puede_editarse %}
+
+                                <div class="collapse mt-3" id="editar-reserva-{{ reserva.id }}">
+
+                                    <form method="post" action="{% url 'editar_reserva_perfil' reserva.id %}">
+
+                                        {% csrf_token %}
+
+                                        <div class="row g-2">
+
+                                            <div class="col-md-3">
+
+                                                <label class="form-label">
+                                                    Fecha
+                                                </label>
+
+                                                <input type="date" name="fecha" class="form-control"
+                                                    value="{{ reserva.fecha|date:'Y-m-d' }}">
+
+                                            </div>
+
+
+                                            <div class="col-md-3">
+
+                                                <label class="form-label">
+                                                    Hora
+                                                </label>
+
+                                                <input type="time" name="hora" class="form-control"
+                                                    value="{{ reserva.hora|time:'H:i' }}">
+
+                                            </div>
+
+
+                                            <div class="col-md-3">
+
+                                                <label class="form-label">
+                                                    Cancha
+                                                </label>
+
+                                                <input type="text" name="cancha" class="form-control"
+                                                    value="{{ reserva.cancha }}">
+
+                                            </div>
+
+
+                                            <div class="col-md-3">
+
+                                                <label class="form-label">
+                                                    Duración
+                                                </label>
+
+                                                <input type="text" name="duracion" class="form-control"
+                                                    value="{{ reserva.duracion }}">
+
+                                            </div>
+
+                                        </div>
+
+
+                                        <button type="submit" class="btn btn-sm mt-2 text-white"
+                                            style="background-color: #03045e;">
+
+                                            <i class="bi bi-check-lg me-1"></i>
+
+                                            Guardar
+
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+                                {% endif %}
+
                             </div>
 
-                            {% endif %}
-                            <!-- fin modal cancelar (pendiente o confirmada) -->
+                        </div>
 
-                            {% endfor %}
+
+                        <!-- MODAL CANCELAR RESERVA -->
+
+                        {% if reserva.estado == 'pendiente' or reserva.estado == 'confirmada' %}
+
+                        <div class="modal fade" id="modalCancelar-{{ reserva.id }}" tabindex="-1" aria-hidden="true">
+
+                            <div class="modal-dialog">
+
+                                <div class="modal-content">
+
+                                    <form method="post" action="{% url 'cancelar_reserva_perfil' reserva.id %}">
+
+                                        {% csrf_token %}
+
+                                        <div class="modal-header">
+
+                                            <h5 class="modal-title">
+                                                Cancelar reserva
+                                            </h5>
+
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Cerrar">
+                                            </button>
+
+                                        </div>
+
+
+                                        <div class="modal-body">
+
+                                            <p class="mb-3">
+
+                                                <strong>
+                                                    {{ reserva.cancha }}
+                                                </strong>
+
+                                                —
+                                                {{ reserva.fecha }}
+                                                a las
+                                                {{ reserva.hora }}
+
+                                            </p>
+
+
+                                            <div class="mb-3">
+
+                                                <label class="form-label">
+                                                    ¿Por qué cancelas la reserva?
+                                                </label>
+
+                                                <select name="motivo_cancelacion" class="form-select motivo-select"
+                                                    required>
+
+                                                    <option value="" selected disabled>
+
+                                                        Selecciona un motivo
+
+                                                    </option>
+
+                                                    {% for valor, etiqueta in motivos_cancelacion %}
+
+                                                    <option value="{{ valor }}">
+                                                        {{ etiqueta }}
+                                                    </option>
+
+                                                    {% endfor %}
+
+                                                </select>
+
+                                            </div>
+
+
+                                            <div class="mb-1 detalle-wrapper d-none">
+
+                                                <label class="form-label">
+                                                    Cuéntanos un poco más
+                                                    (mínimo 10 caracteres)
+                                                </label>
+
+                                                <textarea name="motivo_detalle" class="form-control detalle-input"
+                                                    rows="3" minlength="10"
+                                                    placeholder="Escribe el detalle aquí..."></textarea>
+
+                                            </div>
+
+                                        </div>
+
+
+                                        <div class="modal-footer">
+
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+
+                                                Volver
+
+                                            </button>
+
+                                            <button type="submit" class="btn btn-danger">
+
+                                                Confirmar cancelación
+
+                                            </button>
+
+                                        </div>
+
+                                    </form>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        {% endif %}
+                        <!-- fin modal cancelar (pendiente o confirmada) -->
+
+                        {% endfor %}
 
                         {% else %}
 
-                            <p class="text-muted">
-                                Todavía no tenés reservas.
-                            </p>
+                        <p class="text-muted">
+                            Todavía no tenés reservas.
+                        </p>
 
                         {% endif %}
 
@@ -1162,15 +1064,10 @@ footer.bg-dark {
 
             <div class="accordion-item">
 
-                <h2 class="accordion-header"
-                    id="headingResenas">
+                <h2 class="accordion-header" id="headingResenas">
 
-                    <button class="accordion-button collapsed"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#collapseResenas"
-                            aria-expanded="false"
-                            aria-controls="collapseResenas">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseResenas" aria-expanded="false" aria-controls="collapseResenas">
 
                         <i class="bi bi-star-fill me-2"></i>
 
@@ -1185,216 +1082,66 @@ footer.bg-dark {
                 </h2>
 
 
-                <div id="collapseResenas"
-                     class="accordion-collapse collapse"
-                     aria-labelledby="headingResenas"
-                     data-bs-parent="#accordionPerfil">
+                <div id="collapseResenas" class="accordion-collapse collapse" aria-labelledby="headingResenas"
+                    data-bs-parent="#accordionPerfil">
 
                     <div class="accordion-body">
 
                         {% if resenas %}
 
-                            {% for resena in resenas %}
+                        {% for resena in resenas %}
 
-                            <div class="card mb-3 shadow-sm">
+                        <div class="card mb-3 shadow-sm">
 
-                                <div class="card-body">
+                            <div class="card-body">
 
-                                    <div class="d-flex justify-content-between align-items-start flex-wrap">
-
-
-                                        <!-- RESEÑA -->
-
-                                        <div>
-
-                                            <strong>
-                                                {{ resena.cancha }}
-                                            </strong>
-
-                                            —
-                                            {{ resena.estrellas }}★
-
-                                            <br>
-
-                                            <small class="text-muted">
-                                                {{ resena.texto }}
-                                            </small>
-
-                                        </div>
+                                <div class="d-flex justify-content-between align-items-start flex-wrap">
 
 
-                                        <!-- BOTONES -->
+                                    <!-- RESEÑA -->
 
-                                        <div>
+                                    <div>
 
-                                            <button class="btn btn-sm btn-outline-secondary"
-                                                    type="button"
-                                                    data-bs-toggle="collapse"
-                                                    data-bs-target="#editar-resena-{{ resena.id }}">
+                                        <strong>
+                                            {{ resena.cancha }}
+                                        </strong>
 
-                                                <i class="bi bi-pencil me-1"></i>
+                                        —
+                                        {{ resena.estrellas }}★
 
-                                                Editar
+                                        <br>
 
-                                            </button>
-
-
-                                            <form method="post"
-                                                  action="{% url 'eliminar_resena_perfil' resena.id %}"
-                                                  class="d-inline"
-                                                  onsubmit="return confirm('¿Eliminar esta reseña?');">
-
-                                                {% csrf_token %}
-
-                                                <button type="submit"
-                                                        class="btn btn-sm btn-outline-danger">
-
-                                                    <i class="bi bi-trash me-1"></i>
-
-                                                    Eliminar
-
-                                                </button>
-
-                                            </form>
-
-                                        </div>
+                                        <small class="text-muted">
+                                            {{ resena.texto }}
+                                        </small>
 
                                     </div>
 
 
-                                    <!-- EDITAR RESEÑA -->
+                                    <!-- BOTONES -->
 
-                                    <div class="collapse mt-3"
-                                         id="editar-resena-{{ resena.id }}">
+                                    <div>
 
-                                        <form method="post"
-                                              action="{% url 'editar_resena_perfil' resena.id %}">
+                                        <button class="btn btn-sm btn-outline-secondary" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#editar-resena-{{ resena.id }}">
+
+                                            <i class="bi bi-pencil me-1"></i>
+
+                                            Editar
+
+                                        </button>
+
+
+                                        <form method="post" action="{% url 'eliminar_resena_perfil' resena.id %}"
+                                            class="d-inline" onsubmit="return confirm('¿Eliminar esta reseña?');">
 
                                             {% csrf_token %}
 
-                                            <div class="row g-2">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
 
+                                                <i class="bi bi-trash me-1"></i>
 
-                                                <div class="col-md-4">
-
-                                                    <label class="form-label">
-                                                        Tipo de jugador
-                                                    </label>
-
-                                                    <select name="jugador"
-                                                            class="form-select">
-
-                                                        <option value="Amateur"
-                                                            {% if resena.jugador == "Amateur" %}
-                                                            selected
-                                                            {% endif %}>
-
-                                                            Amateur
-
-                                                        </option>
-
-                                                        <option value="Semi-profesional"
-                                                            {% if resena.jugador == "Semi-profesional" %}
-                                                            selected
-                                                            {% endif %}>
-
-                                                            Semi-profesional
-
-                                                        </option>
-
-                                                        <option value="Profesional"
-                                                            {% if resena.jugador == "Profesional" %}
-                                                            selected
-                                                            {% endif %}>
-
-                                                            Profesional
-
-                                                        </option>
-
-                                                    </select>
-
-                                                </div>
-
-
-                                                <div class="col-md-4">
-
-                                                    <label class="form-label">
-                                                        Cancha
-                                                    </label>
-
-                                                    <select name="cancha"
-                                                            class="form-select">
-
-                                                        <option value="Fútbol 5"
-                                                            {% if resena.cancha == "Fútbol 5" %}
-                                                            selected
-                                                            {% endif %}>
-
-                                                            Fútbol 5
-
-                                                        </option>
-
-                                                        <option value="Fútbol 7"
-                                                            {% if resena.cancha == "Fútbol 7" %}
-                                                            selected
-                                                            {% endif %}>
-
-                                                            Fútbol 7
-
-                                                        </option>
-
-                                                        <option value="Fútbol 11"
-                                                            {% if resena.cancha == "Fútbol 11" %}
-                                                            selected
-                                                            {% endif %}>
-
-                                                            Fútbol 11
-
-                                                        </option>
-
-                                                    </select>
-
-                                                </div>
-
-
-                                                <div class="col-md-4">
-
-                                                    <label class="form-label">
-                                                        Estrellas
-                                                    </label>
-
-                                                    <input type="number"
-                                                           name="estrellas"
-                                                           class="form-control"
-                                                           min="1"
-                                                           max="5"
-                                                           value="{{ resena.estrellas }}">
-
-                                                </div>
-
-
-                                                <div class="col-12">
-
-                                                    <label class="form-label">
-                                                        Comentario
-                                                    </label>
-
-                                                    <textarea name="texto"
-                                                              class="form-control"
-                                                              rows="3">{{ resena.texto }}</textarea>
-
-                                                </div>
-
-                                            </div>
-
-
-                                            <button type="submit"
-                                                    class="btn btn-sm mt-2 text-white"
-                                                    style="background-color: #03045e;">
-
-                                                <i class="bi bi-check-lg me-1"></i>
-
-                                                Guardar
+                                                Eliminar
 
                                             </button>
 
@@ -1404,15 +1151,136 @@ footer.bg-dark {
 
                                 </div>
 
+
+                                <!-- EDITAR RESEÑA -->
+
+                                <div class="collapse mt-3" id="editar-resena-{{ resena.id }}">
+
+                                    <form method="post" action="{% url 'editar_resena_perfil' resena.id %}">
+
+                                        {% csrf_token %}
+
+                                        <div class="row g-2">
+
+
+                                            <div class="col-md-4">
+
+                                                <label class="form-label">
+                                                    Tipo de jugador
+                                                </label>
+
+                                                <select name="jugador" class="form-select">
+
+                                                    <option value="Amateur" {% if resena.jugador == "Amateur" %} selected
+                                                        {% endif %}>
+
+                                                        Amateur
+
+                                                    </option>
+
+                                                    <option value="Semi-profesional" {% if resena.jugador == "Semi-profesional" %} selected 
+                                                    {% endif %}>
+
+                                                        Semi-profesional
+
+                                                    </option>
+
+                                                    <option value="Profesional" {% if resena.jugador == "Profesional" %}
+                                                        selected {% endif %}>
+
+                                                        Profesional
+
+                                                    </option>
+
+                                                </select>
+
+                                            </div>
+
+
+                                            <div class="col-md-4">
+
+                                                <label class="form-label">
+                                                    Cancha
+                                                </label>
+
+                                                <select name="cancha" class="form-select">
+
+                                                    <option value="Fútbol 5" {% if resena.cancha == "Fútbol 5" %} selected
+                                                        {% endif %}>
+
+                                                        Fútbol 5
+
+                                                    </option>
+
+                                                    <option value="Fútbol 7" {% if resena.cancha == "Fútbol 7" %} selected
+                                                        {% endif %}>
+
+                                                        Fútbol 7
+
+                                                    </option>
+
+                                                    <option value="Fútbol 11" {% if resena.cancha == "Fútbol 11" %}
+                                                        selected {% endif %}>
+
+                                                        Fútbol 11
+
+                                                    </option>
+
+                                                </select>
+
+                                            </div>
+
+
+                                            <div class="col-md-4">
+
+                                                <label class="form-label">
+                                                    Estrellas
+                                                </label>
+
+                                                <input type="number" name="estrellas" class="form-control" min="1"
+                                                    max="5" value="{{ resena.estrellas }}">
+
+                                            </div>
+
+
+                                            <div class="col-12">
+
+                                                <label class="form-label">
+                                                    Comentario
+                                                </label>
+
+                                                <textarea name="texto" class="form-control"
+                                                    rows="3">{{ resena.texto }}</textarea>
+
+                                            </div>
+
+                                        </div>
+
+
+                                        <button type="submit" class="btn btn-sm mt-2 text-white"
+                                            style="background-color: #03045e;">
+
+                                            <i class="bi bi-check-lg me-1"></i>
+
+                                            Guardar
+
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
                             </div>
 
-                            {% endfor %}
+                        </div>
+
+                        {% endfor %}
 
                         {% else %}
 
-                            <p class="text-muted">
-                                Todavía no dejaste reseñas.
-                            </p>
+                        <p class="text-muted">
+                            Todavía no dejaste reseñas.
+                        </p>
 
                         {% endif %}
 
@@ -1429,15 +1297,10 @@ footer.bg-dark {
 
             <div class="accordion-item">
 
-                <h2 class="accordion-header"
-                    id="headingComunidad">
+                <h2 class="accordion-header" id="headingComunidad">
 
-                    <button class="accordion-button collapsed"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#collapseComunidad"
-                            aria-expanded="false"
-                            aria-controls="collapseComunidad">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseComunidad" aria-expanded="false" aria-controls="collapseComunidad">
 
                         <i class="bi bi-people-fill me-2"></i>
 
@@ -1448,10 +1311,8 @@ footer.bg-dark {
                 </h2>
 
 
-                <div id="collapseComunidad"
-                     class="accordion-collapse collapse"
-                     aria-labelledby="headingComunidad"
-                     data-bs-parent="#accordionPerfil">
+                <div id="collapseComunidad" class="accordion-collapse collapse" aria-labelledby="headingComunidad"
+                    data-bs-parent="#accordionPerfil">
 
                     <div class="accordion-body">
 
@@ -1460,8 +1321,7 @@ footer.bg-dark {
                         <!-- ACORDEÓN INTERNO DE COMUNIDAD -->
                         <!-- ================================= -->
 
-                        <div class="accordion comunidad-accordion"
-                             id="accordionComunidad">
+                        <div class="accordion comunidad-accordion" id="accordionComunidad">
 
 
                             <!-- PARTIDOS PUBLICADOS -->
@@ -1470,10 +1330,8 @@ footer.bg-dark {
 
                                 <h2 class="accordion-header">
 
-                                    <button class="accordion-button collapsed"
-                                            type="button"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target="#colPartidosCreados">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#colPartidosCreados">
 
                                         <i class="bi bi-megaphone-fill me-2"></i>
 
@@ -1488,67 +1346,66 @@ footer.bg-dark {
                                 </h2>
 
 
-                                <div id="colPartidosCreados"
-                                     class="accordion-collapse collapse"
-                                     data-bs-parent="#accordionComunidad">
+                                <div id="colPartidosCreados" class="accordion-collapse collapse"
+                                    data-bs-parent="#accordionComunidad">
 
                                     <div class="accordion-body">
 
                                         {% if partidos_creados %}
 
-                                            {% for p in partidos_creados %}
+                                        {% for p in partidos_creados %}
 
-                                            <div class="border rounded p-3 mb-2">
+                                        <div class="border rounded p-3 mb-2">
 
-                                                <strong>
-                                                    {{ p.cancha.nombre }}
-                                                </strong>
+                                            <strong>
+                                                {{ p.cancha.nombre }}
+                                            </strong>
 
-                                                —
-                                                {{ p.fecha }}
+                                            —
+                                            {{ p.fecha }}
+                                            ·
+                                            {{ p.hora_texto }}
+
+                                            <br>
+
+                                            <small class="text-muted">
+
+                                                Faltan
+                                                {{ p.jugadores_faltan }}
+                                                jugador{{ p.jugadores_faltan|pluralize:"es" }}
+
                                                 ·
-                                                {{ p.hora_texto }}
 
-                                                <br>
+                                                {% if p.cobra %}
 
-                                                <small class="text-muted">
+                                                Aporte:
+                                                ${{ p.valor }}
 
-                                                    Faltan
-                                                    {{ p.jugadores_faltan }}
-                                                    jugador{{ p.jugadores_faltan|pluralize:"es" }}
+                                                {% else %}
 
-                                                    ·
+                                                Sin costo
 
-                                                    {% if p.cobra %}
+                                                {% endif %}
 
-                                                        Aporte:
-                                                        ${{ p.valor }}
+                                                ·
 
-                                                    {% else %}
+                                                {{ p.participantes.count }}
+                                                apuntado{{ p.participantes.count|pluralize:"s" }}
 
-                                                        Sin costo
+                                            </small>
 
-                                                    {% endif %}
+                                        </div>
 
-                                                    ·
-
-                                                    {{ p.participantes.count }}
-                                                    apuntado{{ p.participantes.count|pluralize:"s" }}
-
-                                                </small>
-
-                                            </div>
-
-                                            {% endfor %}
+                                        {% endfor %}
 
                                         {% else %}
 
-                                            <p class="text-muted mb-0">
+                                        <p class="text-muted mb-0">
 
-                                                Todavía no publicaste
-                                                ningún partido.
+                                            Todavía no publicaste
+                                            ningún partido.
 
-                                            </p>
+                                        </p>
 
                                         {% endif %}
 
@@ -1565,10 +1422,8 @@ footer.bg-dark {
 
                                 <h2 class="accordion-header">
 
-                                    <button class="accordion-button collapsed"
-                                            type="button"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target="#colPartidosUnidos">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#colPartidosUnidos">
 
                                         <i class="bi bi-people-fill me-2"></i>
 
@@ -1583,61 +1438,60 @@ footer.bg-dark {
                                 </h2>
 
 
-                                <div id="colPartidosUnidos"
-                                     class="accordion-collapse collapse"
-                                     data-bs-parent="#accordionComunidad">
+                                <div id="colPartidosUnidos" class="accordion-collapse collapse"
+                                    data-bs-parent="#accordionComunidad">
 
                                     <div class="accordion-body">
 
                                         {% if partidos_unidos %}
 
-                                            {% for p in partidos_unidos %}
+                                        {% for p in partidos_unidos %}
 
-                                            <div class="border rounded p-3 mb-2">
+                                        <div class="border rounded p-3 mb-2">
 
-                                                <strong>
-                                                    {{ p.cancha.nombre }}
-                                                </strong>
+                                            <strong>
+                                                {{ p.cancha.nombre }}
+                                            </strong>
 
-                                                —
-                                                {{ p.fecha }}
+                                            —
+                                            {{ p.fecha }}
+                                            ·
+                                            {{ p.hora_texto }}
+
+                                            <br>
+
+                                            <small class="text-muted">
+
+                                                Publicado por
+                                                {{ p.creador.first_name }}
+
                                                 ·
-                                                {{ p.hora_texto }}
 
-                                                <br>
+                                                {% if p.cobra %}
 
-                                                <small class="text-muted">
+                                                Pagaste un aporte de
+                                                ${{ p.valor }}
 
-                                                    Publicado por
-                                                    {{ p.creador.first_name }}
+                                                {% else %}
 
-                                                    ·
+                                                Sin costo
 
-                                                    {% if p.cobra %}
+                                                {% endif %}
 
-                                                        Pagaste un aporte de
-                                                        ${{ p.valor }}
+                                            </small>
 
-                                                    {% else %}
+                                        </div>
 
-                                                        Sin costo
-
-                                                    {% endif %}
-
-                                                </small>
-
-                                            </div>
-
-                                            {% endfor %}
+                                        {% endfor %}
 
                                         {% else %}
 
-                                            <p class="text-muted mb-0">
+                                        <p class="text-muted mb-0">
 
-                                                Todavía no te apuntaste
-                                                a ningún partido.
+                                            Todavía no te apuntaste
+                                            a ningún partido.
 
-                                            </p>
+                                        </p>
 
                                         {% endif %}
 
@@ -1654,10 +1508,8 @@ footer.bg-dark {
 
                                 <h2 class="accordion-header">
 
-                                    <button class="accordion-button collapsed"
-                                            type="button"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target="#colRetosCreados">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#colRetosCreados">
 
                                         <i class="bi bi-lightning-fill me-2"></i>
 
@@ -1672,67 +1524,66 @@ footer.bg-dark {
                                 </h2>
 
 
-                                <div id="colRetosCreados"
-                                     class="accordion-collapse collapse"
-                                     data-bs-parent="#accordionComunidad">
+                                <div id="colRetosCreados" class="accordion-collapse collapse"
+                                    data-bs-parent="#accordionComunidad">
 
                                     <div class="accordion-body">
 
                                         {% if retos_creados %}
 
-                                            {% for r in retos_creados %}
+                                        {% for r in retos_creados %}
 
-                                            <div class="border rounded p-3 mb-2">
+                                        <div class="border rounded p-3 mb-2">
 
-                                                <strong>
-                                                    {{ r.equipo }}
-                                                </strong>
+                                            <strong>
+                                                {{ r.equipo }}
+                                            </strong>
 
-                                                —
-                                                {{ r.horario }}
+                                            —
+                                            {{ r.horario }}
 
-                                                <br>
+                                            <br>
 
-                                                <small class="text-muted">
+                                            <small class="text-muted">
 
-                                                    {% if r.aceptado %}
+                                                {% if r.aceptado %}
 
-                                                        Aceptado por
-                                                        {{ r.aceptado_por.first_name }}
+                                                Aceptado por
+                                                {{ r.aceptado_por.first_name }}
 
-                                                    {% else %}
+                                                {% else %}
 
-                                                        Esperando rival
+                                                Esperando rival
 
-                                                    {% endif %}
+                                                {% endif %}
 
-                                                    ·
+                                                ·
 
-                                                    {% if r.cobra %}
+                                                {% if r.cobra %}
 
-                                                        Aporte:
-                                                        ${{ r.valor }}
+                                                Aporte:
+                                                ${{ r.valor }}
 
-                                                    {% else %}
+                                                {% else %}
 
-                                                        Sin costo
+                                                Sin costo
 
-                                                    {% endif %}
+                                                {% endif %}
 
-                                                </small>
+                                            </small>
 
-                                            </div>
+                                        </div>
 
-                                            {% endfor %}
+                                        {% endfor %}
 
                                         {% else %}
 
-                                            <p class="text-muted mb-0">
+                                        <p class="text-muted mb-0">
 
-                                                Todavía no publicaste
-                                                ningún reto.
+                                            Todavía no publicaste
+                                            ningún reto.
 
-                                            </p>
+                                        </p>
 
                                         {% endif %}
 
@@ -1749,10 +1600,8 @@ footer.bg-dark {
 
                                 <h2 class="accordion-header">
 
-                                    <button class="accordion-button collapsed"
-                                            type="button"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target="#colRetosAceptados">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#colRetosAceptados">
 
                                         <i class="bi bi-shield-fill-check me-2"></i>
 
@@ -1767,59 +1616,58 @@ footer.bg-dark {
                                 </h2>
 
 
-                                <div id="colRetosAceptados"
-                                     class="accordion-collapse collapse"
-                                     data-bs-parent="#accordionComunidad">
+                                <div id="colRetosAceptados" class="accordion-collapse collapse"
+                                    data-bs-parent="#accordionComunidad">
 
                                     <div class="accordion-body">
 
                                         {% if retos_aceptados %}
 
-                                            {% for r in retos_aceptados %}
+                                        {% for r in retos_aceptados %}
 
-                                            <div class="border rounded p-3 mb-2">
+                                        <div class="border rounded p-3 mb-2">
 
-                                                <strong>
-                                                    {{ r.equipo }}
-                                                </strong>
+                                            <strong>
+                                                {{ r.equipo }}
+                                            </strong>
 
-                                                —
-                                                {{ r.horario }}
+                                            —
+                                            {{ r.horario }}
 
-                                                <br>
+                                            <br>
 
-                                                <small class="text-muted">
+                                            <small class="text-muted">
 
-                                                    Retado por
-                                                    {{ r.creador.first_name }}
+                                                Retado por
+                                                {{ r.creador.first_name }}
 
-                                                    ·
+                                                ·
 
-                                                    {% if r.cobra %}
+                                                {% if r.cobra %}
 
-                                                        Pagaste un aporte de
-                                                        ${{ r.valor }}
+                                                Pagaste un aporte de
+                                                ${{ r.valor }}
 
-                                                    {% else %}
+                                                {% else %}
 
-                                                        Sin costo
+                                                Sin costo
 
-                                                    {% endif %}
+                                                {% endif %}
 
-                                                </small>
+                                            </small>
 
-                                            </div>
+                                        </div>
 
-                                            {% endfor %}
+                                        {% endfor %}
 
                                         {% else %}
 
-                                            <p class="text-muted mb-0">
+                                        <p class="text-muted mb-0">
 
-                                                Todavía no aceptaste
-                                                ningún reto.
+                                            Todavía no aceptaste
+                                            ningún reto.
 
-                                            </p>
+                                        </p>
 
                                         {% endif %}
 
@@ -1884,8 +1732,7 @@ footer.bg-dark {
                 </div>
 
 
-                <div class="row align-items-center pt-2"
-                     style="border-top: 1px solid #eee;">
+                <div class="row align-items-center pt-2" style="border-top: 1px solid #eee;">
 
                     <div class="col-12 col-md-6 text-center text-md-start mb-2 mb-md-0">
 

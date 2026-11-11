@@ -16,79 +16,125 @@
     <link rel="stylesheet" href="{% static 'css/obscuro.css' %}">
 
 
-<style>
-    .hora-btn.ocupada {
-        background-color: #dc3545 !important;
-        border-color: #b02a37 !important;
-        color: #fff !important;
-        text-decoration: line-through;
-        cursor: not-allowed !important;
-        opacity: 0.9;
-    }
+    <style>
+        .hora-btn.ocupada {
+            background-color: #dc3545 !important;
+            border-color: #b02a37 !important;
+            color: #fff !important;
+            text-decoration: line-through;
+            cursor: not-allowed !important;
+            opacity: 0.9;
+        }
 
-    .paso-bloqueado {
-        pointer-events: none;
-        opacity: 0.5;
-        position: relative;
-    }
+        .paso-bloqueado {
+            pointer-events: none;
+            opacity: 0.5;
+            position: relative;
+        }
 
-    .paso-bloqueado::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: transparent;
-        cursor: not-allowed;
-    }
+        .paso-bloqueado::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: transparent;
+            cursor: not-allowed;
+        }
 
-    .modo-btn {
-        border: 2px solid #03045e;
-        color: #03045e;
-        font-weight: 700;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.02em;
-        transition: all .15s ease-in-out;
-    }
+        .modo-btn {
+            border: 2px solid #03045e;
+            color: #03045e;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            transition: all .15s ease-in-out;
+        }
 
-    .modo-btn.active {
-        background-color: #03045e !important;
-        color: #fff !important;
-    }
+        .modo-btn.active {
+            background-color: #03045e;
+            color: #fff;
+        }
 
-    .modo-btn:not(.active):hover {
-        background-color: #eef0fa;
-    }
+        .modo-btn:not(.active):hover {
+            background-color: #eef0fa;
+        }
 
-    .modo-ayuda {
-        font-size: 0.75rem;
-    }
+        .modo-ayuda {
+            font-size: 0.75rem;
+        }
 
-    .flatpickr-day.selected,
-    .flatpickr-day.selected:hover {
-        background: #62ff00;
-        border-color: #4fd400;
-        color: #03045e;
-        font-weight: 700;
-    }
+        .flatpickr-day.selected,
+        .flatpickr-day.selected:hover {
+            background: #62ff00;
+            border-color: #4fd400;
+            color: #03045e;
+            font-weight: 700;
+        }
 
-    .flatpickr-day.today {
-        border-color: #03045e;
-    }
+        .flatpickr-day.today {
+            border-color: #03045e;
+        }
 
-    /* Campo nombre del equipo */
-    #contenedorNombreEquipo {
-        display: none;
-    }
+        /* Campo nombre del equipo */
+        #contenedorNombreEquipo {
+            display: none;
+        }
 
-    #nombreEquipo {
-        border: 2px solid #03045e;
-    }
+        #nombreEquipo {
+            border: 2px solid #03045e;
+        }
 
-    #nombreEquipo:focus {
-        border-color: #62ff00;
-        box-shadow: 0 0 0 0.2rem rgba(98, 255, 0, 0.15);
-    }
-</style>
+        #nombreEquipo:focus {
+            border-color: #62ff00;
+            box-shadow: 0 0 0 0.2rem rgba(98, 255, 0, 0.15);
+        }
+
+        [data-bs-theme="dark"] #nombreEquipo {
+            border: 2px solid #62ff00;
+        }
+        
+        [data-bs-theme="dark"] #nombreEquipo:focus {
+            border-color: #62ff00;
+            box-shadow: 0 0 0 0.2rem rgba(98, 255, 0, 0.15);
+        }      
+
+        [data-bs-theme="dark"] .modo-btn {
+            border: 2px solid #62ff00;
+            color: #62ff00;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            transition: all .15s ease-in-out;
+        }
+
+        [data-bs-theme="dark"] .modo-btn.active {
+            background-color: #62ff00;
+            color: black;
+        }
+
+        [data-bs-theme="dark"] .modo-btn:not(.active):hover {
+            background-color: #62ff00;
+            color: black;
+        }
+
+        [data-bs-theme="dark"].hora-btn.ocupada {
+            background-color: #dc3545 !important;
+            border-color: #b02a37 !important;
+            color: #fff !important;
+            text-decoration: line-through;
+            cursor: not-allowed !important;
+            opacity: 0.9;
+        }
+
+        [data-bs-theme="dark"] #contenedorHorarios{
+            background: #62ff00;
+            border-color: #4fd400;
+            color: black;
+            font-weight: 700;
+        }
+
+    </style>
 
 
 </head>
@@ -96,69 +142,100 @@
 <body>
 
 
-<nav class="navbar navbar-expand-lg navbar-dark  shadow fixed-top">
-        <div class="container d-flex align-items-center">
-            <a href="{% url 'inicio' %}" class="d-flex align-items-center text-decoration-none">
-                <img src="{% static 'img/logo-green.png' %}" style="height: 90px;" alt="">
-                <span class="navbar-brand fw-bold ms-2 mb-0" style="font-size: 2rem; color: white;">
-                    Cancha<span style="color:  #62ff00;">Fácil </span>
-                </span>
+    <nav class="navbar navbar-expand-lg navbar-dark shadow">
+
+        <div class="container">
+
+            <img src="{% static 'img/logo-green.png' %}" style="height: 90px;" alt="Logo CanchaFácil">
+
+            <a class="navbar-brand fw-bold ms-2" href="#" style="font-size: 2rem; color: white;">
+
+                Cancha<span style="color: #39FF14;">Fácil</span>
+
             </a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+
                 <span class="navbar-toggler-icon"></span>
+
             </button>
 
             <div class="collapse navbar-collapse" id="menu">
+
                 <ul class="navbar-nav ms-auto align-items-center">
+
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'inicio' %}">Inicio</a>
+                        <a class="nav-link" href="{% url 'inicio' %}">
+                            Inicio
+                        </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'gestion_canchas:canchas' %}">Reservar</a>
+                        <a class="nav-link" href="{% url 'gestion_canchas:canchas' %}">
+                            Reservar
+                        </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'nosotros' %}">Sobre Nosotros</a>
+                        <a class="nav-link" href="{% url 'nosotros' %}">
+                            Sobre Nosotros
+                        </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'contacto' %}">Contacto</a>
+                        <a class="nav-link" href="{% url 'contacto' %}">
+                            Contacto
+                        </a>
                     </li>
 
                     {% if request.session.usuario_id %}
+
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="perfilDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle me-1" style="font-size: 1.3rem;"></i> {{ request.session.nombre }}
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="perfilDropdown"
+                            role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1" style="font-size: 1.3rem;"></i>
+                            {{ request.session.nombre }}
                         </a>
+
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{% url 'usuarios:perfil' %}">Mi perfil</a></li>
                             <li>
-                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#modalLogout">
+                                <a class="dropdown-item" href="{% url 'usuarios:perfil' %}">
+                                    Mi perfil
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#modalLogout">
                                     Cerrar sesión
                                 </a>
                             </li>
                         </ul>
                     </li>
+
                     {% else %}
-                    <li class="nav-item d-none d-lg-block">
-                        <a href="{% url 'usuarios:login' %}" class="btn btn-info border-0 ms-2" style="background-color: #62ff00; color: #03045e; font-weight: bold;">Iniciar Sesión</a>
-                    </li>
-                    {% endif %}
+
+                    <li class="nav-item">
+                        <a href="{% url 'usuarios:login' %}" class="btn btn-info border-0 ms-2" style="background-color: #39FF14;
+                                  color: #03045e;
+                                  font-weight: bold;">
+                            Iniciar Sesión
+                        </a>
                     </li>
 
-                    <li class="nav-item ">
+                    {% endif %}
+
+                    <li class="nav-item">
                         <button id="themeToggle" class="theme-toggle-btn" title="Cambiar tema">
                             <i class="bi bi-moon-stars"></i>
                         </button>
                     </li>
-                
+                </ul>
             </div>
         </div>
     </nav>
 
 
+    
 <div class="container mt-4">
 
     <!-- PASO A PASO -->

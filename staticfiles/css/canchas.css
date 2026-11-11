@@ -9,7 +9,7 @@
     --blanco: #fff;
 }
 
-*{
+* {
     font-family: 'Bebas Neue', sans-serif;
 }
 
@@ -29,17 +29,18 @@ body {
 
 .navbar .nav-link:hover {
     color: #62ff00 !important;
-}   
+}
 
-.titulo-cancha{
-    color: var(--azul-oscuro); 
+.titulo-cancha {
+    color: var(--azul-oscuro);
     font-weight: bold;
 }
+
 .cards-grid {
     padding-bottom: 5rem;
 }
 
-.cancha-card{
+.cancha-card {
     background-color: var(--azul-oscuro);
     border-radius: 16px;
     border-color: var(--verde-neon);
