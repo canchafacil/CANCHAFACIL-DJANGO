@@ -1,8 +1,11 @@
+
 from django.conf import settings
+from django.db.models import Prefetch
 from django.http import Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+
 from .models import Sede, Cancha
-from .forms import CanchaForm
+from .forms import CanchaForm, SedeForm
 
 
 # ==================== VISTAS PÚBLICAS ====================
@@ -11,11 +14,18 @@ def canchas(request):
     """
     Vista pública: muestra las canchas disponibles agrupadas por sede.
     """
-    sedes = Sede.objects.filter(activa=True).prefetch_related('canchas').order_by('nombre')
+
+    sedes = Sede.objects.filter(
+        activa=True
+    ).prefetch_related('canchas').order_by('nombre')
 
     sedes_con_canchas = []
+
     for sede in sedes:
-        canchas_disponibles = sede.canchas.filter(disponible=True).order_by('-creada')
+        canchas_disponibles = sede.canchas.filter(
+            disponible=True
+        ).order_by('-creada')
+
         if canchas_disponibles.exists():
             sedes_con_canchas.append({
                 'sede': sede,
@@ -31,6 +41,7 @@ def canchas(request):
 
 def cancha_admin(request):
     """Muestra el panel de administración de canchas."""
+
     canchas = Cancha.objects.all().order_by('-creada')
     sedes = Sede.objects.filter(activa=True).order_by('nombre')
 
@@ -43,14 +54,17 @@ def cancha_admin(request):
 
 def agregar_cancha(request):
     """Agrega una nueva cancha."""
+
     if request.method == 'POST':
         form = CanchaForm(request.POST, request.FILES)
+
         if form.is_valid():
             form.save()
             return redirect('gestion_canchas:cancha_admin')
 
         canchas = Cancha.objects.all().order_by('-creada')
         sedes = Sede.objects.filter(activa=True).order_by('nombre')
+
         return render(request, 'gestion_canchas/cancha_admin.html', {
             'canchas': canchas,
             'form_agregar': form,
@@ -61,16 +75,35 @@ def agregar_cancha(request):
     return redirect('gestion_canchas:cancha_admin')
 
 
+
 def editar_cancha(request, id):
-    """Edita una cancha existente."""
+    """Edita una cancha desde el panel administrador o superadmin."""
+
     cancha = get_object_or_404(Cancha, id=id)
 
     if request.method == 'POST':
-        form = CanchaForm(request.POST, request.FILES, instance=cancha)
+
+        form = CanchaForm(
+            request.POST,
+            request.FILES,
+            instance=cancha
+        )
+
         if form.is_valid():
-            form.save()
+
+            cancha = form.save()
+
+            # Identificar desde dónde se está editando
+            origen = request.POST.get('origen', '')
+
+            if origen == 'superadmin':
+                return redirect(
+                    'gestion_canchas:canchas_por_sede',
+                    sede_id=cancha.sede_id
+                )
+
             return redirect('gestion_canchas:cancha_admin')
-        # Si no es válido, cae al render de abajo y el form muestra sus errores
+
     else:
         form = CanchaForm(instance=cancha)
 
@@ -80,113 +113,157 @@ def editar_cancha(request, id):
     })
 
 
+
 def eliminar_cancha(request, id):
     """Elimina una cancha."""
-    get_object_or_404(Cancha, id=id).delete()
+
+    cancha = get_object_or_404(Cancha, id=id)
+    cancha.delete()
+
     return redirect('gestion_canchas:cancha_admin')
 
 
 # ==================== SUPERADMIN — SEDES ====================
 
 def lista_sedes(request):
-    """Lista todas las sedes."""
-    sedes = Sede.objects.prefetch_related('canchas').all()
+    """Lista todas las sedes y envía el formulario."""
+
+    sedes = Sede.objects.prefetch_related(
+        Prefetch(
+            'canchas',
+            queryset=Cancha.objects.filter(disponible=True),
+            to_attr='canchas_disponibles'
+        ),
+        'canchas'
+    ).all()
 
     return render(
         request,
         'gestion_canchas/sedes/lista_sedes.html',
         {
             'sedes': sedes,
+            'form': SedeForm(),
         }
     )
 
 
 def crear_sede(request):
     """Crea una nueva sede."""
-    if request.method == 'POST':
-        nombre    = request.POST.get('nombre', '').strip()
-        direccion = request.POST.get('direccion', '').strip()
-        ciudad    = request.POST.get('ciudad', '').strip()
-        telefono  = request.POST.get('telefono', '').strip()
 
-        if nombre and direccion and ciudad:
-            Sede.objects.create(
-                nombre=nombre,
-                direccion=direccion,
-                ciudad=ciudad,
-                telefono=telefono,
-            )
+    if request.method == 'POST':
+
+        form = SedeForm(request.POST)
+
+        if form.is_valid():
+
+            form.save()
+
             return redirect('gestion_canchas:lista_sedes')
 
-        sedes = Sede.objects.prefetch_related('canchas').all()
-        return render(request, 'gestion_canchas/sedes/lista_sedes.html', {
-            'sedes': sedes,
-            'abrir_modal': True,
-            'error': 'Todos los campos obligatorios deben estar completos.',
-        })
+        sedes = Sede.objects.prefetch_related(
+            Prefetch(
+                'canchas',
+                queryset=Cancha.objects.filter(disponible=True),
+                to_attr='canchas_disponibles'
+            ),
+            'canchas'
+        ).all()
+
+        return render(
+            request,
+            'gestion_canchas/sedes/lista_sedes.html',
+            {
+                'sedes': sedes,
+                'form': form,
+                'abrir_modal': True,
+            }
+        )
 
     return redirect('gestion_canchas:lista_sedes')
 
 
 def editar_sede(request, id):
     """Edita una sede existente."""
+
     sede = get_object_or_404(Sede, id=id)
 
     if request.method == 'POST':
-        nombre    = request.POST.get('nombre', '').strip()
-        direccion = request.POST.get('direccion', '').strip()
-        ciudad    = request.POST.get('ciudad', '').strip()
-        telefono  = request.POST.get('telefono', '').strip()
 
-        # Antes se guardaba aunque nombre/dirección/ciudad llegaran vacíos
-        if not (nombre and direccion and ciudad):
-            return render(request, 'gestion_canchas/sedes/editar_sede.html', {
-                'sede': sede,
-                'error': 'Nombre, dirección y ciudad son obligatorios.',
-            })
+        form = SedeForm(request.POST, instance=sede)
 
-        sede.nombre = nombre
-        sede.direccion = direccion
-        sede.ciudad = ciudad
-        sede.telefono = telefono
-        sede.save()
+        if form.is_valid():
 
-        return redirect('gestion_canchas:lista_sedes')
+            form.save()
 
-    return render(request, 'gestion_canchas/sedes/editar_sede.html', {
-        'sede': sede,
-    })
+            return redirect('gestion_canchas:lista_sedes')
+
+    else:
+
+        form = SedeForm(instance=sede)
+
+    return render(
+        request,
+        'gestion_canchas/sedes/editar_sede.html',
+        {
+            'sede': sede,
+            'form': form,
+        }
+    )
 
 
 def eliminar_sede(request, id):
     """Elimina una sede."""
-    get_object_or_404(Sede, id=id).delete()
+
+    sede = get_object_or_404(Sede, id=id)
+
+    sede.delete()
+
     return redirect('gestion_canchas:lista_sedes')
 
 
 def toggle_sede(request, id):
-    """Activa/desactiva una sede."""
+    """Activa o desactiva una sede."""
+
     sede = get_object_or_404(Sede, id=id)
+
     sede.activa = not sede.activa
+
     sede.save()
+
     return redirect('gestion_canchas:lista_sedes')
 
 
 def canchas_por_sede(request, sede_id):
     """Lista las canchas de una sede específica."""
-    sede    = get_object_or_404(Sede, id=sede_id)
-    canchas = sede.canchas.all().order_by('-creada')
-    return render(request, 'gestion_canchas/sedes/canchas_sede.html', {
-        'sede': sede,
-        'canchas': canchas,
-    })
 
+    sede = get_object_or_404(Sede, id=sede_id)
+
+    canchas = sede.canchas.all().order_by('-creada')
+
+    return render(
+        request,
+        'gestion_canchas/sedes/canchas_sede.html',
+        {
+            'sede': sede,
+            'canchas': canchas,
+        }
+    )
 
 # ==================== DEBUG ====================
 
 def debug_canchas(request):
     """Vista de depuración: solo funciona con DEBUG=True."""
+
     if not settings.DEBUG:
         raise Http404()
-    data = list(Cancha.objects.all().values('id', 'nombre', 'disponible', 'sede__nombre'))
+
+    data = list(
+        Cancha.objects.all().values(
+            'id',
+            'nombre',
+            'disponible',
+            'sede__nombre'
+        )
+    )
+
     return JsonResponse({'canchas': data}, safe=False)

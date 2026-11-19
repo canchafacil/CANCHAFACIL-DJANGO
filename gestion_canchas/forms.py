@@ -1,3 +1,4 @@
+
 from django import forms
 from django.core.exceptions import ValidationError
 from .models import Cancha, Sede
@@ -9,18 +10,60 @@ class CanchaForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'sede': forms.Select(attrs={'class': 'form-select'}),
-            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Cancha Principal'}),
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Cancha Principal'
+            }),
             'tipo': forms.Select(attrs={'class': 'form-select'}),
-            'descripcion': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 
-                                                 'placeholder': 'Ubicación, superficie, características...'}),
-            'precio': forms.NumberInput(attrs={'class': 'form-control', 'min': 50000, 'step': 1000,
-                                               'placeholder': 'Ej: 120000'}),
+            'descripcion': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control',
+                'placeholder': 'Ubicación, superficie, características...'
+            }),
+            'precio': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 50000,
+                'step': 1000,
+                'placeholder': 'Ej: 120000'
+            }),
             'imagen': forms.FileInput(attrs={'class': 'form-control'}),
-            'disponible': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'disponible': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
         }
 
     def clean_precio(self):
         precio = self.cleaned_data.get('precio')
         if precio is None or precio < 50000:
-            raise ValidationError('El precio mínimo por hora es de $50,000 COP.')
+            raise ValidationError(
+                'El precio mínimo por hora es de $50,000 COP.'
+            )
         return precio
+
+
+class SedeForm(forms.ModelForm):
+    class Meta:
+        model = Sede
+        fields = ['nombre', 'direccion', 'ciudad', 'telefono', 'activa']
+
+        widgets = {
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Sede Principal'
+            }),
+            'direccion': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Dirección de la sede'
+            }),
+            'ciudad': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Bogotá'
+            }),
+            'telefono': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Número de contacto'
+            }),
+            'activa': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+        }

@@ -36,10 +36,10 @@ class Reserva(models.Model):
     correo = models.EmailField()
     telefono = models.CharField(max_length=20, blank=True)
     fecha = models.DateField()
-    hora = models.TimeField()  # primera hora de la reserva (compatibilidad / orden)
-    horas = models.JSONField(default=list, blank=True)  # todas las horas reservadas
+    hora = models.TimeField()
+    horas = models.JSONField(default=list, blank=True)
     cancha = models.CharField(max_length=100)
-    duracion = models.CharField(max_length=20)  # ej. "60 min", "2 horas", "3 Horas"
+    duracion = models.CharField(max_length=20)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default=ESTADO_PENDIENTE)
     metodo_pago = models.CharField(max_length=50, blank=True, null=True)
     precio_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -58,7 +58,6 @@ class Reserva(models.Model):
 
     # ── MERCADO PAGO ──────────────────────────────────────────────
     mp_preference_id = models.CharField(max_length=255, blank=True, null=True)
-    mp_payment_id = models.CharField(max_length=64, blank=True, null=True, unique=True)
 
     # ── CANCELACIÓN ────────────────────────────────────────────────
     motivo_cancelacion = models.CharField(
@@ -71,17 +70,25 @@ class Reserva(models.Model):
         max_length=20, choices=CANCELADA_POR_CHOICES, blank=True, null=True
     )
 
-    def __str__(self):
+    def _str_(self):
         return f"{self.nombre} - {self.cancha} - {self.fecha}"
 
     def duracion_minutos(self):
         """Convierte 'duracion' (ej. '60 min', '2 horas') a minutos enteros."""
-        texto = self.duracion.lower().strip()
+        texto = (self.duracion or '').lower().strip()
+        if not texto:
+            return 60
         if 'min' in texto:
-            return int(texto.replace('min', '').strip())
+            try:
+                return int(texto.replace('min', '').strip())
+            except ValueError:
+                return 60
         elif 'hora' in texto:
-            horas = float(texto.replace('horas', '').replace('hora', '').strip())
-            return int(horas * 60)
+            try:
+                horas = float(texto.replace('horas', '').replace('hora', '').strip())
+                return int(horas * 60)
+            except ValueError:
+                return 60
         else:
             try:
                 return int(texto)
@@ -89,10 +96,7 @@ class Reserva(models.Model):
                 return 60
 
     def precio_por_hora(self):
-        """
-        Obtiene el precio por hora desde el modelo Cancha de gestion_canchas.
-        Si no existe, usa un valor por defecto.
-        """
+        """Obtiene el precio por hora desde Cancha; fallback 50000."""
         from gestion_canchas.models import Cancha
         try:
             cancha = Cancha.objects.get(nombre=self.cancha)
@@ -101,10 +105,6 @@ class Reserva(models.Model):
             return 50000.0
 
     def calcular_total(self):
-        """
-        Si hay 'horas' explícitas, el total es precio_hora * cantidad_de_horas.
-        Si no, usa duracion_minutos como fallback.
-        """
         precio_hora = Decimal(self.precio_por_hora())
         if self.horas:
             return precio_hora * Decimal(len(self.horas))
@@ -113,7 +113,6 @@ class Reserva(models.Model):
         return precio_hora * horas
 
     def calcular_abono_50(self):
-        """Valor del 50% del total, redondeado a peso entero."""
         return (self.calcular_total() / 2).quantize(Decimal('1'))
 
     @property
@@ -121,21 +120,29 @@ class Reserva(models.Model):
         return self.saldo_pendiente <= 0 and self.estado in (self.ESTADO_CONFIRMADA, self.ESTADO_COMPLETADA)
 
     def get_horas(self):
-        """
-        Devuelve siempre una lista de horas 'HH:MM', incluso para reservas
-        viejas creadas antes de que existiera el campo 'horas'.
-        """
+        """Devuelve lista de horas 'HH:MM'."""
         if self.horas:
             return self.horas
-        return [self.hora.strftime('%H:%M')]
+        if self.hora:
+            return [self.hora.strftime('%H:%M')]
+        return []
 
-    # ------------------------------------------------------------------
-    # Lógica de estados
-    # ------------------------------------------------------------------
+    @property
+    def duracion_texto(self):
+        """Duración legible calculada a partir de las horas reservadas."""
+        n = len(self.get_horas())
+        if n == 0:
+            return "Sin duración"
+        if n == 1:
+            return "1 hora"
+        return f"{n} horas"
 
     def fecha_hora_fin(self):
-        """Devuelve el datetime en que termina la reserva (fecha + última hora + 1h)."""
         horas_lista = self.get_horas()
+        if not horas_lista:
+            inicio = datetime.combine(self.fecha, datetime.min.time())
+            inicio = timezone.make_aware(inicio) if timezone.is_naive(inicio) else inicio
+            return inicio
         ultima_hora_str = sorted(horas_lista)[-1]
         h, m = map(int, ultima_hora_str.split(':'))
         inicio_ultima = datetime.combine(self.fecha, datetime.min.time().replace(hour=h, minute=m))
@@ -143,15 +150,9 @@ class Reserva(models.Model):
         return inicio_ultima + timedelta(hours=1)
 
     def ya_paso(self):
-        """True si la fecha/hora de la reserva (última hora reservada) ya pasó."""
         return timezone.now() >= self.fecha_hora_fin()
 
     def sincronizar_estado(self):
-        """
-        Si la reserva está confirmada y ya pasó su fecha/hora, la marca
-        automáticamente como completada. No toca canceladas ni pendientes.
-        Devuelve True si hubo cambio (para poder hacer bulk_update si se desea).
-        """
         if self.estado == self.ESTADO_CONFIRMADA and self.ya_paso():
             self.estado = self.ESTADO_COMPLETADA
             self.save(update_fields=['estado'])
@@ -160,28 +161,17 @@ class Reserva(models.Model):
 
     @property
     def puede_editarse(self):
-        """
-        Solo se puede editar si está pendiente o confirmada Y todavía no
-        ha pasado la fecha/hora. Completadas y canceladas nunca se editan.
-        """
         if self.estado not in (self.ESTADO_PENDIENTE, self.ESTADO_CONFIRMADA):
             return False
         return not self.ya_paso()
 
     @property
     def motivo_legible(self):
-        """Etiqueta legible del motivo de cancelación, para el correo y el admin."""
         if not self.motivo_cancelacion:
             return "Sin motivo registrado"
         return dict(self.MOTIVOS_CANCELACION).get(self.motivo_cancelacion, self.motivo_cancelacion)
 
     def cancelar(self, motivo, detalle='', por='usuario'):
-        """
-        Cancela la reserva registrando motivo/detalle/quién la canceló.
-        Al cambiar el estado a 'cancelada', las horas quedan libres
-        automáticamente en cualquier consulta que excluya ese estado
-        (ver horas-ocupadas / resumen-mes en gestion_canchas).
-        """
         self.estado = self.ESTADO_CANCELADA
         self.motivo_cancelacion = motivo
         self.motivo_detalle = detalle or None
@@ -191,8 +181,3 @@ class Reserva(models.Model):
             'estado', 'motivo_cancelacion', 'motivo_detalle',
             'fecha_cancelacion', 'cancelada_por'
         ])
-
-    # Nota: NO se sobreescribe delete() a propósito. El bloqueo de borrado
-    # se hace a nivel de vistas (nunca se expone una URL/acción que llame
-    # a .delete() sobre una Reserva), así el modelo queda flexible para
-    # uso interno del admin de Django si alguna vez hace falta.

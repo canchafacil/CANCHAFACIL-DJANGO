@@ -1,13 +1,30 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib import messages  # 🔥 NUEVO
 from .models import Usuario
 from reservas.models import Reserva
 from contacto.models import Resena
 from comunidad.models import PartidoAbierto, Reto
+from gestion_canchas.models import Cancha  # 🔥 NUEVO
 import random
 
+HORAS_VALIDAS = [
+    '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
+    '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
+    '18:00', '19:00', '20:00', '21:00', '22:00'
+]
 
+
+def _horas_ocupadas_por_otros(cancha, fecha, excluir_id):
+    """Horas ocupadas por OTRAS reservas (excluyendo la que se está editando)."""
+    qs = Reserva.objects.filter(
+        cancha=cancha, fecha=fecha
+    ).exclude(estado=Reserva.ESTADO_CANCELADA).exclude(id=excluir_id)
+    ocupadas = set()
+    for r in qs:
+        ocupadas.update(r.get_horas())
+    return sorted(ocupadas)
 # ---------------------------------------------------------------------
 # REGISTRO
 # ---------------------------------------------------------------------
@@ -72,15 +89,13 @@ def login_view(request):
                 'error': 'Tu cuenta está deshabilitada. Contacta con el Superadministrador.'
             })
 
-        # Sesión genérica para todos los roles
         request.session['usuario_id'] = usuario.id
         request.session['rol'] = usuario.rol
         request.session['nombre'] = usuario.first_name
         request.session['correo'] = usuario.email
 
-        # Redirección según rol
         if usuario.rol == 'SUPERADMIN':
-            return redirect('usuarios:lista_usuarios')   # 🔥 CORREGIDO
+            return redirect('usuarios:lista_usuarios')
         elif usuario.rol == 'ADMIN':
             return redirect('panel_principal')
         else:
@@ -120,7 +135,7 @@ No compartas este código con nadie.
                 fail_silently=False
             )
 
-            return redirect('usuarios:verificar_codigo')   # 🔥 CORREGIDO
+            return redirect('usuarios:verificar_codigo')
 
         except Usuario.DoesNotExist:
             return render(request, 'usuarios/recuperar_contra.html', {
@@ -136,7 +151,7 @@ def verificar_codigo(request):
         codigo_guardado = str(request.session.get('codigo'))
 
         if codigo_ingresado == codigo_guardado:
-            return redirect('usuarios:cambiar_contra')   # 🔥 CORREGIDO
+            return redirect('usuarios:cambiar_contra')
 
         return render(request, 'usuarios/verificar_codigo.html', {
             'error': 'Código incorrecto'
@@ -149,7 +164,7 @@ def cambiar_contra(request):
     email = request.session.get('correo')
 
     if not email:
-        return redirect('usuarios:login')   # 🔥 CORREGIDO
+        return redirect('usuarios:login')
 
     usuario = Usuario.objects.get(email=email)
 
@@ -168,7 +183,7 @@ def cambiar_contra(request):
         request.session.pop('codigo', None)
         request.session.pop('correo', None)
 
-        return redirect('usuarios:login')   # 🔥 CORREGIDO
+        return redirect('usuarios:login')
 
     return render(request, 'usuarios/cambiar_contra.html')
 
@@ -182,7 +197,7 @@ def logout_view(request):
     request.session.pop('rol', None)
     request.session.pop('nombre', None)
     request.session.pop('correo', None)
-    return redirect('inicio')   # No cambia (es de otra app)
+    return redirect('inicio')
 
 
 # ---------------------------------------------------------------------
@@ -207,7 +222,7 @@ def eliminar_usuario(request, id):
     usuario = Usuario.objects.get(id=id)
     usuario.delete()
 
-    return redirect('usuarios:lista_usuarios')   # 🔥 CORREGIDO
+    return redirect('usuarios:lista_usuarios')
 
 
 def editar_usuario(request, id):
@@ -226,7 +241,7 @@ def editar_usuario(request, id):
 
         usuario.save()
 
-        return redirect('usuarios:lista_usuarios')   # 🔥 CORREGIDO
+        return redirect('usuarios:lista_usuarios')
 
     return render(request, 'usuarios/editar_usuarios.html', {
         'usuario': usuario
@@ -241,7 +256,7 @@ def deshabilitar_usuario(request, id):
     usuario.activo = False
     usuario.save()
 
-    return redirect('usuarios:lista_usuarios')   # 🔥 CORREGIDO
+    return redirect('usuarios:lista_usuarios')
 
 
 def habilitar_usuario(request, id):
@@ -252,7 +267,7 @@ def habilitar_usuario(request, id):
     usuario.activo = True
     usuario.save()
 
-    return redirect('usuarios:lista_usuarios')   # 🔥 CORREGIDO
+    return redirect('usuarios:lista_usuarios')
 
 
 # ---------------------------------------------------------------------
@@ -315,7 +330,7 @@ def _contexto_comunidad(usuario):
 def perfil(request):
     usuario_id = request.session.get('usuario_id')
     if not usuario_id:
-        return redirect('usuarios:login')   # 🔥 CORREGIDO
+        return redirect('usuarios:login')
 
     usuario = get_object_or_404(Usuario, id=usuario_id)
 
@@ -323,6 +338,11 @@ def perfil(request):
 
     for r in reservas:
         r.sincronizar_estado()
+        # 🔥 Horas ocupadas por otras reservas en la misma cancha/fecha
+        if r.puede_editarse:
+            r.horas_ocupadas_otras = _horas_ocupadas_por_otros(r.cancha, r.fecha, r.id)
+        else:
+            r.horas_ocupadas_otras = []
 
     resenas = Resena.objects.filter(correo=usuario.email, archivada=False).order_by('-fecha')
 
@@ -338,16 +358,17 @@ def perfil(request):
         'iconos_jugadores': ICONOS_JUGADORES,
         'iconos_banderas': ICONOS_BANDERAS,
         'motivos_cancelacion': Reserva.MOTIVOS_CANCELACION,
+        'canchas': Cancha.objects.filter(disponible=True),
+        'horas_validas': HORAS_VALIDAS,  # 🔥 NUEVO
     }
     contexto.update(_contexto_comunidad(usuario))
 
     return render(request, 'usuarios/perfil.html', contexto)
 
-
 def editar_perfil(request):
     usuario_id = request.session.get('usuario_id')
     if not usuario_id:
-        return redirect('usuarios:login')   # 🔥 CORREGIDO
+        return redirect('usuarios:login')
 
     usuario = get_object_or_404(Usuario, id=usuario_id)
 
@@ -364,6 +385,7 @@ def editar_perfil(request):
                 'iconos_jugadores': ICONOS_JUGADORES,
                 'iconos_banderas': ICONOS_BANDERAS,
                 'motivos_cancelacion': Reserva.MOTIVOS_CANCELACION,
+                'canchas': Cancha.objects.filter(disponible=True),  # 🔥 NUEVO
                 'error': 'Ese correo ya está en uso por otra cuenta',
             }
             contexto.update(_contexto_comunidad(usuario))
@@ -389,6 +411,6 @@ def editar_perfil(request):
 
         request.session['nombre'] = usuario.first_name
 
-        return redirect('usuarios:perfil')   # 🔥 CORREGIDO
+        return redirect('usuarios:perfil')
 
-    return redirect('usuarios:perfil')   # 🔥 CORREGIDO{..}
+    return redirect('usuarios:perfil')
