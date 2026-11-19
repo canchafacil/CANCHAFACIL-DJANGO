@@ -9,9 +9,7 @@
     <link rel="icon" href="{% static 'img/logo-green.png' %}" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --navy: #03045e;
@@ -22,320 +20,105 @@
             --text-muted: #6b7280;
         }
 
-        body {
-            background: var(--bg);
-            font-family: 'Inter', sans-serif;
-            color: #1c1e2b;
-        }
-
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        .fw-display {
-            font-family: 'Manrope', sans-serif;
-        }
-
-        .navbar-pago {
-            background: var(--navy);
-        }
-
-        .pago-shell {
-            max-width: 980px;
-        }
+        body { background: var(--bg); font-family: 'Inter', sans-serif; color: #1c1e2b; }
+        h1, h2, h3, h4, h5, .fw-display { font-family: 'Manrope', sans-serif; }
+        .navbar-pago { background: var(--navy); }
+        .pago-shell { max-width: 980px; }
 
         .paso-eyebrow {
-            font-size: 0.72rem;
-            letter-spacing: .12em;
-            text-transform: uppercase;
-            font-weight: 700;
-            color: var(--navy);
-            opacity: .55;
+            font-size: 0.72rem; letter-spacing: .12em; text-transform: uppercase;
+            font-weight: 700; color: var(--navy); opacity: .55;
         }
 
         .volver-link {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--navy);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            opacity: .75;
-            transition: opacity .15s ease;
+            font-size: 0.85rem; font-weight: 600; color: var(--navy);
+            text-decoration: none; display: inline-flex; align-items: center;
+            gap: 6px; opacity: .75; transition: opacity .15s ease;
         }
+        .volver-link:hover { opacity: 1; color: var(--navy); }
 
-        .volver-link:hover {
-            opacity: 1;
-            color: var(--navy);
-        }
+        .grid-pago { display: grid; grid-template-columns: 1.1fr 1.4fr; gap: 24px; align-items: start; }
+        @media (max-width: 860px) { .grid-pago { grid-template-columns: 1fr; } }
 
-        .grid-pago {
-            display: grid;
-            grid-template-columns: 1.1fr 1.4fr;
-            gap: 24px;
-            align-items: start;
-        }
-
-        @media (max-width: 860px) {
-            .grid-pago {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* ── PANEL RESUMEN (izquierda) ── */
         .panel-resumen {
-            background: var(--navy);
-            color: #fff;
-            border-radius: 18px;
-            padding: 28px 26px;
-            position: sticky;
-            top: 24px;
+            background: var(--navy); color: #fff; border-radius: 18px;
+            padding: 28px 26px; position: sticky; top: 24px;
         }
-
-        .panel-resumen .cancha-nombre {
-            font-family: 'Manrope', sans-serif;
-            font-weight: 800;
-            font-size: 1.4rem;
-            line-height: 1.15;
-        }
+        .panel-resumen .cancha-nombre { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 1.4rem; line-height: 1.15; }
 
         .fila-dato {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, .12);
-            font-size: 0.9rem;
+            display: flex; justify-content: space-between; gap: 10px;
+            padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, .12); font-size: 0.9rem;
         }
-
-        .fila-dato:last-of-type {
-            border-bottom: none;
-        }
-
-        .fila-dato .etiqueta {
-            color: rgba(255, 255, 255, .6);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .fila-dato .valor {
-            font-weight: 600;
-            text-align: right;
-        }
+        .fila-dato:last-of-type { border-bottom: none; }
+        .fila-dato .etiqueta { color: rgba(255, 255, 255, .6); display: flex; align-items: center; gap: 6px; }
+        .fila-dato .valor { font-weight: 600; text-align: right; }
 
         .total-box {
-            background: rgba(255, 255, 255, .08);
-            border: 1px solid rgba(255, 255, 255, .15);
-            border-radius: 12px;
-            padding: 14px 16px;
-            margin-top: 18px;
+            background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .15);
+            border-radius: 12px; padding: 14px 16px; margin-top: 18px;
         }
+        .total-box .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: .08em; color: rgba(255, 255, 255, .6); }
+        .total-box .monto { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 1.8rem; color: var(--green); }
 
-        .total-box .label {
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: .08em;
-            color: rgba(255, 255, 255, .6);
-        }
-
-        .total-box .monto {
-            font-family: 'Manrope', sans-serif;
-            font-weight: 800;
-            font-size: 1.8rem;
-            color: var(--green);
-        }
-
-        /* ── PANEL DERECHO ── */
-        .panel-formulario {
-            background: #fff;
-            border-radius: 18px;
-            padding: 28px;
-            border: 1px solid var(--line);
-        }
-
+        .panel-formulario { background: #fff; border-radius: 18px; padding: 28px; border: 1px solid var(--line); }
         .seccion-titulo {
-            font-family: 'Manrope', sans-serif;
-            font-weight: 800;
-            font-size: 1.05rem;
-            color: var(--navy);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 14px;
+            font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 1.05rem;
+            color: var(--navy); display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
         }
+        .seccion-titulo i { color: var(--green-deep); }
 
-        .seccion-titulo i {
-            color: var(--green-deep);
-        }
-
-        .opciones-monto {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
-
+        .opciones-monto { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
         .opcion-pago {
-            border: 2px solid var(--line);
-            border-radius: 14px;
-            padding: 16px;
-            cursor: pointer;
-            transition: border-color .15s ease, background-color .15s ease;
+            border: 2px solid var(--line); border-radius: 14px; padding: 16px;
+            cursor: pointer; transition: border-color .15s ease, background-color .15s ease;
         }
-
-        .opcion-pago:hover {
-            border-color: #c9cfe6;
-        }
-
+        .opcion-pago:hover { border-color: #c9cfe6; }
         .opcion-pago.seleccionada {
             border-color: var(--navy);
             background: linear-gradient(180deg, rgba(98, 255, 0, .08), rgba(3, 4, 94, .03));
         }
 
         .opcion-pago .check-dot {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            border: 2px solid #c9cfe6;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+            width: 18px; height: 18px; border-radius: 50%; border: 2px solid #c9cfe6;
+            display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
+        .opcion-pago.seleccionada .check-dot { border-color: var(--navy); background: var(--navy); }
+        .opcion-pago.seleccionada .check-dot::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
 
-        .opcion-pago.seleccionada .check-dot {
-            border-color: var(--navy);
-            background: var(--navy);
-        }
-
-        .opcion-pago.seleccionada .check-dot::after {
-            content: '';
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--green);
-        }
-
-        .opcion-pago .titulo-opcion {
-            font-weight: 700;
-            font-size: 0.92rem;
-            color: #1c1e2b;
-        }
-
-        .opcion-pago .sub-opcion {
-            font-size: 0.76rem;
-            color: var(--text-muted);
-        }
-
-        .opcion-pago .monto-opcion {
-            font-family: 'Manrope', sans-serif;
-            font-weight: 800;
-            font-size: 1.15rem;
-            color: var(--navy);
-            margin-top: 6px;
-        }
+        .opcion-pago .titulo-opcion { font-weight: 700; font-size: 0.92rem; color: #1c1e2b; }
+        .opcion-pago .sub-opcion { font-size: 0.76rem; color: var(--text-muted); }
+        .opcion-pago .monto-opcion { font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 1.15rem; color: var(--navy); margin-top: 6px; }
 
         .aviso-saldo {
-            background: #fff8e6;
-            border: 1px solid #f4dfa0;
-            color: #7a5c00;
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 0.82rem;
-            display: flex;
-            gap: 8px;
-            align-items: flex-start;
+            background: #fff8e6; border: 1px solid #f4dfa0; color: #7a5c00;
+            border-radius: 10px; padding: 10px 14px; font-size: 0.82rem;
+            display: flex; gap: 8px; align-items: flex-start;
         }
 
-        /* ── AVISO DIFERENCIA ── */
         .aviso-diferencia {
             background: linear-gradient(135deg, #fff4d6 0%, #ffe8a8 100%);
-            border: 1px solid #f4dfa0;
-            border-radius: 14px;
-            padding: 16px 18px;
-            margin-bottom: 18px;
+            border: 1px solid #f4dfa0; border-radius: 14px; padding: 16px 18px; margin-bottom: 18px;
         }
-
-        .aviso-diferencia h6 {
-            color: #7a5c00;
-            font-weight: 800;
-            margin-bottom: 10px;
-        }
-
-        .aviso-diferencia .linea {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 0;
-            font-size: 0.92rem;
-        }
-
+        .aviso-diferencia h6 { color: #7a5c00; font-weight: 800; margin-bottom: 10px; }
+        .aviso-diferencia .linea { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.92rem; }
         .aviso-diferencia .linea.destacada {
-            border-top: 1px solid #e5c870;
-            margin-top: 6px;
-            padding-top: 10px;
-            font-size: 1.02rem;
-            color: #4a3600;
-            font-weight: 800;
+            border-top: 1px solid #e5c870; margin-top: 6px; padding-top: 10px;
+            font-size: 1.02rem; color: #4a3600; font-weight: 800;
         }
 
-        /* ── BOTÓN MERCADO PAGO ── */
         .btn-mercadopago {
-            background: linear-gradient(135deg, #00aaff 0%, #0090dd 100%);
-            color: #fff;
-            border: none;
-            font-weight: 700;
-            font-size: 1.1rem;
-            padding: 14px 24px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            background: linear-gradient(135deg, #00aaff 0%, #0090dd 100%); color: #fff;
+            border: none; font-weight: 700; font-size: 1.1rem; padding: 14px 24px;
+            border-radius: 12px; transition: all 0.3s ease; width: 100%;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
         }
+        .btn-mercadopago:hover { background: linear-gradient(135deg, #0099ee 0%, #0080cc 100%); color: #fff; transform: scale(1.02); box-shadow: 0 4px 15px rgba(0, 170, 255, 0.3); }
+        .btn-mercadopago:disabled { background: #a0ccee; cursor: not-allowed; transform: none; }
+        .btn-mercadopago i { font-size: 1.3rem; }
 
-        .btn-mercadopago:hover {
-            background: linear-gradient(135deg, #0099ee 0%, #0080cc 100%);
-            color: #fff;
-            transform: scale(1.02);
-            box-shadow: 0 4px 15px rgba(0, 170, 255, 0.3);
-        }
-
-        .btn-mercadopago:disabled {
-            background: #a0ccee;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-mercadopago i {
-            font-size: 1.3rem;
-        }
-
-        .badge-mp {
-            background: #00aaff;
-            color: #fff;
-            font-size: 0.65rem;
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .factura-btn {
-            transition: all 0.2s ease;
-        }
-
-        .factura-btn:hover {
-            transform: scale(1.02);
-        }
-
-        .oculto {
-            display: none;
-        }
+        .badge-mp { background: #00aaff; color: #fff; font-size: 0.65rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; letter-spacing: 0.5px; }
+        .oculto { display: none; }
     </style>
 </head>
 
@@ -343,10 +126,8 @@
     <nav class="navbar navbar-expand-lg navbar-pago">
         <div class="container-fluid">
             <div class="d-flex align-items-center ms-4">
-                <img src="{% static 'img/logo-green.png' %}" style="height:70px;object-fit:contain;"
-                    alt="Logo CanchaFácil">
-                <a class="navbar-brand fw-bold ms-2 m-0" href="#"
-                    style="font-size:1.6rem;color:#fff;font-family:'Manrope',sans-serif;">
+                <img src="{% static 'img/logo-green.png' %}" style="height:70px;object-fit:contain;" alt="Logo CanchaFácil">
+                <a class="navbar-brand fw-bold ms-2 m-0" href="#" style="font-size:1.6rem;color:#fff;font-family:'Manrope',sans-serif;">
                     Cancha<span style="color:#62ff00;">Fácil</span>
                 </a>
             </div>
@@ -356,7 +137,6 @@
     <div class="container pago-shell my-5">
         {% if reserva %}
 
-        <!-- ✅ Reserva ya pagada (sin diferencia pendiente) -->
         {% if reserva.estado == 'confirmada' and not es_diferencia %}
         <div class="alert alert-success text-center">
             <i class="bi bi-check-circle-fill fs-3"></i>
@@ -383,8 +163,7 @@
         </h2>
 
         <div class="grid-pago">
-
-            <!-- ── COLUMNA IZQUIERDA: RESUMEN ── -->
+            <!-- Panel Izquierdo -->
             <div class="panel-resumen">
                 <div class="d-flex align-items-center gap-2 mb-1">
                     <i class="bi bi-dribbble" style="color:var(--green); font-size:1.3rem;"></i>
@@ -407,14 +186,17 @@
                     </div>
                     <div class="fila-dato">
                         <span class="etiqueta"><i class="bi bi-cash-stack"></i> Valor total</span>
-                        <span class="valor" id="valorTotalReserva">
-                            ${% if es_diferencia %}{{ reserva.precio_total|floatformat:"0" }}{% else %}{{ total|floatformat:"0" }}{% endif %}
+                        <!-- 🔥 CLASE dinero + data-monto -->
+                        <span class="valor dinero" data-monto="{% if es_diferencia %}{{ reserva.precio_total|default:0 }}{% else %}{{ total|default:0 }}{% endif %}" id="valorTotalReserva">
+                            $...
                         </span>
                     </div>
                     {% if es_diferencia %}
                     <div class="fila-dato">
                         <span class="etiqueta"><i class="bi bi-check-circle"></i> Ya pagado</span>
-                        <span class="valor" style="color:var(--green);">${{ ya_pagado|floatformat:"0" }}</span>
+                        <span class="valor dinero" data-monto="{{ ya_pagado|default:0 }}" style="color:var(--green);">
+                            $...
+                        </span>
                     </div>
                     {% endif %}
                 </div>
@@ -423,33 +205,34 @@
                     <div class="label">
                         {% if es_diferencia %}Diferencia a pagar{% else %}Total a pagar ahora{% endif %}
                     </div>
-                    <div class="monto" id="montoAPagarAhora">${{ total|floatformat:"0" }}</div>
+                    <div class="monto dinero" data-monto="{{ total|default:0 }}" id="montoAPagarAhora">
+                        $...
+                    </div>
                 </div>
             </div>
 
-            <!-- ── COLUMNA DERECHA: FORMULARIO ── -->
+            <!-- Panel Derecho -->
             <div class="panel-formulario">
 
                 {% if es_diferencia %}
-                <!-- ⚡ MODO DIFERENCIA: solo se cobra el saldo pendiente -->
                 <div class="aviso-diferencia">
                     <h6><i class="bi bi-exclamation-triangle-fill me-1"></i> Editaste tu reserva</h6>
                     <p class="mb-2 small">El nuevo precio supera lo que ya habías pagado. Solo debes cubrir la diferencia.</p>
                     <div class="linea">
                         <span>Total reserva (nuevo):</span>
-                        <strong>${{ reserva.precio_total|floatformat:"0" }}</strong>
+                        <strong class="dinero" data-monto="{{ reserva.precio_total|default:0 }}">$...</strong>
                     </div>
                     <div class="linea">
                         <span>Ya pagaste:</span>
-                        <strong style="color:#0a7d00;">-${{ ya_pagado|floatformat:"0" }}</strong>
+                        <strong class="dinero" data-monto="{{ ya_pagado|default:0 }}" style="color:#0a7d00;">-$...</strong>
                     </div>
                     <div class="linea destacada">
                         <span>Diferencia a pagar:</span>
-                        <strong>${{ total|floatformat:"0" }}</strong>
+                        <strong class="dinero" data-monto="{{ total|default:0 }}">$...</strong>
                     </div>
                 </div>
                 {% else %}
-                <!-- Paso 1: tipo de pago (Completo / Abono 50%) -->
+                <!-- Selección de monto -->
                 <div class="seccion-titulo"><i class="bi bi-1-circle-fill"></i>¿Cómo deseas pagar?</div>
                 <div class="opciones-monto">
                     <div class="opcion-pago seleccionada" id="opcionCompleto" onclick="seleccionarTipoPago('completo')">
@@ -460,7 +243,9 @@
                             </div>
                             <span class="check-dot"></span>
                         </div>
-                        <div class="monto-opcion" id="montoCompletoTexto">$0</div>
+                        <div class="monto-opcion dinero" data-monto="{{ total|default:0 }}" id="montoCompletoTexto">
+                            $...
+                        </div>
                     </div>
                     <div class="opcion-pago" id="opcionAbono" onclick="seleccionarTipoPago('abono')">
                         <div class="d-flex justify-content-between align-items-start">
@@ -470,7 +255,9 @@
                             </div>
                             <span class="check-dot"></span>
                         </div>
-                        <div class="monto-opcion" id="montoAbonoTexto">$0</div>
+                        <div class="monto-opcion dinero" data-monto="{{ abono_50|default:0 }}" id="montoAbonoTexto">
+                            $...
+                        </div>
                     </div>
                 </div>
                 <div class="aviso-saldo mb-4" id="avisoSaldoPendiente" style="display:none;">
@@ -480,64 +267,53 @@
                 </div>
                 {% endif %}
 
-                <!-- Paso 2: Método de pago (solo Mercado Pago) -->
-                <div class="seccion-titulo">
-                    <i class="bi bi-{% if es_diferencia %}2{% else %}2{% endif %}-circle-fill"></i>Método de pago
-                </div>
+                <!-- Método de pago -->
+                <div class="seccion-titulo"><i class="bi bi-2-circle-fill"></i>Método de pago</div>
 
                 <div class="text-center py-3">
                     <div class="d-flex align-items-center justify-content-center gap-3 mb-2">
-                        <img src="https://www.mercadopago.com/org-img/MP3/home/logomp3.svg" alt="Mercado Pago"
-                            style="height:40px;">
+                        <img src="https://logodownload.org/wp-content/uploads/2019/09/mercado-pago-logo-0.png" alt="Mercado Pago" style="height:40px; object-fit: contain;">
                         <span class="badge-mp">Pago seguro</span>
                     </div>
-                    <p class="text-muted small">Paga con tarjeta de crédito, débito, PSE, Nequi o efectivo a través de
-                        Mercado Pago.</p>
+                    <p class="text-muted small">Paga con tarjeta de crédito, débito, PSE, Nequi o efectivo a través de Mercado Pago.</p>
                 </div>
 
                 <form action="{% url 'crear_preferencia_mercadopago' reserva.id %}" method="POST">
                     {% csrf_token %}
-                    <input type="hidden" name="tipo_pago" id="tipoPagoInput"
-                           value="{% if es_diferencia %}completo{% else %}completo{% endif %}">
-                    <input type="hidden" name="monto_a_pagar" id="montoAPagarInput"
-                           value="{{ total|floatformat:"0" }}">
+                    <input type="hidden" name="tipo_pago" id="tipoPagoInput" value="completo">
+                    <!-- 🔥 Aquí SIN dinero, el input debe llevar el valor crudo "400000" -->
+                    <input type="hidden" name="monto_a_pagar" id="montoAPagarInput" value="{{ total|floatformat:'0' }}">
 
                     <div class="alert alert-info text-center py-2 mb-3">
                         <small class="text-muted">Monto a cobrar:</small>
-                        <strong id="montoACobrarMP" style="font-size:1.2rem;">${{ total|floatformat:"0" }}</strong>
+                        <strong id="montoACobrarMP" class="dinero" data-monto="{{ total|default:0 }}" style="font-size:1.2rem;">
+                            $...
+                        </strong>
                     </div>
 
                     <button type="submit" class="btn-mercadopago" id="btnPagarMP">
                         <i class="bi bi-credit-card"></i>
-                        <span id="btnTextoMP">
-                            Pagar ${{ total|floatformat:"0" }} con Mercado Pago
-                        </span>
+                        <span id="btnTextoMP">Pagar con Mercado Pago</span>
                     </button>
                 </form>
 
                 <div class="mt-3 text-center">
                     <small class="text-muted">
-                        <i class="bi bi-shield-lock me-1"></i>
-                        Pago 100% seguro. No guardamos datos de tu tarjeta.
+                        <i class="bi bi-shield-lock me-1"></i> Pago 100% seguro. No guardamos datos de tu tarjeta.
                     </small>
                 </div>
-
                 <div class="mt-3 text-center">
                     <a href="{% url 'reservas' %}" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-arrow-left me-1"></i>Volver a reservas
                     </a>
                 </div>
-
-                <div id="resultadoPago" class="mt-3"></div>
             </div>
         </div>
-
         {% endif %}
 
         {% else %}
         <div class="alert alert-warning">
-            No hay ninguna reserva pendiente de pago. Por el momento realiza otra
-            reserva <a href="{% url 'reservas' %}">Volver a reservas</a>.
+            No hay ninguna reserva pendiente de pago. Por el momento realiza otra reserva <a href="{% url 'reservas' %}">Volver a reservas</a>.
         </div>
         {% endif %}
     </div>
@@ -545,67 +321,51 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        {% if reserva and not reserva.estado == 'confirmada' or es_diferencia %}
-        // ──────────────────────────────────────────────
-        // Variables inyectadas desde el servidor
-        // ──────────────────────────────────────────────
-        {% if es_diferencia %}
-        const ES_DIFERENCIA = true;
-        const TOTAL_RESERVA = {{ reserva.precio_total|default:0|floatformat:"0" }};
-        const MONTO_A_PAGAR = {{ total|default:0|floatformat:"0" }};
-        {% else %}
-        const ES_DIFERENCIA = false;
-        const TOTAL_RESERVA = {{ total|default:0|floatformat:"0" }};
-        const MONTO_A_PAGAR = {{ total|default:0|floatformat:"0" }};
-        {% endif %}
-        const MONTO_ABONO_50 = TOTAL_RESERVA / 2;
+        {% if reserva and reserva.estado != 'confirmada' or es_diferencia %}
+        
+        const ES_DIFERENCIA = {% if es_diferencia %}true{% else %}false{% endif %};
+        const TOTAL_RESERVA = Number({{ total|default:0 }});
+        const MONTO_ABONO_50 = Number({{ abono_50|default:0 }});
+        
         let tipoPagoSeleccionado = 'completo';
 
         function formatoMoneda(n) {
             return '$ ' + Math.round(n).toLocaleString('es-CO');
         }
 
+        // 🔥 1. Función mágica que busca todo lo que tenga clase "dinero" y le pone los puntos
+        function formatearMontosEstaticos() {
+            document.querySelectorAll('.dinero').forEach(el => {
+                let monto = parseFloat(el.dataset.monto);
+                if (!isNaN(monto)) {
+                    el.textContent = formatoMoneda(monto);
+                }
+            });
+        }
+
         function pintarMontosPago() {
-            // Modo diferencia: solo se cobra el saldo pendiente
-            if (ES_DIFERENCIA) {
-                const elMontoAhora = document.getElementById('montoAPagarAhora');
-                if (elMontoAhora) elMontoAhora.textContent = formatoMoneda(MONTO_A_PAGAR);
+            if (ES_DIFERENCIA) return; // En diferencia no hay cálculo de abono
 
-                const elInput = document.getElementById('montoAPagarInput');
-                if (elInput) elInput.value = MONTO_A_PAGAR;
-
-                const elMP = document.getElementById('montoACobrarMP');
-                if (elMP) elMP.textContent = formatoMoneda(MONTO_A_PAGAR);
-
-                const elBtn = document.getElementById('btnTextoMP');
-                if (elBtn) elBtn.textContent = Pagar ${formatoMoneda(MONTO_A_PAGAR)} con Mercado Pago;
-                return;
-            }
-
-            // Modo normal: permite elegir completo / abono 50%
             const montoActual = (tipoPagoSeleccionado === 'abono') ? MONTO_ABONO_50 : TOTAL_RESERVA;
 
+            // Actualizar resumen izquierdo
             const elMontoAhora = document.getElementById('montoAPagarAhora');
             if (elMontoAhora) elMontoAhora.textContent = formatoMoneda(montoActual);
 
-            const elCompleto = document.getElementById('montoCompletoTexto');
-            if (elCompleto) elCompleto.textContent = formatoMoneda(TOTAL_RESERVA);
-
-            const elAbono = document.getElementById('montoAbonoTexto');
-            if (elAbono) elAbono.textContent = formatoMoneda(MONTO_ABONO_50);
-
+            // Actualizar input oculto para el backend (Valor crudo sin puntos)
             const elInput = document.getElementById('montoAPagarInput');
-            if (elInput) elInput.value = montoActual;
+            if (elInput) elInput.value = Math.round(montoActual);
 
+            // Actualizar monto en el alerta azul y botón de MP
             const elMP = document.getElementById('montoACobrarMP');
             if (elMP) elMP.textContent = formatoMoneda(montoActual);
 
             const elBtn = document.getElementById('btnTextoMP');
-            if (elBtn) elBtn.textContent = Pagar ${formatoMoneda(montoActual)} con Mercado Pago;
+            if (elBtn) elBtn.textContent = `Pagar ${formatoMoneda(montoActual)} con Mercado Pago`;
         }
 
         function seleccionarTipoPago(tipo) {
-            if (ES_DIFERENCIA) return; // no aplica en modo diferencia
+            if (ES_DIFERENCIA) return;
 
             tipoPagoSeleccionado = tipo;
 
@@ -631,11 +391,19 @@
             pintarMontosPago();
         }
 
-        // Inicializar
-        pintarMontosPago();
-        if (!ES_DIFERENCIA) seleccionarTipoPago('completo');
+        // 🔥 2. Inicializar la interfaz
+        // Primero formateamos todos los textos (pone los puntos)
+        formatearMontosEstaticos();
+        
+        // Luego inicializamos la lógica normal
+        if (!ES_DIFERENCIA) {
+            seleccionarTipoPago('completo');
+        } else {
+            pintarMontosPago();
+            const elBtn = document.getElementById('btnTextoMP');
+            if (elBtn) elBtn.textContent = `Pagar ${formatoMoneda(TOTAL_RESERVA)} con Mercado Pago`;
+        }
         {% endif %}
     </script>
 </body>
-
 </html>

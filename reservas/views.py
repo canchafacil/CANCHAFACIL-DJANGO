@@ -64,7 +64,6 @@ def _duracion_desde_horas(horas):
 
 
 def _to_decimal(valor, default='0'):
-    """Convierte cualquier cosa a Decimal de forma segura."""
     if valor is None:
         return Decimal(default)
     try:
@@ -210,7 +209,7 @@ def editar_reserva(request, id):
 
 
 # =================================================================
-# EDICIÓN DESDE PERFIL (con cobro de diferencia)
+# EDICIÓN DESDE PERFIL (con cobro de diferencia y salvaguarda)
 # =================================================================
 
 @require_POST
@@ -230,6 +229,12 @@ def editar_reserva_perfil(request, id):
     if not reserva.puede_editarse:
         messages.error(request, 'Esta reserva ya no se puede editar (pasó, o está cancelada/completada).')
         return redirect('usuarios:perfil')
+
+    # 🔥 SALVAGUARDA: Reservas viejas que estaban confirmadas pero sin monto_pagado
+    if reserva.estado == Reserva.ESTADO_CONFIRMADA and (reserva.monto_pagado or Decimal('0')) == 0:
+        reserva.monto_pagado = reserva.precio_total or reserva.calcular_total()
+        reserva.saldo_pendiente = Decimal('0')
+        reserva.save(update_fields=['monto_pagado', 'saldo_pendiente'])
 
     nueva_fecha  = request.POST.get('fecha') or str(reserva.fecha)
     nueva_cancha = request.POST.get('cancha') or reserva.cancha
@@ -273,8 +278,8 @@ def editar_reserva_perfil(request, id):
             request.session['reserva_pendiente_id'] = reserva.id
             messages.warning(
                 request,
-                f'Tu reserva ahora cuesta ${nuevo_total:,.0f}. '
-                f'Ya pagaste ${monto_ya_pagado:,.0f}. '
+                f'Agregaste horas a tu reserva. Nuevo total: ${nuevo_total:,.0f}. '
+                f'Ya pagaste: ${monto_ya_pagado:,.0f}. '
                 f'Debes pagar la diferencia de ${reserva.saldo_pendiente:,.0f}.'
             )
             return redirect('pago')
@@ -285,7 +290,7 @@ def editar_reserva_perfil(request, id):
             messages.info(
                 request,
                 f'Redujiste tu reserva. Nueva tarifa: ${nuevo_total:,.0f}. '
-                f'Ya habías pagado ${monto_ya_pagado:,.0f}. '
+                f'Ya habías pagado: ${monto_ya_pagado:,.0f}. '
                 f'Excedente: ${excedente:,.0f}. Contacta al administrador para gestionar el reembolso.'
             )
             return redirect('usuarios:perfil')
@@ -366,7 +371,7 @@ def _enviar_correo_cancelacion(reserva):
 
 
 # =================================================================
-# PAGO (con diferencia)
+# PAGO (con diferencia y cálculo del 50%)
 # =================================================================
 
 def pago(request):
@@ -375,6 +380,7 @@ def pago(request):
     total = 0
     ya_pagado = 0
     es_diferencia = False
+    abono_50 = 0  # 🔥 Para que el HTML pinte el valor del 50% de una vez
 
     if reserva_id:
         try:
@@ -388,13 +394,15 @@ def pago(request):
                 total = float(saldo)
                 ya_pagado = float(monto_ya_pagado)
                 es_diferencia = True
+                abono_50 = total
             elif monto_ya_pagado > 0 and saldo <= 0:
-                # Ya está pagada (no debería llegar aquí normalmente)
+                # Ya está pagada
                 total = 0
                 ya_pagado = float(monto_ya_pagado)
             else:
                 # Primera vez
                 total = float(reserva.calcular_total())
+                abono_50 = total / 2
         except Reserva.DoesNotExist:
             pass
 
@@ -403,6 +411,7 @@ def pago(request):
         "total": total,
         "ya_pagado": ya_pagado,
         "es_diferencia": es_diferencia,
+        "abono_50": abono_50,
     })
 
 
@@ -422,7 +431,7 @@ def confirmar_pago(request):
         monto_a_pagar = reserva.saldo_pendiente
         reserva.monto_pagado    = monto_ya_pagado + monto_a_pagar
         reserva.saldo_pendiente = Decimal('0')
-        tipo_pago = Reserva.TIPO_PAGO_COMPLETO  # forzar completo
+        tipo_pago = Reserva.TIPO_PAGO_COMPLETO
     else:
         # Pago inicial normal
         tipo_pago = data.get("tipo_pago", Reserva.TIPO_PAGO_COMPLETO)
@@ -461,10 +470,11 @@ def enviar_correo_confirmacion(reserva):
 
     cuerpo_html = render_to_string("reservas/confirmacion_reserva.html", contexto)
     horas_texto = ", ".join(reserva.get_horas())
+    
     linea_pago = f"Pagaste el total: ${reserva.precio_total}"
     if reserva.tipo_pago == Reserva.TIPO_PAGO_ABONO and (reserva.saldo_pendiente or Decimal('0')) > 0:
         linea_pago = (
-            f"Abonaste: ${reserva.monto_pagado}\n"
+            f"Abonaste: ${reserva.monto_pagado} (50%)\n"
             f"Saldo pendiente a pagar en la cancha: ${reserva.saldo_pendiente}"
         )
     elif (reserva.saldo_pendiente or Decimal('0')) <= 0 and (reserva.monto_pagado or Decimal('0')) > 0:
@@ -514,20 +524,16 @@ def crear_preferencia_mercadopago(request, reserva_id):
     monto_ya_pagado = reserva.monto_pagado or Decimal('0')
     saldo           = reserva.saldo_pendiente or Decimal('0')
 
-    # Si ya está pagada completa, no crear preferencia
     if reserva.estado == 'confirmada' and saldo <= 0:
         return redirect('pago_exitoso_mp')
 
     sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
 
-    # 🔥 Determinar monto a cobrar
     if monto_ya_pagado > 0 and saldo > 0:
-        # Diferencia
         total = int(saldo)
         es_diferencia = True
         tipo_pago = 'completo'
     else:
-        # Primera vez
         monto_a_pagar = request.POST.get('monto_a_pagar')
         if monto_a_pagar:
             try:
@@ -551,10 +557,9 @@ def crear_preferencia_mercadopago(request, reserva_id):
         failure_url = failure_url.replace('http://', 'https://')
         pending_url = pending_url.replace('http://', 'https://')
 
-    # Guardar en sesión lo que se está cobrando AHORA
     request.session['reserva_pendiente_id'] = reserva.id
     request.session['tipo_pago'] = tipo_pago
-    request.session['monto_pagado'] = total  # 🔥 lo que se cobra ESTA VEZ
+    request.session['monto_pagado'] = total
     request.session['es_diferencia'] = es_diferencia
     request.session.modified = True
 
@@ -625,10 +630,8 @@ def pago_exitoso_mp(request):
         try:
             reserva = Reserva.objects.get(id=reserva_id)
 
-            # 🔥 Monto cobrado en esta transacción (guardado en sesión)
             monto_esta_vez = _to_decimal(request.session.get('monto_pagado', 0))
             if monto_esta_vez <= 0:
-                # Fallback: asumir que pagó el saldo restante
                 monto_esta_vez = max(
                     Decimal('0'),
                     (reserva.precio_total or reserva.calcular_total()) - (reserva.monto_pagado or Decimal('0'))
@@ -644,14 +647,12 @@ def pago_exitoso_mp(request):
             reserva.numero_factura  = reserva.numero_factura or f"FAC-{reserva.id:06d}"
             reserva.save()
 
-            # Solo enviar correo si es la primera confirmación
             if monto_ya_pagado == 0:
                 enviar_correo_confirmacion(reserva)
 
         except Reserva.DoesNotExist:
             pass
 
-    # Limpiar sesión
     for key in ('reserva_pendiente_id', 'tipo_pago', 'monto_pagado', 'es_diferencia'):
         if key in request.session:
             del request.session[key]
@@ -690,8 +691,6 @@ def webhook_mercadopago(request):
                 try:
                     reserva = Reserva.objects.get(id=external_reference)
 
-                    # Evitar doble conteo: si ya está confirmada y sin saldo,
-                    # asumimos que pago_exitoso_mp ya lo procesó.
                     if reserva.estado == Reserva.ESTADO_CONFIRMADA and (reserva.saldo_pendiente or Decimal('0')) <= 0:
                         return HttpResponse(status=200)
 
