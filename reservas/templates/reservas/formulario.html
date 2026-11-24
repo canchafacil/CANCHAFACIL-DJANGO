@@ -1196,357 +1196,285 @@
 <script>
 
     // ── SESIÓN ─────────────────────────────────────────────
-
     const LOGUEADO = {% if request.session.usuario_id %}true{% else %}false{% endif %};
 
 
     // ── RESTRICCIÓN ────────────────────────────────────────
-
     const TIENE_RESERVA_ACTIVA = {% if tiene_reserva_activa %}true{% else %}false{% endif %};
 
 
-    // ── LÍMITE ─────────────────────────────────────────────
-
+    // ── LÍMITES ────────────────────────────────────────────
     const MAX_HORAS_POR_RESERVA = 12;
+    const MINUTOS_PAGO = {% if minutos_para_pagar %}{{ minutos_para_pagar|stringformat:"d" }}{% else %}15{% endif %};
+
+
+    // ── HORA DEL SERVIDOR (no depende del reloj del usuario) ──
+    // Si Django no envía ahora_ms, se usa el reloj del navegador (offset 0)
+    const SERVER_NOW_MS = {% if ahora_ms %}{{ ahora_ms|stringformat:"d" }}{% else %}null{% endif %};
+    const OFFSET_MS = SERVER_NOW_MS ? SERVER_NOW_MS - Date.now() : 0;
+
+    function ahoraMs() {
+        return Date.now() + OFFSET_MS;
+    }
+
+    // Colombia es UTC-5 todo el año (sin horario de verano)
+    function ahoraBogota() {
+        return new Date(ahoraMs() - 5 * 3600 * 1000);
+    }
+
+    function hoyBogotaStr() {
+        return ahoraBogota().toISOString().slice(0, 10);   // 'YYYY-MM-DD'
+    }
+
+    // true si la hora de ese día ya empezó (o ya pasó)
+    function horaPasada(fecha, h) {
+        if (!fecha) return false;
+        const hoy = hoyBogotaStr();
+        if (fecha < hoy) return true;
+        if (fecha > hoy) return false;
+        const b = ahoraBogota();
+        const minActual = b.getUTCHours() * 60 + b.getUTCMinutes();
+        const [hh, mm] = h.split(':').map(Number);
+        return hh * 60 + mm <= minActual;
+    }
 
 
     // ── DATOS DESDE DJANGO ────────────────────────────────
-
     const CANCHAS_DATA = [
-
         {% for c in canchas %}
-
         {
             id: {{ c.id }},
             nombre: "{{ c.nombre }}",
             tipo: "{{ c.tipo }}",
             precio: {{ c.precio }}
         },
-
         {% endfor %}
-
     ];
 
 
     // ── CANCHA PRESELECCIONADA ────────────────────────────
-
     const PRESELECCIONAR_ID = {{ cancha_id|default:"null" }};
 
 
     // ── RESERVAS EXISTENTES ───────────────────────────────
-
+    // expira: marca de tiempo (ms) en que vence una reserva pendiente; null si no aplica
     const RESERVAS_BD = [
-
         {% for r in reservas %}
-
             {% for h in r.get_horas %}
-
             {
                 id: {{ r.id }},
                 cancha: "{{ r.cancha|escapejs }}",
                 fecha: "{{ r.fecha|date:'Y-m-d' }}",
-                hora: "{{ h }}"
+                hora: "{{ h }}",
+                expira: {% if r.estado == 'pendiente' and r.expira_ms %}{{ r.expira_ms|stringformat:"d" }}{% else %}null{% endif %}
             },
-
             {% endfor %}
-
         {% endfor %}
-
     ];
+
+    // Una reserva pendiente vencida deja de ocupar el horario
+    function reservaVigente(r) {
+        return !(r.expira && r.expira <= ahoraMs());
+    }
 
 
     const HORAS = [
-
-        '06:00',
-        '07:00',
-        '08:00',
-        '09:00',
-        '10:00',
-        '11:00',
-        '12:00',
-        '13:00',
-        '14:00',
-        '15:00',
-        '16:00',
-        '17:00',
-        '18:00',
-        '19:00',
-        '20:00',
-        '21:00',
-        '22:00'
-
+        '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
+        '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
+        '18:00', '19:00', '20:00', '21:00', '22:00'
     ];
 
 
     // ── ESTADO PRINCIPAL ─────────────────────────────────
-
     let canchaSeleccionada = null;
-
     let horasSeleccionadas = [];
-
     let modoReserva = 'normal';
-
     let fechasSeleccionadas = [];
-
     let fpCalendario = null;
 
 
     // ── ESTADO EDICIÓN ────────────────────────────────────
-
     let editIdActual = null;
-
     let editHorasSeleccionadas = [];
-
+    let editHorasOriginales = [];
     let editPrecioOriginalTotal = 0;
 
 
+    // ── AVISO DEL PLAZO DE PAGO ───────────────────────────
+    function asegurarAvisoPlazo() {
+        if (document.getElementById('avisoPlazoPago')) return;
+
+        const btn = document.getElementById('btnConfirmarReserva');
+        if (!btn) return;
+
+        const aviso = document.createElement('div');
+        aviso.id = 'avisoPlazoPago';
+        aviso.className = 'alert alert-warning small d-flex gap-2 align-items-start mt-3';
+        aviso.setAttribute('role', 'alert');
+        aviso.innerHTML = `
+            <i class="bi bi-clock-history mt-1"></i>
+            <span>
+                Después de confirmar tendrás <strong>${MINUTOS_PAGO} minutos</strong>
+                para completar el pago. Si no recibimos el pago completo en ese tiempo,
+                la reserva se cancelará automáticamente y las horas quedarán libres
+                para otros usuarios.
+            </span>
+        `;
+
+        btn.parentNode.insertBefore(aviso, btn);
+    }
+
 
     // ── RENDER CANCHAS ────────────────────────────────────
-
     function renderCanchas() {
 
         const cont = document.getElementById('contenedorListaCanchas');
-
         if (!cont) return;
 
-
         if (CANCHAS_DATA.length === 0) {
-
             cont.innerHTML =
                 '<div class="col-12 text-muted">No hay canchas disponibles.</div>';
-
             return;
-
         }
-
 
         cont.innerHTML = CANCHAS_DATA.map((c, i) => `
 
             <div class="col-6 col-md-3">
-
                 <div class="cancha-card text-center"
                     id="cancha-${i}"
                     onclick="seleccionarCancha(${i})"
                     data-id="${c.id}">
 
-                    <i class="bi bi-dribbble fs-2 mb-1"
-                        style="color:#62ff00;"></i>
+                    <i class="bi bi-dribbble fs-2 mb-1" style="color:#62ff00;"></i>
 
-                    <div class="fw-bold small">
-                        ${c.nombre}
-                    </div>
+                    <div class="fw-bold small">${c.nombre}</div>
 
-                    <div class="text-muted"
-                        style="font-size:0.75rem;">
-                        ${c.tipo}
-                    </div>
+                    <div class="text-muted" style="font-size:0.75rem;">${c.tipo}</div>
 
                     <div class="fw-bold mt-1">
                         $${c.precio.toLocaleString('es-CO')}/h
                     </div>
-
                 </div>
-
             </div>
 
         `).join('');
 
-
         if (PRESELECCIONAR_ID && LOGUEADO) {
-
-            const idx =
-                CANCHAS_DATA.findIndex(
-                    c => c.id === PRESELECCIONAR_ID
-                );
-
+            const idx = CANCHAS_DATA.findIndex(c => c.id === PRESELECCIONAR_ID);
             if (idx !== -1) {
-
                 seleccionarCancha(idx);
-
                 document
                     .getElementById('seccionReserva')
-                    .scrollIntoView({
-                        behavior: 'smooth'
-                    });
-
+                    .scrollIntoView({ behavior: 'smooth' });
             }
-
         }
-
     }
 
 
-
     // ── RENDER CANCHA FIJA ────────────────────────────────
-
     function renderCanchaFija() {
 
-        const cont =
-            document.getElementById('cardCanchaFija');
-
+        const cont = document.getElementById('cardCanchaFija');
         if (!cont) return;
 
-
         if (!PRESELECCIONAR_ID) {
-
             cont.innerHTML =
                 '<div class="alert alert-warning small mb-0">No se encontró la cancha seleccionada.</div>';
-
             return;
-
         }
 
-
-        const c =
-            CANCHAS_DATA.find(
-                x => x.id === PRESELECCIONAR_ID
-            );
-
+        const c = CANCHAS_DATA.find(x => x.id === PRESELECCIONAR_ID);
 
         if (!c) {
-
             cont.innerHTML =
                 '<div class="alert alert-warning small mb-0">Esa cancha ya no está disponible.</div>';
-
             return;
-
         }
-
 
         cont.innerHTML = `
 
             <div class="cancha-card seleccionada d-flex align-items-center gap-3 p-3"
                 style="cursor:default;">
 
-                <i class="bi bi-dribbble fs-1"
-                    style="color:#62ff00;"></i>
+                <i class="bi bi-dribbble fs-1" style="color:#62ff00;"></i>
 
                 <div>
-
-                    <div class="fw-bold">
-                        ${c.nombre}
-                    </div>
-
-                    <div class="text-muted small">
-                        ${c.tipo}
-                    </div>
-
-                    <div class="fw-bold"
-                        style="color:#03045e;">
+                    <div class="fw-bold">${c.nombre}</div>
+                    <div class="text-muted small">${c.tipo}</div>
+                    <div class="fw-bold" style="color:#03045e;">
                         $${c.precio.toLocaleString('es-CO')}/h
                     </div>
-
                 </div>
-
             </div>
 
         `;
 
-
         if (LOGUEADO) {
-
             canchaSeleccionada = c;
-
             actualizarResumen();
-
         }
-
     }
 
 
-
     // ── SELECCIONAR CANCHA ────────────────────────────────
-
     function seleccionarCancha(i) {
 
         if (!LOGUEADO) {
-
             mostrarModal(
                 'Inicia sesión',
                 'Debes iniciar sesión para poder reservar una cancha.'
             );
-
             return;
-
         }
 
-
-        canchaSeleccionada =
-            CANCHAS_DATA[i];
-
+        canchaSeleccionada = CANCHAS_DATA[i];
 
         document
             .querySelectorAll('.cancha-card')
-            .forEach(el =>
-                el.classList.remove('seleccionada')
-            );
+            .forEach(el => el.classList.remove('seleccionada'));
 
-
-        const el =
-            document.getElementById(`cancha-${i}`);
-
-
-        if (el)
-            el.classList.add('seleccionada');
-
+        const el = document.getElementById(`cancha-${i}`);
+        if (el) el.classList.add('seleccionada');
 
         horasSeleccionadas = [];
 
         renderHorarios();
-
         actualizarResumen();
-
     }
 
 
-
     // ── CAMBIAR MODO ──────────────────────────────────────
-
     function cambiarModoReserva(modo) {
 
         if (!LOGUEADO) {
-
             mostrarModal(
                 'Inicia sesión',
                 'Debes iniciar sesión para poder reservar una cancha.'
             );
-
             return;
-
         }
 
-
-        if (modo === modoReserva)
-            return;
-
+        if (modo === modoReserva) return;
 
         modoReserva = modo;
 
-
         document
             .getElementById('btnModoNormal')
-            .classList
-            .toggle('active', modo === 'normal');
-
+            .classList.toggle('active', modo === 'normal');
 
         document
             .getElementById('btnModoTorneo')
-            .classList
-            .toggle('active', modo === 'torneo');
-
+            .classList.toggle('active', modo === 'torneo');
 
         const contenedorEquipo =
             document.getElementById('contenedorNombreEquipo');
 
-
         const resumenEquipoContenedor =
             document.getElementById('resumenEquipoContenedor');
-
 
         if (modo === 'torneo') {
 
             contenedorEquipo.style.display = 'block';
-
             resumenEquipoContenedor.classList.remove('d-none');
 
             document.getElementById('ayudaModo').textContent =
@@ -1555,743 +1483,418 @@
         } else {
 
             contenedorEquipo.style.display = 'none';
-
             resumenEquipoContenedor.classList.add('d-none');
 
             document.getElementById('nombreEquipo').value = '';
-
             document.getElementById('resumenEquipo').textContent = '—';
 
             document.getElementById('ayudaModo').textContent =
                 'Elige un día para tu partido.';
-
         }
 
-
         fechasSeleccionadas = [];
-
         horasSeleccionadas = [];
-
         document.getElementById('fechaSeleccionada').value = '';
 
-
         initFlatpickr();
-
         renderHorarios();
-
         actualizarResumen();
-
     }
-
 
 
     // ── CALENDARIO ─────────────────────────────────────────
-
     function initFlatpickr() {
 
         if (fpCalendario) {
-
             fpCalendario.destroy();
-
             fpCalendario = null;
-
         }
 
+        fpCalendario = flatpickr('#fechaSeleccionada', {
 
-        fpCalendario =
-            flatpickr('#fechaSeleccionada', {
+            locale: 'es',
 
-                locale: 'es',
+            mode: modoReserva === 'torneo' ? 'multiple' : 'single',
 
-                mode:
-                    modoReserva === 'torneo'
-                        ? 'multiple'
-                        : 'single',
+            dateFormat: 'Y-m-d',
 
-                dateFormat: 'Y-m-d',
+            altInput: true,
 
-                altInput: true,
+            altFormat: 'd / m / Y',
 
-                altFormat: 'd / m / Y',
+            // usa la fecha del servidor (Bogotá), no la del reloj del usuario
+            minDate: hoyBogotaStr(),
 
-                minDate: 'today',
+            onChange: function (selectedDates, dateStr, instance) {
 
+                if (!LOGUEADO) {
+                    mostrarModal(
+                        'Inicia sesión',
+                        'Debes iniciar sesión para poder reservar una cancha.'
+                    );
+                    instance.clear();
+                    fechasSeleccionadas = [];
+                    return;
+                }
 
-                onChange:
-                    function(selectedDates, dateStr, instance) {
+                fechasSeleccionadas =
+                    selectedDates
+                        .map(d => instance.formatDate(d, 'Y-m-d'))
+                        .sort();
 
-                        if (!LOGUEADO) {
+                horasSeleccionadas = [];
 
-                            mostrarModal(
-                                'Inicia sesión',
-                                'Debes iniciar sesión para poder reservar una cancha.'
-                            );
-
-                            instance.clear();
-
-                            fechasSeleccionadas = [];
-
-                            return;
-
-                        }
-
-
-                        fechasSeleccionadas =
-                            selectedDates
-                                .map(d =>
-                                    instance.formatDate(
-                                        d,
-                                        'Y-m-d'
-                                    )
-                                )
-                                .sort();
-
-
-                        horasSeleccionadas = [];
-
-                        renderHorarios();
-
-                        actualizarResumen();
-
-                    }
-
-            });
-
+                renderHorarios();
+                actualizarResumen();
+            }
+        });
     }
 
 
-
     // ── HORARIOS OCUPADOS ─────────────────────────────────
+    function getOcupadas(cancha, fechas, idExcluir = null) {
 
-    function getOcupadas(
-        cancha,
-        fechas,
-        idExcluir = null
-    ) {
-
-        if (
-            !cancha ||
-            !fechas ||
-            fechas.length === 0
-        )
-            return [];
-
+        if (!cancha || !fechas || fechas.length === 0) return [];
 
         const set = new Set();
 
-
         RESERVAS_BD
-
             .filter(
                 r =>
+                    reservaVigente(r) &&
                     r.cancha === cancha.nombre &&
                     fechas.includes(r.fecha) &&
                     r.id !== idExcluir
             )
-
-            .forEach(
-                r =>
-                    set.add(
-                        r.hora.substring(0, 5)
-                    )
-            );
-
+            .forEach(r => set.add(r.hora.substring(0, 5)));
 
         return [...set];
-
     }
 
 
-
     // ── RENDER HORARIOS ──────────────────────────────────
-
     function renderHorarios() {
 
-        const cont =
-            document.getElementById(
-                'contenedorHorarios'
-            );
-
-
-        const avisoTodoOcupado =
-            document.getElementById(
-                'avisoTodoOcupado'
-            );
-
+        const cont = document.getElementById('contenedorHorarios');
+        const avisoTodoOcupado = document.getElementById('avisoTodoOcupado');
 
         avisoTodoOcupado.classList.add('d-none');
-
 
         if (fechasSeleccionadas.length === 0) {
 
             cont.innerHTML =
                 modoReserva === 'torneo'
-                    ?
-                    '<span class="text-muted small">Selecciona los días del torneo para ver disponibilidad.</span>'
-                    :
-                    '<span class="text-muted small">Selecciona una fecha para ver disponibilidad.</span>';
+                    ? '<span class="text-muted small">Selecciona los días del torneo para ver disponibilidad.</span>'
+                    : '<span class="text-muted small">Selecciona una fecha para ver disponibilidad.</span>';
 
             return;
-
         }
-
 
         if (!canchaSeleccionada) {
-
             cont.innerHTML =
                 '<span class="text-muted small">Primero selecciona una cancha.</span>';
-
             return;
-
         }
 
+        const ocupadas = getOcupadas(canchaSeleccionada, fechasSeleccionadas);
 
-        const ocupadas =
-            getOcupadas(
-                canchaSeleccionada,
-                fechasSeleccionadas
-            );
+        cont.innerHTML = HORAS.map(h => {
 
+            const estaOcupada = ocupadas.includes(h);
+            const esPasada = fechasSeleccionadas.some(f => horaPasada(f, h));
+            const bloqueada = estaOcupada || esPasada;
+            const seleccionada = horasSeleccionadas.includes(h);
 
-        cont.innerHTML =
-            HORAS.map(h => {
+            let cls = 'hora-btn';
 
-                const estaOcupada =
-                    ocupadas.includes(h);
+            if (bloqueada) cls += ' ocupada';
+            if (seleccionada && !bloqueada) cls += ' seleccionada';
 
+            const titulo =
+                esPasada
+                    ? 'Esta hora ya pasó'
+                    : estaOcupada
+                        ? 'Hora ya reservada en una de las fechas elegidas'
+                        : `Seleccionar ${h}`;
 
-                const seleccionada =
-                    horasSeleccionadas.includes(h);
+            return `
+                <button
+                    type="button"
+                    class="${cls}"
+                    ${bloqueada ? 'disabled' : ''}
+                    title="${titulo}"
+                    onclick="seleccionarHora('${h}')">
+                    ${h}
+                </button>
+            `;
 
+        }).join('');
 
-                let cls = 'hora-btn';
+        const disponibles = HORAS.filter(
+            h =>
+                !ocupadas.includes(h) &&
+                !fechasSeleccionadas.some(f => horaPasada(f, h))
+        );
 
-
-                if (estaOcupada)
-                    cls += ' ocupada';
-
-
-                if (
-                    seleccionada &&
-                    !estaOcupada
-                )
-                    cls += ' seleccionada';
-
-
-                const titulo =
-                    estaOcupada
-                        ?
-                        'Hora ya reservada en una de las fechas elegidas'
-                        :
-                        `Seleccionar ${h}`;
-
-
-                return `
-
-                    <button
-                        class="${cls}"
-                        ${estaOcupada ? 'disabled' : ''}
-                        title="${titulo}"
-                        onclick="seleccionarHora('${h}')">
-
-                        ${h}
-
-                    </button>
-
-                `;
-
-            }).join('');
-
-
-        if (ocupadas.length >= HORAS.length) {
-
-            avisoTodoOcupado
-                .classList
-                .remove('d-none');
-
+        if (disponibles.length === 0) {
+            avisoTodoOcupado.classList.remove('d-none');
         }
-
     }
 
 
-
     // ── SELECCIONAR HORA ─────────────────────────────────
-
     function seleccionarHora(h) {
 
         if (!LOGUEADO) {
-
             mostrarModal(
                 'Inicia sesión',
                 'Debes iniciar sesión para poder reservar una cancha.'
             );
-
             return;
-
         }
 
+        if (fechasSeleccionadas.some(f => horaPasada(f, h))) {
+            mostrarModal('Hora no disponible', 'Esa hora ya pasó. Elige otra.');
+            renderHorarios();
+            return;
+        }
 
-        const idx =
-            horasSeleccionadas.indexOf(h);
-
+        const idx = horasSeleccionadas.indexOf(h);
 
         if (idx === -1) {
 
-            if (
-                horasSeleccionadas.length >=
-                MAX_HORAS_POR_RESERVA
-            ) {
-
+            if (horasSeleccionadas.length >= MAX_HORAS_POR_RESERVA) {
                 mostrarModal(
                     'Límite de horas',
                     `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`
                 );
-
                 return;
-
             }
-
 
             horasSeleccionadas.push(h);
 
         } else {
 
             horasSeleccionadas.splice(idx, 1);
-
         }
 
-
         renderHorarios();
-
         actualizarResumen();
-
     }
 
 
-
     // ── RESUMEN ───────────────────────────────────────────
-
     function actualizarResumen() {
 
-        const nombre =
-            document.getElementById('nombre')
-                .value
-                .trim();
-
+        const nombre = document.getElementById('nombre').value.trim();
 
         const nombreEquipo =
             document.getElementById('nombreEquipo')
                 ? document.getElementById('nombreEquipo').value.trim()
                 : '';
 
+        document.getElementById('resumenCancha').textContent =
+            canchaSeleccionada ? canchaSeleccionada.nombre : 'No seleccionada';
 
-        document.getElementById(
-            'resumenCancha'
-        ).textContent =
-            canchaSeleccionada
-                ?
-                canchaSeleccionada.nombre
-                :
-                'No seleccionada';
-
-
-        document.getElementById(
-            'resumenModo'
-        ).textContent =
-            modoReserva === 'torneo'
-                ?
-                'Torneo'
-                :
-                'Partido Normal';
-
+        document.getElementById('resumenModo').textContent =
+            modoReserva === 'torneo' ? 'Torneo' : 'Partido Normal';
 
         if (modoReserva === 'torneo') {
-
-            document.getElementById(
-                'resumenEquipo'
-            ).textContent =
+            document.getElementById('resumenEquipo').textContent =
                 nombreEquipo || 'Por ingresar';
-
         }
 
-
-        document.getElementById(
-            'resumenFecha'
-        ).textContent =
-
+        document.getElementById('resumenFecha').textContent =
             fechasSeleccionadas.length
-                ?
-                fechasSeleccionadas
-                    .map(formatearFecha)
-                    .join(' , ')
-                :
-                '-- / -- / ----';
+                ? fechasSeleccionadas.map(formatearFecha).join(' , ')
+                : '-- / -- / ----';
 
+        const horasOrdenadas = [...horasSeleccionadas].sort();
 
-        const horasOrdenadas =
-            [...horasSeleccionadas]
-                .sort();
+        document.getElementById('resumenHora').textContent =
+            horasOrdenadas.length ? horasOrdenadas.join(', ') : 'Por elegir';
 
-
-        document.getElementById(
-            'resumenHora'
-        ).textContent =
-
-            horasOrdenadas.length
-                ?
-                horasOrdenadas.join(', ')
-                :
-                'Por elegir';
-
-
-        document.getElementById(
-            'resumenDuracion'
-        ).textContent =
+        document.getElementById('resumenDuracion').textContent =
             calcularDuracionTexto(
                 horasSeleccionadas.length,
                 fechasSeleccionadas.length
             );
 
-
-        document.getElementById(
-            'resumenNombre'
-        ).textContent =
-            nombre || '—';
-
+        document.getElementById('resumenNombre').textContent = nombre || '—';
 
         if (
             canchaSeleccionada &&
             horasSeleccionadas.length > 0 &&
             fechasSeleccionadas.length > 0
         ) {
-
             const total =
                 canchaSeleccionada.precio *
                 horasSeleccionadas.length *
                 fechasSeleccionadas.length;
 
-
-            document.getElementById(
-                'resumenPrecio'
-            ).textContent =
-                '$ ' +
-                total.toLocaleString('es-CO');
+            document.getElementById('resumenPrecio').textContent =
+                '$ ' + total.toLocaleString('es-CO');
 
         } else {
 
-            document.getElementById(
-                'resumenPrecio'
-            ).textContent =
-                '$ 0';
-
+            document.getElementById('resumenPrecio').textContent = '$ 0';
         }
-
     }
-
 
 
     // ── DURACIÓN ──────────────────────────────────────────
+    function calcularDuracionTexto(nHoras, nDias = 1) {
 
-    function calcularDuracionTexto(
-        nHoras,
-        nDias = 1
-    ) {
+        if (nHoras === 0) return '—';
 
-        if (nHoras === 0)
-            return '—';
-
-
-        const horasTxt =
-            nHoras === 1
-                ?
-                '1 Hora'
-                :
-                `${nHoras} Horas`;
-
+        const horasTxt = nHoras === 1 ? '1 Hora' : `${nHoras} Horas`;
 
         if (nDias > 1) {
-
             return `${horasTxt} x ${nDias} días`;
-
         }
 
-
         return horasTxt;
-
     }
-
 
 
     // ── FORMATEAR FECHA ───────────────────────────────────
-
     function formatearFecha(f) {
-
-        const [y, m, d] =
-            f.split('-');
-
-
+        const [y, m, d] = f.split('-');
         return `${d} / ${m} / ${y}`;
-
     }
 
 
-
     // ── CONFIRMAR RESERVA ─────────────────────────────────
-
     function confirmarReserva() {
 
         if (!LOGUEADO) {
-
-            window.location.href =
-                "{% url 'usuarios:login' %}";
-
+            window.location.href = "{% url 'usuarios:login' %}";
             return;
-
         }
-
 
         if (TIENE_RESERVA_ACTIVA) {
-
             mostrarModal(
                 'Reserva activa',
-                'Ya tienes una reserva activa. Debes finalizarla o cancelarla antes de crear una nueva.'
+                `Ya tienes una reserva activa. Debes pagarla (tienes ${MINUTOS_PAGO} minutos desde que la creaste; si no se paga, se libera automáticamente), finalizarla o cancelarla antes de crear una nueva.`
             );
-
             return;
-
         }
 
-
-        const nombre =
-            document.getElementById('nombre')
-                .value
-                .trim();
-
-
-        const correo =
-            document.getElementById('correo')
-                .value
-                .trim();
-
-
-        const telefono =
-            document.getElementById('telefono')
-                .value
-                .trim();
-
-
-        const nombreEquipo =
-            document.getElementById('nombreEquipo')
-                .value
-                .trim();
-
-
+        const nombre = document.getElementById('nombre').value.trim();
+        const correo = document.getElementById('correo').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+        const nombreEquipo = document.getElementById('nombreEquipo').value.trim();
 
         if (!canchaSeleccionada) {
-
-            mostrarModal(
-                'Falta información',
-                'Selecciona una cancha.'
-            );
-
+            mostrarModal('Falta información', 'Selecciona una cancha.');
             return;
-
         }
 
-
-        if (
-            fechasSeleccionadas.length === 0
-        ) {
-
+        if (fechasSeleccionadas.length === 0) {
             mostrarModal(
                 'Falta información',
                 modoReserva === 'torneo'
-                    ?
-                    'Selecciona al menos un día del torneo.'
-                    :
-                    'Selecciona una fecha.'
+                    ? 'Selecciona al menos un día del torneo.'
+                    : 'Selecciona una fecha.'
             );
-
             return;
-
         }
 
-
-        if (
-            modoReserva === 'torneo' &&
-            nombreEquipo === ''
-        ) {
-
+        if (modoReserva === 'torneo' && nombreEquipo === '') {
             mostrarModal(
                 'Falta el nombre del equipo',
                 'Escribe el nombre de tu equipo para poder registrar el torneo.'
             );
-
             return;
-
         }
 
-
-        if (
-            horasSeleccionadas.length === 0
-        ) {
-
-            mostrarModal(
-                'Falta información',
-                'Selecciona al menos una hora.'
-            );
-
+        if (horasSeleccionadas.length === 0) {
+            mostrarModal('Falta información', 'Selecciona al menos una hora.');
             return;
-
         }
 
-
-        if (
-            horasSeleccionadas.length >
-            MAX_HORAS_POR_RESERVA
-        ) {
-
+        if (horasSeleccionadas.length > MAX_HORAS_POR_RESERVA) {
             mostrarModal(
                 'Límite de horas',
                 `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`
             );
-
             return;
-
         }
 
-
-        const btn =
-            document.getElementById(
-                'btnConfirmarReserva'
+        // Revalidar horas pasadas justo antes de enviar
+        if (horasSeleccionadas.some(h => fechasSeleccionadas.some(f => horaPasada(f, h)))) {
+            mostrarModal(
+                'Horas no disponibles',
+                'Alguna de las horas elegidas ya pasó. Selecciona otra.'
             );
+            horasSeleccionadas = horasSeleccionadas.filter(
+                h => !fechasSeleccionadas.some(f => horaPasada(f, h))
+            );
+            renderHorarios();
+            actualizarResumen();
+            return;
+        }
 
+        const btn = document.getElementById('btnConfirmarReserva');
 
         btn.disabled = true;
-
 
         btn.innerHTML =
             '<span class="spinner-border spinner-border-sm me-2"></span>Registrando reserva...';
 
-
-
-        const horasOrdenadas =
-            [...horasSeleccionadas]
-                .sort();
-
-
-        const fechasOrdenadas =
-            [...fechasSeleccionadas]
-                .sort();
-
-
+        const horasOrdenadas = [...horasSeleccionadas].sort();
+        const fechasOrdenadas = [...fechasSeleccionadas].sort();
 
         fetch(
             "{% url 'crear_reserva' %}",
             {
-
                 method: 'POST',
 
                 headers: {
-
-                    'Content-Type':
-                        'application/json',
-
-                    'X-CSRFToken':
-                        getCSRF(),
-
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRF(),
                 },
 
-
                 body: JSON.stringify({
-
                     nombre,
-
                     correo,
-
                     telefono,
-
                     modo: modoReserva,
-
-                    /* NUEVO */
-                    equipo_nombre:
-                        modoReserva === 'torneo'
-                            ? nombreEquipo
-                            : '',
-
-                    fecha:
-                        fechasOrdenadas[0],
-
-                    fechas:
-                        fechasOrdenadas,
-
-                    hora:
-                        horasOrdenadas[0],
-
-                    horas:
-                        horasOrdenadas,
-
-                    cancha:
-                        canchaSeleccionada.nombre,
-
-                    duracion:
-                        calcularDuracionTexto(
-                            horasSeleccionadas.length,
-                            fechasSeleccionadas.length
-                        ),
-
+                    equipo_nombre: modoReserva === 'torneo' ? nombreEquipo : '',
+                    fecha: fechasOrdenadas[0],
+                    fechas: fechasOrdenadas,
+                    hora: horasOrdenadas[0],
+                    horas: horasOrdenadas,
+                    cancha: canchaSeleccionada.nombre,
+                    duracion: calcularDuracionTexto(
+                        horasSeleccionadas.length,
+                        fechasSeleccionadas.length
+                    ),
                 })
-
             }
         )
-
 
             .then(r => {
 
                 if (r.status === 401) {
-
-                    window.location.href =
-                        "{% url 'usuarios:login' %}";
-
+                    window.location.href = "{% url 'usuarios:login' %}";
                     return null;
-
                 }
 
-
-                return r.json()
-                    .then(
-                        data => ({
-                            status: r.status,
-                            data
-                        })
-                    );
-
+                return r.json().then(data => ({ status: r.status, data }));
             })
-
 
             .then(res => {
 
-                if (!res)
-                    return;
+                if (!res) return;
 
+                const { status, data } = res;
 
-                const {
-                    status,
-                    data
-                } = res;
+                if (status === 200 && data.status === 'ok') {
 
+                    window.location.href = "{% url 'pago' %}";
 
-                if (
-                    status === 200 &&
-                    data.status === 'ok'
-                ) {
-
-                    window.location.href =
-                        "{% url 'pago' %}";
-
-                }
-
-                else if (status === 409) {
+                } else if (status === 409) {
 
                     mostrarModal(
                         'No se pudo reservar',
@@ -2299,37 +1902,24 @@
                         'Esa fecha/hora ya está ocupada o ya tienes una reserva activa.'
                     );
 
-
                     btn.disabled = false;
-
-
                     btn.innerHTML =
                         '<i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar';
-
 
                     renderHorarios();
 
-                }
-
-                else {
+                } else {
 
                     mostrarModal(
                         'No se pudo reservar',
-                        data.mensaje ||
-                        'Error al registrar la reserva.'
+                        data.mensaje || 'Error al registrar la reserva.'
                     );
 
-
                     btn.disabled = false;
-
-
                     btn.innerHTML =
                         '<i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar';
-
                 }
-
             })
-
 
             .catch(() => {
 
@@ -2338,350 +1928,199 @@
                     'No se pudo conectar con el servidor. Intenta de nuevo.'
                 );
 
-
                 btn.disabled = false;
-
-
                 btn.innerHTML =
                     '<i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar';
-
             });
-
     }
-
 
 
     // ── EDICIÓN ───────────────────────────────────────────
-
     function poblarSelectCanchasEdit() {
 
-        const sel =
-            document.getElementById(
-                'editCancha'
-            );
-
+        const sel = document.getElementById('editCancha');
 
         sel.innerHTML =
             CANCHAS_DATA.map(c =>
-
                 `<option value="${c.nombre}">
                     ${c.nombre} ($${c.precio.toLocaleString('es-CO')}/h)
                 </option>`
-
             ).join('');
-
     }
-
 
 
     function obtenerPrecioCancha(nombre) {
-
-        const c =
-            CANCHAS_DATA.find(
-                x => x.nombre === nombre
-            );
-
-
-        return c
-            ?
-            c.precio
-            :
-            0;
-
+        const c = CANCHAS_DATA.find(x => x.nombre === nombre);
+        return c ? c.precio : 0;
     }
 
 
-
-    function renderHorariosEdicion() {
-
-        const cont =
-            document.getElementById(
-                'editContenedorHorarios'
-            );
-
-
-        const fecha =
-            document.getElementById(
-                'editFecha'
-            ).value;
-
-
-        const canchaNombre =
-            document.getElementById(
-                'editCancha'
-            ).value;
-
-
-        if (!fecha || !canchaNombre) {
-
-            cont.innerHTML =
-                '<span class="text-muted small">Selecciona cancha y fecha.</span>';
-
-            return;
-
-        }
-
-
-        const ocupadas =
-            getOcupadasParaEdicion(
-                canchaNombre,
-                fecha,
-                editIdActual
-            );
-
-
-        cont.innerHTML =
-            HORAS.map(h => {
-
-                const estaOcupada =
-                    ocupadas.includes(h);
-
-
-                const seleccionada =
-                    editHorasSeleccionadas
-                        .includes(h);
-
-
-                let cls =
-                    'hora-btn';
-
-
-                if (estaOcupada)
-                    cls += ' ocupada';
-
-
-                if (
-                    seleccionada &&
-                    !estaOcupada
-                )
-                    cls += ' seleccionada';
-
-
-                const titulo =
-                    estaOcupada
-                        ?
-                        'Hora ya reservada'
-                        :
-                        `Seleccionar ${h}`;
-
-
-                return `
-
-                    <button
-                        type="button"
-                        class="${cls}"
-                        ${estaOcupada ? 'disabled' : ''}
-                        title="${titulo}"
-                        onclick="toggleHoraEdicion('${h}')">
-
-                        ${h}
-
-                    </button>
-
-                `;
-
-            }).join('');
-
-
-        actualizarResumenPrecioEdicion();
-
-    }
-
-
-
-    function getOcupadasParaEdicion(
-        canchaNombre,
-        fecha,
-        idExcluir
-    ) {
+    function getOcupadasParaEdicion(canchaNombre, fecha, idExcluir) {
 
         return RESERVAS_BD
-
             .filter(
                 r =>
+                    reservaVigente(r) &&
                     r.cancha === canchaNombre &&
                     r.fecha === fecha &&
                     r.id !== idExcluir
             )
-
-            .map(
-                r =>
-                    r.hora.substring(0, 5)
-            );
-
+            .map(r => r.hora.substring(0, 5));
     }
 
+
+    function renderHorariosEdicion() {
+
+        const cont = document.getElementById('editContenedorHorarios');
+
+        const fecha = document.getElementById('editFecha').value;
+        const canchaNombre = document.getElementById('editCancha').value;
+
+        if (!fecha || !canchaNombre) {
+            cont.innerHTML =
+                '<span class="text-muted small">Selecciona cancha y fecha.</span>';
+            return;
+        }
+
+        const ocupadas =
+            getOcupadasParaEdicion(canchaNombre, fecha, editIdActual);
+
+        cont.innerHTML = HORAS.map(h => {
+
+            const estaOcupada = ocupadas.includes(h);
+            const esPasada = horaPasada(fecha, h);
+            const seleccionada = editHorasSeleccionadas.includes(h);
+            const bloqueada = estaOcupada || esPasada;
+
+            let cls = 'hora-btn';
+
+            // una hora pasada ya seleccionada se muestra marcada (bloqueada)
+            if (estaOcupada || (esPasada && !seleccionada)) cls += ' ocupada';
+            if (seleccionada && !estaOcupada) cls += ' seleccionada';
+
+            const titulo =
+                esPasada
+                    ? 'Esta hora ya pasó'
+                    : estaOcupada
+                        ? 'Hora ya reservada'
+                        : `Seleccionar ${h}`;
+
+            return `
+                <button
+                    type="button"
+                    class="${cls}"
+                    ${bloqueada ? 'disabled' : ''}
+                    title="${titulo}"
+                    onclick="toggleHoraEdicion('${h}')">
+                    ${h}
+                </button>
+            `;
+
+        }).join('');
+
+        actualizarResumenPrecioEdicion();
+    }
 
 
     function toggleHoraEdicion(h) {
 
-        const idx =
-            editHorasSeleccionadas
-                .indexOf(h);
+        const fecha = document.getElementById('editFecha').value;
 
+        if (horaPasada(fecha, h)) {
+            mostrarModal('Hora no disponible', 'Esa hora ya pasó.');
+            renderHorariosEdicion();
+            return;
+        }
+
+        const idx = editHorasSeleccionadas.indexOf(h);
 
         if (idx === -1) {
 
-            if (
-                editHorasSeleccionadas.length >=
-                MAX_HORAS_POR_RESERVA
-            ) {
-
+            if (editHorasSeleccionadas.length >= MAX_HORAS_POR_RESERVA) {
                 mostrarModal(
                     'Límite de horas',
                     `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`
                 );
-
                 return;
-
             }
-
 
             editHorasSeleccionadas.push(h);
 
         } else {
 
-            editHorasSeleccionadas.splice(
-                idx,
-                1
-            );
-
+            editHorasSeleccionadas.splice(idx, 1);
         }
 
-
         renderHorariosEdicion();
-
     }
-
 
 
     function onCambioCanchaEdit() {
-
         editHorasSeleccionadas = [];
-
         renderHorariosEdicion();
-
     }
-
 
 
     function onCambioFechaEdit() {
-
         editHorasSeleccionadas = [];
-
         renderHorariosEdicion();
-
     }
-
 
 
     function actualizarResumenPrecioEdicion() {
 
-        const canchaNombre =
-            document.getElementById(
-                'editCancha'
-            ).value;
+        const canchaNombre = document.getElementById('editCancha').value;
 
+        const precioHora = obtenerPrecioCancha(canchaNombre);
 
-        const precioHora =
-            obtenerPrecioCancha(
-                canchaNombre
-            );
+        const nuevoTotal = precioHora * editHorasSeleccionadas.length;
 
+        const diferencia = nuevoTotal - editPrecioOriginalTotal;
 
-        const nuevoTotal =
-            precioHora *
-            editHorasSeleccionadas.length;
-
-
-        const diferencia =
-            nuevoTotal -
-            editPrecioOriginalTotal;
-
-
-        let mensaje =
-            'Sin cambios en el valor de la reserva.';
-
-
-        let colorClass =
-            'text-muted';
-
-
-        let icono =
-            'bi-check-circle';
-
+        let mensaje = 'Sin cambios en el valor de la reserva.';
+        let colorClass = 'text-muted';
+        let icono = 'bi-check-circle';
 
         if (diferencia > 0) {
 
             mensaje =
-                `Al agregar horas, deberás realizar un pago adicional de $${diferencia.toLocaleString('es-CO')}.`;
+                `Al agregar horas, deberás realizar un pago adicional de $${diferencia.toLocaleString('es-CO')}. Tendrás ${MINUTOS_PAGO} minutos para pagarlo; si no, las horas nuevas se liberarán.`;
+            colorClass = 'text-danger';
+            icono = 'bi-exclamation-triangle-fill';
 
-            colorClass =
-                'text-danger';
-
-            icono =
-                'bi-exclamation-triangle-fill';
-
-        }
-
-        else if (diferencia < 0) {
+        } else if (diferencia < 0) {
 
             mensaje =
                 `Al quitar horas, se devolverá $${Math.abs(diferencia).toLocaleString('es-CO')} a tu cuenta registrada.`;
-
-            colorClass =
-                'text-success';
-
-            icono =
-                'bi-arrow-return-left';
-
+            colorClass = 'text-success';
+            icono = 'bi-arrow-return-left';
         }
 
-
-        document.getElementById(
-            'editContenedorPrecio'
-        ).innerHTML = `
+        document.getElementById('editContenedorPrecio').innerHTML = `
 
             <div class="d-flex justify-content-between small mb-1">
-
-                <span class="text-muted">
-                    Precio actual de la reserva:
-                </span>
-
+                <span class="text-muted">Precio actual de la reserva:</span>
                 <span class="fw-bold">
                     $${editPrecioOriginalTotal.toLocaleString('es-CO')}
                 </span>
-
             </div>
 
-
             <div class="d-flex justify-content-between small mb-2">
-
                 <span class="text-muted">
                     Nuevo precio (${editHorasSeleccionadas.length} h seleccionada${editHorasSeleccionadas.length === 1 ? '' : 's'}):
                 </span>
-
                 <span class="fw-bold">
                     $${nuevoTotal.toLocaleString('es-CO')}
                 </span>
-
             </div>
 
-
             <div class="${colorClass} small fw-semibold d-flex align-items-start gap-1">
-
                 <i class="bi ${icono} mt-1"></i>
-
-                <span>
-                    ${mensaje}
-                </span>
-
+                <span>${mensaje}</span>
             </div>
 
         `;
-
     }
-
 
 
     function abrirEdicion(
@@ -2695,361 +2134,229 @@
         duracion
     ) {
 
-        editIdActual =
-            parseInt(id);
+        editIdActual = parseInt(id);
 
+        document.getElementById('editId').value = id;
+        document.getElementById('editNombre').value = nombre;
+        document.getElementById('editCorreo').value = correo;
+        document.getElementById('editTelefono').value = telefono;
 
-        document.getElementById(
-            'editId'
-        ).value = id;
-
-
-        document.getElementById(
-            'editNombre'
-        ).value = nombre;
-
-
-        document.getElementById(
-            'editCorreo'
-        ).value = correo;
-
-
-        document.getElementById(
-            'editTelefono'
-        ).value = telefono;
-
-
-        document.getElementById(
-            'editFecha'
-        ).value =
-
-            (fecha &&
-                fecha !== "None")
-                ?
-                fecha.substring(0, 10)
-                :
-                new Date()
-                    .toISOString()
-                    .split('T')[0];
-
+        document.getElementById('editFecha').value =
+            (fecha && fecha !== "None")
+                ? fecha.substring(0, 10)
+                : hoyBogotaStr();
 
         poblarSelectCanchasEdit();
 
-
-        document.getElementById(
-            'editCancha'
-        ).value = cancha;
-
+        document.getElementById('editCancha').value = cancha;
 
         editHorasSeleccionadas =
             Array.isArray(horasReserva)
-                ?
-                [...horasReserva]
-                :
-                [horasReserva];
+                ? [...horasReserva]
+                : [horasReserva];
 
+        editHorasOriginales = [...editHorasSeleccionadas];
 
-        const precioHoraOriginal =
-            obtenerPrecioCancha(cancha);
-
+        const precioHoraOriginal = obtenerPrecioCancha(cancha);
 
         editPrecioOriginalTotal =
-            precioHoraOriginal *
-            editHorasSeleccionadas.length;
-
+            precioHoraOriginal * editHorasSeleccionadas.length;
 
         renderHorariosEdicion();
 
-
         new bootstrap.Modal(
-            document.getElementById(
-                'modalEditarReserva'
-            )
+            document.getElementById('modalEditarReserva')
         ).show();
-
     }
-
 
 
     function guardarEdicion() {
 
-        const id =
-            document.getElementById(
-                'editId'
-            ).value;
-
-
-        const fecha =
-            document.getElementById(
-                'editFecha'
-            ).value;
-
-
-        const cancha =
-            document.getElementById(
-                'editCancha'
-            ).value;
-
+        const id = document.getElementById('editId').value;
+        const fecha = document.getElementById('editFecha').value;
+        const cancha = document.getElementById('editCancha').value;
 
         if (!id || !fecha) {
-
-            mostrarModal(
-                'Falta información',
-                'Completa los campos requeridos.'
-            );
-
+            mostrarModal('Falta información', 'Completa los campos requeridos.');
             return;
-
         }
 
-
-        if (
-            editHorasSeleccionadas.length === 0
-        ) {
-
-            mostrarModal(
-                'Falta información',
-                'Selecciona al menos una hora.'
-            );
-
+        if (editHorasSeleccionadas.length === 0) {
+            mostrarModal('Falta información', 'Selecciona al menos una hora.');
             return;
-
         }
 
-
-        if (
-            editHorasSeleccionadas.length >
-            MAX_HORAS_POR_RESERVA
-        ) {
-
+        if (editHorasSeleccionadas.length > MAX_HORAS_POR_RESERVA) {
             mostrarModal(
                 'Límite de horas',
                 `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`
             );
-
             return;
-
         }
 
+        // Horas nuevas (no originales) que ya pasaron
+        const nuevasPasadas = editHorasSeleccionadas.filter(
+            h => !editHorasOriginales.includes(h) && horaPasada(fecha, h)
+        );
 
-        const horasOrdenadas =
-            [...editHorasSeleccionadas]
-                .sort();
-
-
-        const precioHora =
-            obtenerPrecioCancha(
-                cancha
+        if (nuevasPasadas.length > 0) {
+            mostrarModal(
+                'Horas no disponibles',
+                `Las siguientes horas ya pasaron: ${nuevasPasadas.join(', ')}. Quítalas para continuar.`
             );
+            editHorasSeleccionadas =
+                editHorasSeleccionadas.filter(h => !nuevasPasadas.includes(h));
+            renderHorariosEdicion();
+            return;
+        }
 
+        const horasOrdenadas = [...editHorasSeleccionadas].sort();
 
-        const nuevoTotal =
-            precioHora *
-            horasOrdenadas.length;
+        const precioHora = obtenerPrecioCancha(cancha);
 
+        const nuevoTotal = precioHora * horasOrdenadas.length;
 
-        const diferencia =
-            nuevoTotal -
-            editPrecioOriginalTotal;
+        const diferencia = nuevoTotal - editPrecioOriginalTotal;
 
-
-        let confirmMsg =
-            '¿Guardar los cambios de esta reserva?';
-
+        let confirmMsg = '¿Guardar los cambios de esta reserva?';
 
         if (diferencia > 0) {
 
             confirmMsg =
-                `El nuevo total es $${nuevoTotal.toLocaleString('es-CO')} (antes $${editPrecioOriginalTotal.toLocaleString('es-CO')}).\n\nSe requiere un pago adicional de $${diferencia.toLocaleString('es-CO')}. ¿Deseas continuar?`;
+                `El nuevo total es $${nuevoTotal.toLocaleString('es-CO')} (antes $${editPrecioOriginalTotal.toLocaleString('es-CO')}).\n\nSe requiere un pago adicional de $${diferencia.toLocaleString('es-CO')}. Tendrás ${MINUTOS_PAGO} minutos para pagarlo; si no, las horas nuevas se liberarán. ¿Deseas continuar?`;
 
-        }
-
-        else if (diferencia < 0) {
+        } else if (diferencia < 0) {
 
             confirmMsg =
                 `El nuevo total es $${nuevoTotal.toLocaleString('es-CO')} (antes $${editPrecioOriginalTotal.toLocaleString('es-CO')}).\n\nSe devolverá $${Math.abs(diferencia).toLocaleString('es-CO')} a tu cuenta registrada. ¿Deseas continuar?`;
-
         }
 
-
-        if (!confirm(confirmMsg))
-            return;
-
+        if (!confirm(confirmMsg)) return;
 
         fetch(
             `/reservas/editar/${id}/`,
             {
-
                 method: 'POST',
 
                 headers: {
-
-                    'Content-Type':
-                        'application/json',
-
-                    'X-CSRFToken':
-                        getCSRF()
-
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRF()
                 },
 
-
                 body: JSON.stringify({
-
-                    nombre:
-                        document.getElementById(
-                            'editNombre'
-                        ).value,
-
-                    correo:
-                        document.getElementById(
-                            'editCorreo'
-                        ).value,
-
-                    telefono:
-                        document.getElementById(
-                            'editTelefono'
-                        ).value,
-
+                    nombre: document.getElementById('editNombre').value,
+                    correo: document.getElementById('editCorreo').value,
+                    telefono: document.getElementById('editTelefono').value,
                     fecha,
-
-                    hora:
-                        horasOrdenadas[0],
-
-                    horas:
-                        horasOrdenadas,
-
+                    hora: horasOrdenadas[0],
+                    horas: horasOrdenadas,
                     cancha,
-
-                    duracion:
-                        calcularDuracionTexto(
-                            horasOrdenadas.length
-                        ),
-
-                    diferencia_pago:
-                        diferencia
-
+                    duracion: calcularDuracionTexto(horasOrdenadas.length),
+                    diferencia_pago: diferencia
                 })
-
             }
         )
 
-            .then(r =>
-                r.json()
-            )
+            .then(r => r.json())
 
             .then(data => {
 
-                if (
-                    data.status === 'ok'
-                ) {
+                if (data.status === 'ok') {
 
-                    if (
-                        diferencia > 0
-                    ) {
-
-                        window.location.href =
-                            "{% url 'pago' %}";
-
+                    if (diferencia > 0) {
+                        window.location.href = "{% url 'pago' %}";
                     } else {
-
                         location.reload();
-
                     }
 
                 } else {
 
                     mostrarModal(
                         'No se pudo actualizar',
-                        data.mensaje ||
-                        'Error al actualizar.'
+                        data.mensaje || 'Error al actualizar.'
                     );
-
                 }
-
             });
-
     }
 
 
-
     // ── UTILIDADES ─────────────────────────────────────────
-
     function getCSRF() {
 
         const c =
             document.cookie
                 .split(';')
-                .find(
-                    c =>
-                        c.trim()
-                            .startsWith(
-                                'csrftoken='
-                            )
-                );
+                .find(c => c.trim().startsWith('csrftoken='));
 
-
-        return c
-            ?
-            decodeURIComponent(
-                c.split('=')[1]
-            )
-            :
-            '';
-
+        return c ? decodeURIComponent(c.split('=')[1]) : '';
     }
 
 
+    function mostrarModal(titulo, cuerpo) {
 
-    function mostrarModal(
-        titulo,
-        cuerpo
-    ) {
-
-        document.getElementById(
-            'modalNotiTitulo'
-        ).textContent =
-            titulo;
-
-
-        document.getElementById(
-            'modalNotiCuerpo'
-        ).textContent =
-            cuerpo;
-
+        document.getElementById('modalNotiTitulo').textContent = titulo;
+        document.getElementById('modalNotiCuerpo').textContent = cuerpo;
 
         new bootstrap.Modal(
-            document.getElementById(
-                'modalNotificacion'
-            )
+            document.getElementById('modalNotificacion')
         ).show();
-
     }
 
+
+    // ── REFRESCO EN TIEMPO REAL ───────────────────────────
+    // Cada 30 s: deshabilita horas que acaban de pasar y libera
+    // reservas pendientes cuyo plazo de pago ya venció.
+    setInterval(() => {
+
+        // Formulario principal
+        const antes = horasSeleccionadas.length;
+
+        horasSeleccionadas = horasSeleccionadas.filter(
+            h => !fechasSeleccionadas.some(f => horaPasada(f, h))
+        );
+
+        if (horasSeleccionadas.length < antes) {
+            mostrarModal(
+                'Horas no disponibles',
+                'Algunas horas que seleccionaste ya pasaron y fueron quitadas de tu selección.'
+            );
+        }
+
+        renderHorarios();
+        actualizarResumen();
+
+        // Modal de edición (si está abierto)
+        const modalEdit = document.getElementById('modalEditarReserva');
+
+        if (modalEdit && modalEdit.classList.contains('show')) {
+
+            const fechaEdit = document.getElementById('editFecha').value;
+
+            // las horas originales de la reserva se conservan aunque ya hayan pasado
+            editHorasSeleccionadas = editHorasSeleccionadas.filter(
+                h => editHorasOriginales.includes(h) || !horaPasada(fechaEdit, h)
+            );
+
+            renderHorariosEdicion();
+        }
+
+    }, 30000);
 
 
     // ── INICIO ─────────────────────────────────────────────
-
     initFlatpickr();
 
-
     if (PRESELECCIONAR_ID) {
-
         renderCanchaFija();
-
     } else {
-
         renderCanchas();
-
     }
 
+    asegurarAvisoPlazo();
 
     actualizarResumen();
 
 </script>
-
-
-<script src="{% static 'js/theme.js' %}"></script>
-```
 
 </body>
 
