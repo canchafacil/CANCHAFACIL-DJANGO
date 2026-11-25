@@ -4,6 +4,7 @@ from decimal import Decimal, InvalidOperation
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import EmailMultiAlternatives
@@ -11,6 +12,7 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from django.contrib import messages
 from .models import Reserva
+from .utils import cancelar_reservas_vencidas
 from usuarios.models import Usuario
 from gestion_canchas.models import Cancha
 
@@ -47,6 +49,10 @@ def _sincronizar_todas(queryset):
 
 
 def _horas_ocupadas(cancha, fecha, excluir_id=None):
+    # Antes de calcular qué horas están ocupadas, se liberan las reservas
+    # pendientes que pasaron de 15 minutos sin pago.
+    cancelar_reservas_vencidas()
+
     qs = Reserva.objects.filter(cancha=cancha, fecha=fecha).exclude(estado=Reserva.ESTADO_CANCELADA)
     if excluir_id is not None:
         qs = qs.exclude(id=excluir_id)
@@ -72,6 +78,44 @@ def _to_decimal(valor, default='0'):
         return Decimal(default)
 
 
+def _limpiar_sesion_pago(request):
+    for key in ('reserva_pendiente_id', 'tipo_pago', 'monto_pagado', 'es_diferencia'):
+        if key in request.session:
+            del request.session[key]
+
+
+def _rescatar_reserva_vencida(reserva, referencia_pago=''):
+    """
+    Un pago (p. ej. PSE) puede aprobarse DESPUÉS de que la reserva venció y fue
+    cancelada por el sistema. Si las horas siguen libres, la reserva se rescata
+    (quien llama la deja en 'confirmada' y la guarda). Si otra persona ya tomó
+    las horas, se deja cancelada con una nota para reembolsar manualmente.
+
+    Devuelve True si la reserva quedó utilizable.
+    """
+    if reserva.estado != Reserva.ESTADO_CANCELADA:
+        return True
+
+    if reserva.cancelada_por != 'sistema':
+        return False
+
+    ocupadas = _horas_ocupadas(reserva.cancha, reserva.fecha, excluir_id=reserva.id)
+    if any(h in ocupadas for h in reserva.get_horas()):
+        reserva.motivo_detalle = (
+            f"Pago aprobado {referencia_pago} llegó después de vencer la reserva "
+            f"y las horas ya fueron tomadas. Requiere reembolso."
+        )
+        reserva.save(update_fields=['motivo_detalle'])
+        print(f"[CanchaFácil] Reserva {reserva.id}: pago {referencia_pago} aprobado fuera de tiempo, requiere reembolso.")
+        return False
+
+    reserva.motivo_cancelacion = None
+    reserva.motivo_detalle = None
+    reserva.fecha_cancelacion = None
+    reserva.cancelada_por = None
+    return True
+
+
 # =================================================================
 # VISTAS PRINCIPALES
 # =================================================================
@@ -81,6 +125,9 @@ def pagina_reservas(request):
 
 
 def reservas(request, cancha_id=None):
+    # Libera las horas de reservas pendientes vencidas antes de mostrar disponibilidad
+    cancelar_reservas_vencidas()
+
     todas = Reserva.objects.exclude(estado=Reserva.ESTADO_CANCELADA).order_by('-id')
     _sincronizar_todas(todas)
 
@@ -325,7 +372,8 @@ def cancelar_reserva_perfil(request, id):
     detalle = request.POST.get('motivo_detalle', '').strip()
     motivos_validos = dict(Reserva.MOTIVOS_CANCELACION)
 
-    if motivo not in motivos_validos:
+    # 'vencida' es un motivo exclusivo del sistema; el usuario no puede elegirlo
+    if motivo not in motivos_validos or motivo == Reserva.MOTIVO_VENCIDA:
         return redirect('usuarios:perfil')
 
     if motivo == 'otro' and len(detalle) < 10:
@@ -337,7 +385,7 @@ def cancelar_reserva_perfil(request, id):
     return redirect('usuarios:perfil')
 
 
-def _enviar_correo_cancelacion(reserva):
+def _enviar_correo_cancelacion(reserva, copia_admin=True):
     contexto = {
         'reserva': reserva,
         'motivo': reserva.motivo_legible,
@@ -362,7 +410,7 @@ def _enviar_correo_cancelacion(reserva):
             cuerpo_texto,
             settings.DEFAULT_FROM_EMAIL,
             [reserva.correo],
-            bcc=[settings.DEFAULT_FROM_EMAIL],
+            bcc=[settings.DEFAULT_FROM_EMAIL] if copia_admin else [],
         )
         email.attach_alternative(cuerpo_html, "text/html")
         email.send(fail_silently=False)
@@ -375,16 +423,31 @@ def _enviar_correo_cancelacion(reserva):
 # =================================================================
 
 def pago(request):
+    cancelar_reservas_vencidas()
+
     reserva_id = request.session.get("reserva_pendiente_id")
     reserva = None
     total = 0
     ya_pagado = 0
     es_diferencia = False
     abono_50 = 0  # 🔥 Para que el HTML pinte el valor del 50% de una vez
+    segundos_restantes = None
 
     if reserva_id:
         try:
             reserva = Reserva.objects.get(id=reserva_id)
+
+            # La reserva venció (pasaron 15 min sin pagar): no se puede pagar
+            if reserva.estado == Reserva.ESTADO_CANCELADA:
+                _limpiar_sesion_pago(request)
+                messages.error(
+                    request,
+                    'Tu reserva fue cancelada porque pasaron más de 15 minutos sin realizar el pago. '
+                    'Las horas quedaron libres; puedes hacer una nueva reserva.'
+                )
+                return redirect('gestion_canchas:canchas')
+
+            segundos_restantes = reserva.segundos_para_pagar
 
             monto_ya_pagado = reserva.monto_pagado or Decimal('0')
             saldo = reserva.saldo_pendiente or Decimal('0')
@@ -412,16 +475,28 @@ def pago(request):
         "ya_pagado": ya_pagado,
         "es_diferencia": es_diferencia,
         "abono_50": abono_50,
+        "segundos_restantes": segundos_restantes,
     })
 
 
 @require_POST
 def confirmar_pago(request):
+    cancelar_reservas_vencidas()
+
     reserva_id = request.session.get("reserva_pendiente_id")
     if not reserva_id:
         return JsonResponse({"status": "error", "mensaje": "No hay reserva pendiente"}, status=400)
 
     reserva = get_object_or_404(Reserva, id=reserva_id)
+
+    if reserva.estado == Reserva.ESTADO_CANCELADA:
+        _limpiar_sesion_pago(request)
+        return JsonResponse({
+            "status": "error",
+            "vencida": True,
+            "mensaje": "Tu reserva fue cancelada porque pasaron más de 15 minutos sin pagar.",
+        }, status=410)
+
     data = json.loads(request.body.decode("utf-8")) if request.body else {}
 
     monto_ya_pagado = reserva.monto_pagado or Decimal('0')
@@ -470,7 +545,7 @@ def enviar_correo_confirmacion(reserva):
 
     cuerpo_html = render_to_string("reservas/confirmacion_reserva.html", contexto)
     horas_texto = ", ".join(reserva.get_horas())
-    
+
     linea_pago = f"Pagaste el total: ${reserva.precio_total}"
     if reserva.tipo_pago == Reserva.TIPO_PAGO_ABONO and (reserva.saldo_pendiente or Decimal('0')) > 0:
         linea_pago = (
@@ -515,11 +590,22 @@ def crear_preferencia_mercadopago(request, reserva_id):
     if not request.session.get('usuario_id'):
         return redirect('usuarios:login')
 
+    cancelar_reservas_vencidas()
+
     reserva = get_object_or_404(Reserva, id=reserva_id)
     usuario = get_object_or_404(Usuario, id=request.session['usuario_id'])
 
     if reserva.correo != usuario.email:
         return redirect('usuarios:perfil')
+
+    if reserva.estado == Reserva.ESTADO_CANCELADA:
+        _limpiar_sesion_pago(request)
+        messages.error(
+            request,
+            'Tu reserva fue cancelada porque pasaron más de 15 minutos sin realizar el pago. '
+            'Puedes hacer una nueva reserva.'
+        )
+        return redirect('gestion_canchas:canchas')
 
     monto_ya_pagado = reserva.monto_pagado or Decimal('0')
     saldo           = reserva.saldo_pendiente or Decimal('0')
@@ -598,6 +684,13 @@ def crear_preferencia_mercadopago(request, reserva_id):
         }
     }
 
+    # El link de pago de Mercado Pago también vence cuando vence la reserva (15 min)
+    limite_pago = reserva.expira_en
+    if limite_pago:
+        preference_data["expires"] = True
+        preference_data["expiration_date_from"] = timezone.localtime().isoformat(timespec='milliseconds')
+        preference_data["expiration_date_to"] = timezone.localtime(limite_pago).isoformat(timespec='milliseconds')
+
     if not es_local:
         preference_data["auto_return"] = "approved"
 
@@ -614,7 +707,7 @@ def crear_preferencia_mercadopago(request, reserva_id):
             )
 
         reserva.mp_preference_id = response['id']
-        reserva.save()
+        reserva.save(update_fields=['mp_preference_id'])
 
         return redirect(response['init_point'])
 
@@ -629,6 +722,16 @@ def pago_exitoso_mp(request):
     if reserva_id:
         try:
             reserva = Reserva.objects.get(id=reserva_id)
+
+            # Si venció mientras pagaba: se rescata si las horas siguen libres
+            if not _rescatar_reserva_vencida(reserva, referencia_pago='(Mercado Pago)'):
+                _limpiar_sesion_pago(request)
+                messages.error(
+                    request,
+                    'Tu pago fue recibido, pero la reserva venció y esas horas ya fueron tomadas. '
+                    'Contáctanos para gestionar el reembolso.'
+                )
+                return redirect('usuarios:perfil')
 
             monto_esta_vez = _to_decimal(request.session.get('monto_pagado', 0))
             if monto_esta_vez <= 0:
@@ -653,9 +756,7 @@ def pago_exitoso_mp(request):
         except Reserva.DoesNotExist:
             pass
 
-    for key in ('reserva_pendiente_id', 'tipo_pago', 'monto_pagado', 'es_diferencia'):
-        if key in request.session:
-            del request.session[key]
+    _limpiar_sesion_pago(request)
 
     return render(request, 'pagos/exito.html', {'reserva': reserva})
 
@@ -692,6 +793,10 @@ def webhook_mercadopago(request):
                     reserva = Reserva.objects.get(id=external_reference)
 
                     if reserva.estado == Reserva.ESTADO_CONFIRMADA and (reserva.saldo_pendiente or Decimal('0')) <= 0:
+                        return HttpResponse(status=200)
+
+                    # Pago aprobado tarde (p. ej. PSE): se rescata si las horas siguen libres
+                    if not _rescatar_reserva_vencida(reserva, referencia_pago=f"#{payment_id}"):
                         return HttpResponse(status=200)
 
                     monto_esta_vez  = _to_decimal(transaction_amount)

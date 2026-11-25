@@ -2,6 +2,7 @@ from functools import wraps
 import json
 
 from django.conf import settings
+from django.contrib import messages
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.db.models import Q
 from django.http import JsonResponse
@@ -9,6 +10,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.html import strip_tags
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST, require_GET
 from .emails import enviar_correo_html
 from .models import Resena, MensajeContacto
@@ -34,7 +36,7 @@ def admin_requerido(vista):
     @wraps(vista)
     def envoltura(request, *args, **kwargs):
         if not _es_admin(request):
-            return redirect('login')
+            return redirect('usuarios:login')
         return vista(request, *args, **kwargs)
     return envoltura
 
@@ -50,6 +52,40 @@ def admin_json(vista):
             )
         return vista(request, *args, **kwargs)
     return envoltura
+
+
+# =====================================================================
+# AUXILIARES DE RESEÑAS
+# =====================================================================
+
+def _volver(request, defecto='nosotros'):
+    """Vuelve a la página desde la que se hizo la acción (nosotros o perfil)."""
+    destino = request.META.get('HTTP_REFERER')
+    if destino and url_has_allowed_host_and_scheme(
+        destino,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return redirect(destino)
+    return redirect(defecto)
+
+
+def _marcar_resenas_propias(resenas, usuario):
+    """
+    Agrega r.es_mia a cada reseña para que el template sepa cuáles puede
+    editar/eliminar el usuario logueado. Recorre el queryset (queda en caché).
+    """
+    correo = usuario.email if usuario else None
+    for r in resenas:
+        r.es_mia = bool(correo) and r.correo == correo
+    return resenas
+
+
+def _estadisticas_resenas():
+    resenas = Resena.objects.filter(archivada=False).order_by('-fecha')
+    total = resenas.count()
+    promedio = round(sum(r.estrellas for r in resenas) / total, 1) if total else '—'
+    return resenas, promedio
 
 
 # =====================================================================
@@ -76,13 +112,14 @@ def reservas_reseñables_por(usuario):
 
 
 def nosotros(request):
+    usuario = None
+    usuario_id = request.session.get('usuario_id')
+    if usuario_id:
+        usuario = Usuario.objects.filter(id=usuario_id).first()
+
     if request.method == 'POST':
-        usuario_id = request.session.get('usuario_id')
-
-        if not usuario_id:
-            return redirect('login')
-
-        usuario = get_object_or_404(Usuario, id=usuario_id)
+        if not usuario:
+            return redirect('usuarios:login')
 
         reserva_id = request.POST.get('reserva_id', '').strip()
         jugador    = request.POST.get('jugador', '').strip()
@@ -98,41 +135,38 @@ def nosotros(request):
         reserva = next((r for r in reservas_validas if str(r.id) == reserva_id), None)
 
         if reserva is None:
-            resenas = Resena.objects.filter(archivada=False).order_by('-fecha')
-            total = resenas.count()
-            promedio = round(sum(r.estrellas for r in resenas) / total, 1) if total else '—'
+            resenas, promedio = _estadisticas_resenas()
+            _marcar_resenas_propias(resenas, usuario)
             return render(request, 'contacto/nosotros.html', {
                 'resenas': resenas,
                 'promedio': promedio,
                 'reservas_reseñables': reservas_validas,
-                'error': 'Solo podés reseñar una reserva propia que ya esté completada y que no hayas reseñado todavía.',
+                'error': 'Solo puedes reseñar una reserva propia que ya esté completada y que no hayas reseñado todavía.',
             })
+
+        if not texto or not (1 <= estrellas <= 5):
+            messages.error(request, 'Escribe un comentario y elige de 1 a 5 estrellas.')
+            return redirect('nosotros')
 
         nombre = f"{usuario.first_name} {usuario.last_name}".strip()
         correo = usuario.email
 
-        if texto:
-            Resena.objects.create(
-                nombre=nombre,
-                correo=correo,
-                jugador=jugador,
-                cancha=reserva.cancha,  # se toma de la reserva real, no del form
-                estrellas=estrellas,
-                texto=texto,
-                reserva=reserva,
-            )
+        Resena.objects.create(
+            nombre=nombre,
+            correo=correo,
+            jugador=jugador,
+            cancha=reserva.cancha,  # se toma de la reserva real, no del form
+            estrellas=estrellas,
+            texto=texto,
+            reserva=reserva,
+        )
+        messages.success(request, '¡Gracias! Tu reseña fue publicada.')
         return redirect('nosotros')
 
-    resenas = Resena.objects.filter(archivada=False).order_by('-fecha')
-    total = resenas.count()
-    promedio = round(sum(r.estrellas for r in resenas) / total, 1) if total else '—'
+    resenas, promedio = _estadisticas_resenas()
+    _marcar_resenas_propias(resenas, usuario)
 
-    reservas_reseñables = []
-    usuario_id = request.session.get('usuario_id')
-    if usuario_id:
-        usuario = Usuario.objects.filter(id=usuario_id).first()
-        if usuario:
-            reservas_reseñables = reservas_reseñables_por(usuario)
+    reservas_reseñables = reservas_reseñables_por(usuario) if usuario else []
 
     return render(request, 'contacto/nosotros.html', {
         'resenas': resenas,
@@ -249,48 +283,66 @@ def resena_editar(request, id):
 
 
 # =====================================================================
-# RESEÑAS (perfil del usuario)
+# RESEÑAS (acciones del propio usuario, desde nosotros o perfil)
 # =====================================================================
 
 @require_POST
 def editar_resena_perfil(request, id):
     usuario_id = request.session.get('usuario_id')
     if not usuario_id:
-        return redirect('login')
+        return redirect('usuarios:login')
 
     usuario = get_object_or_404(Usuario, id=usuario_id)
     resena = get_object_or_404(Resena, id=id)
 
+    # Solo el dueño de la reseña puede editarla
     if resena.correo != usuario.email:
-        return redirect('perfil')
+        messages.error(request, 'No puedes editar una reseña que no es tuya.')
+        return _volver(request)
 
     # La cancha no se puede cambiar: queda fija a la reserva original.
-    resena.jugador = request.POST.get('jugador', resena.jugador)
+    jugador = request.POST.get('jugador', resena.jugador)
+    texto = request.POST.get('texto', '').strip()
     try:
-        resena.estrellas = int(request.POST.get('estrellas', resena.estrellas))
+        estrellas = int(request.POST.get('estrellas', resena.estrellas))
     except (TypeError, ValueError):
-        pass
-    resena.texto = request.POST.get('texto', resena.texto).strip()
+        estrellas = resena.estrellas
+
+    if not texto:
+        messages.error(request, 'El comentario no puede quedar vacío.')
+        return _volver(request)
+
+    if not (1 <= estrellas <= 5):
+        messages.error(request, 'La calificación debe ser de 1 a 5 estrellas.')
+        return _volver(request)
+
+    resena.jugador = jugador
+    resena.estrellas = estrellas
+    resena.texto = texto
     resena.save()
 
-    return redirect('perfil')
+    messages.success(request, 'Tu reseña fue actualizada.')
+    return _volver(request)
 
 
 @require_POST
 def eliminar_resena_perfil(request, id):
     usuario_id = request.session.get('usuario_id')
     if not usuario_id:
-        return redirect('login')
+        return redirect('usuarios:login')
 
     usuario = get_object_or_404(Usuario, id=usuario_id)
     resena = get_object_or_404(Resena, id=id)
 
-    if resena.correo == usuario.email:
-        resena.delete()
-        # Al borrar la Resena, el OneToOneField libera la reserva
-        # (queda con resena=None) y el usuario podría reseñarla otra vez.
+    if resena.correo != usuario.email:
+        messages.error(request, 'No puedes eliminar una reseña que no es tuya.')
+        return _volver(request)
 
-    return redirect('perfil')
+    resena.delete()
+    # Al borrar la Resena, el OneToOneField libera la reserva
+    # (queda con resena=None) y el usuario podría reseñarla otra vez.
+    messages.success(request, 'Tu reseña fue eliminada.')
+    return _volver(request)
 
 
 # =====================================================================

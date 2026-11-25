@@ -11,6 +11,107 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{% static 'css/nosotros.css' %}">
     <link rel="stylesheet" href="{% static 'css/obscuro.css' %}">
+
+    <style>
+        html { scroll-behavior: smooth; }
+
+        /* ── LLAMADO A RESEÑAR ─────────────────────────── */
+        .rv-cta {
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+            gap: 16px; max-width: 980px; margin: 28px auto 0; padding: 22px 28px;
+            background: linear-gradient(135deg, #03045e 0%, #0a0c8f 100%);
+            color: #fff; border-radius: 18px; box-shadow: 0 10px 30px rgba(3, 4, 94, .25);
+            text-align: left;
+        }
+        .rv-cta-info { display: flex; align-items: center; gap: 16px; }
+        .rv-cta-ico {
+            width: 54px; height: 54px; border-radius: 50%; background: #62ff00; color: #03045e;
+            display: grid; place-items: center; font-size: 1.6rem; flex-shrink: 0;
+        }
+        .rv-cta h3 { margin: 0 0 4px; font-weight: 800; font-size: 1.25rem; color: #fff; }
+        .rv-cta p { margin: 0; color: rgba(255, 255, 255, .78); font-size: .92rem; }
+        .rv-cta-btn {
+            display: inline-flex; align-items: center; gap: 8px; background: #62ff00; color: #03045e;
+            font-weight: 800; border-radius: 999px; padding: 12px 26px; text-decoration: none;
+            white-space: nowrap; transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .rv-cta-btn:hover { color: #03045e; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(98, 255, 0, .35); }
+
+        /* ── PASOS ─────────────────────────────────────── */
+        .rv-steps {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+            max-width: 980px; margin: 18px auto 10px;
+        }
+        @media (max-width: 768px) { .rv-steps { grid-template-columns: 1fr; } }
+        .rv-step {
+            background: #fff; border: 1px solid #e3e6f0; border-radius: 14px; padding: 16px;
+            display: flex; gap: 12px; align-items: flex-start; text-align: left;
+        }
+        .rv-step-ico {
+            width: 42px; height: 42px; border-radius: 12px; background: rgba(98, 255, 0, .2);
+            color: #03045e; display: grid; place-items: center; font-size: 1.2rem; flex-shrink: 0;
+        }
+        .rv-step b { display: block; font-size: .92rem; color: #03045e; margin-bottom: 2px; }
+        .rv-step span { font-size: .8rem; color: #6b7280; line-height: 1.35; display: block; }
+
+        /* ── TARJETA PROPIA ────────────────────────────── */
+        .rv-mia-badge {
+            display: inline-flex; align-items: center; gap: 4px; background: rgba(98, 255, 0, .22);
+            color: #03045e; font-size: .7rem; font-weight: 800; border-radius: 999px;
+            padding: 3px 10px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .04em;
+        }
+        .rv-acciones { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .rv-btn {
+            display: inline-flex; align-items: center; gap: 6px; border-radius: 999px;
+            padding: 6px 14px; font-size: .8rem; font-weight: 700; cursor: pointer;
+            background: transparent; transition: all .15s ease;
+        }
+        .rv-btn-editar { border: 2px solid #03045e; color: #03045e; }
+        .rv-btn-editar:hover { background: #03045e; color: #fff; }
+        .rv-btn-eliminar { border: 2px solid #dc3545; color: #dc3545; }
+        .rv-btn-eliminar:hover { background: #dc3545; color: #fff; }
+
+        .rv-vacio {
+            grid-column: 1 / -1; text-align: center; padding: 36px 20px;
+            border: 2px dashed #c9cfe6; border-radius: 16px; color: #6b7280;
+        }
+        .rv-vacio i { font-size: 2.2rem; color: #facc15; display: block; margin-bottom: 6px; }
+
+        /* ── FORMULARIO ────────────────────────────────── */
+        .rv-form-head { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; justify-content: center; flex-wrap: wrap; }
+        .rv-form-ico {
+            width: 48px; height: 48px; border-radius: 50%; background: #62ff00; color: #03045e;
+            display: grid; place-items: center; font-size: 1.4rem; flex-shrink: 0;
+        }
+        .rv-aqui {
+            display: inline-block; background: #03045e; color: #62ff00; font-size: .72rem;
+            font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+            border-radius: 999px; padding: 4px 14px; margin-bottom: 10px;
+        }
+
+        /* ── MODALES ───────────────────────────────────── */
+        .rv-modal .modal-content { border: none; border-radius: 18px; overflow: hidden; }
+        .rv-modal .modal-header { background: #03045e; color: #fff; border: none; }
+        .rv-modal .modal-title { font-weight: 800; }
+        .rv-modal .btn-close { filter: invert(1); }
+        .rv-edit-stars { display: flex; align-items: center; gap: 2px; }
+        .rv-edit-star {
+            background: none; border: none; font-size: 1.9rem; line-height: 1;
+            color: #d1d5db; padding: 0 2px; cursor: pointer; transition: transform .1s ease;
+        }
+        .rv-edit-star:hover { transform: scale(1.15); }
+
+        /* ── MODO OSCURO ───────────────────────────────── */
+        [data-bs-theme="dark"] .rv-step { background: #1e2227; border-color: #343a40; }
+        [data-bs-theme="dark"] .rv-step b { color: #62ff00; }
+        [data-bs-theme="dark"] .rv-step span { color: #adb5bd; }
+        [data-bs-theme="dark"] .rv-step-ico { color: #62ff00; background: rgba(98, 255, 0, .15); }
+        [data-bs-theme="dark"] .rv-mia-badge { color: #62ff00; background: rgba(98, 255, 0, .15); }
+        [data-bs-theme="dark"] .rv-btn-editar { border-color: #62ff00; color: #62ff00; }
+        [data-bs-theme="dark"] .rv-btn-editar:hover { background: #62ff00; color: #03045e; }
+        [data-bs-theme="dark"] .rv-vacio { border-color: #495057; color: #adb5bd; }
+        [data-bs-theme="dark"] .rv-aqui { background: #62ff00; color: #03045e; }
+    </style>
 </head>
 
 <body>
@@ -60,6 +161,12 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'nosotros' %}">
                             Sobre Nosotros
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="#resenas">
+                            <i class="bi bi-star-fill me-1" style="color:#facc15;"></i>Reseñas
                         </a>
                     </li>
 
@@ -132,6 +239,9 @@
             <a href="#cancha" class="btn btn-success btn-lg mt-3" style="background-color: #03045e; border: none;">
                 Conócenos
             </a>
+            <a href="#dejatureseña" class="btn btn-lg mt-3 ms-2" style="background-color: #62ff00; color: #03045e; border: none; font-weight: 700;">
+                <i class="bi bi-star-fill me-1"></i>Deja tu reseña
+            </a>
         </div>
     </section>
 
@@ -166,7 +276,7 @@
         </section>
     </div>
 
-    <section class="rf-root">
+    <section class="rf-root" id="resenas">
         <div class="rf-header">
             <h2 class="rf-titulo">LO QUE DICE NUESTRA COMUNIDAD</h2>
             <p class="rf-sub">Jugadores reales, experiencias reales en Cancha Fácil</p>
@@ -183,6 +293,50 @@
                     <span class="rf-stat-num">98%</span>
                     <span class="rf-stat-lbl">Recomiendan</span>
                 </div>
+            </div>
+        </div>
+
+        <!-- MENSAJES (reseña publicada / editada / eliminada / errores) -->
+        {% if messages or error %}
+        <div style="max-width:980px;margin:18px auto 0;">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show mb-2" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+            {% endfor %}
+            {% if error %}
+            <div class="alert alert-danger mb-2" role="alert">{{ error }}</div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- LLAMADO A RESEÑAR -->
+        <div class="rv-cta">
+            <div class="rv-cta-info">
+                <span class="rv-cta-ico"><i class="bi bi-chat-heart-fill"></i></span>
+                <div>
+                    <h3>¿Ya jugaste con nosotros?</h3>
+                    <p>Cuéntanos cómo te fue. Tu opinión ayuda a otros jugadores a elegir su cancha.</p>
+                </div>
+            </div>
+            <a href="#dejatureseña" class="rv-cta-btn">
+                <i class="bi bi-star-fill"></i> Escribir mi reseña
+            </a>
+        </div>
+
+        <div class="rv-steps">
+            <div class="rv-step">
+                <span class="rv-step-ico"><i class="bi bi-calendar-check"></i></span>
+                <div><b>1. Reserva y juega</b><span>Haz tu reserva y disfruta tu partido en la cancha.</span></div>
+            </div>
+            <div class="rv-step">
+                <span class="rv-step-ico"><i class="bi bi-check2-circle"></i></span>
+                <div><b>2. Reserva completada</b><span>Cuando tu reserva se completa, ya puedes reseñarla.</span></div>
+            </div>
+            <div class="rv-step">
+                <span class="rv-step-ico"><i class="bi bi-star-fill"></i></span>
+                <div><b>3. Califica y comenta</b><span>Elige tus estrellas, escribe tu experiencia y publícala.</span></div>
             </div>
         </div>
 
@@ -205,45 +359,39 @@
                 <span class="rf-badge">{{ r.cancha }}</span>
                 <p class="rf-texto">"{{ r.texto }}"</p>
 
-                {% if request.session.correo and r.correo == request.session.correo %}
-                <div class="d-flex gap-2 mt-2">
-                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#editar-resena-{{ r.id }}">
-                        Editar
-                    </button>
-                    <form method="post" action="{% url 'eliminar_resena_perfil' r.id %}"
-                        onsubmit="return confirm('¿Eliminar tu reseña?');">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
-                    </form>
+                {% if r.es_mia or request.session.correo and r.correo == request.session.correo %}
+                <div>
+                    <span class="rv-mia-badge"><i class="bi bi-person-check-fill"></i> Tu reseña</span>
                 </div>
-
-                <div class="collapse mt-2" id="editar-resena-{{ r.id }}">
-                    <form method="post" action="{% url 'editar_resena_perfil' r.id %}" class="text-start">
-                        {% csrf_token %}
-                        <!-- La cancha ya no se edita: queda fija a la reserva original -->
-                        <p class="small text-muted mb-1">Cancha: <strong>{{ r.cancha }}</strong> (no editable)</p>
-                        <select name="jugador" class="form-select form-select-sm mb-1">
-                            <option value="Amateur" {% if r.jugador == "Amateur" %}selected{% endif %}>Amateur</option>
-                            <option value="Semi-profesional" {% if r.jugador == "Semi-profesional" %}selected{% endif %}>
-                                Semi-profesional</option>
-                            <option value="Profesional" {% if r.jugador == "Profesional" %}selected{% endif %}>Profesional
-                            </option>
-                        </select>
-                        <input type="number" name="estrellas" class="form-control form-control-sm mb-1" min="1" max="5"
-                            value="{{ r.estrellas }}">
-                        <textarea name="texto" class="form-control form-control-sm mb-1"
-                            rows="2">{{ r.texto }}</textarea>
-                        <button type="submit" class="btn btn-sm btn-primary">Guardar</button>
-                    </form>
+                <div class="rv-acciones">
+                    <button type="button" class="rv-btn rv-btn-editar" data-bs-toggle="modal"
+                        data-bs-target="#modalEditarResena{{ r.id }}">
+                        <i class="bi bi-pencil-fill"></i> Editar
+                    </button>
+                    <button type="button" class="rv-btn rv-btn-eliminar" data-bs-toggle="modal"
+                        data-bs-target="#modalEliminarResena{{ r.id }}">
+                        <i class="bi bi-trash-fill"></i> Eliminar
+                    </button>
                 </div>
                 {% endif %}
+            </div>
+            {% empty %}
+            <div class="rv-vacio">
+                <i class="bi bi-star-fill"></i>
+                <strong>Aún no hay reseñas</strong>
+                <p class="mb-0 small">¡Sé el primero en contarnos cómo fue tu experiencia!</p>
             </div>
             {% endfor %}
         </div>
 
         <div class="rf-form-wrap">
-            <h3 id="dejatureseña" class="rf-form-titulo">DEJA TU RESEÑA</h3>
+            <div class="text-center">
+                <span class="rv-aqui"><i class="bi bi-pencil-square me-1"></i>Aquí puedes reseñar</span>
+            </div>
+            <div class="rv-form-head">
+                <span class="rv-form-ico"><i class="bi bi-star-fill"></i></span>
+                <h3 id="dejatureseña" class="rf-form-titulo mb-0">DEJA TU RESEÑA</h3>
+            </div>
 
             {% if request.session.usuario_id %}
             <p class="rf-form-sub">Publicando como <strong>{{ request.session.nombre }}</strong></p>
@@ -269,8 +417,8 @@
                             <option value="{{ res.id }}">{{ res.cancha }} — {{ res.fecha|date:"d/m/Y" }}</option>
                             {% endfor %}
                         </select>
-                        <small class="text-muted d-block mt-1">Solo podés reseñar reservas que ya jugaste y que no hayas
-                            reseñado todavía.</small>
+                        <small class="text-muted d-block mt-1">Solo puedes reseñar reservas que ya jugaste y que no
+                            hayas reseñado todavía.</small>
                     </div>
                     <div class="rf-field">
                         <label class="rf-label">Calificación</label>
@@ -300,7 +448,7 @@
                 </div>
             </form>
             {% else %}
-            <p class="rf-form-sub">Todavía no tenés reservas jugadas pendientes de reseñar. Necesitás haber completado
+            <p class="rf-form-sub">Todavía no tienes reservas jugadas pendientes de reseñar. Necesitas haber completado
                 una reserva (y no haberla reseñado ya) para poder opinar.</p>
             <a href="{% url 'gestion_canchas:canchas' %}" class="rf-submit d-inline-block text-decoration-none">
                 Hacer una reserva →
@@ -315,6 +463,80 @@
             {% endif %}
         </div>
     </section>
+
+    <!-- MODALES DE EDITAR / ELIMINAR (solo para las reseñas del usuario) -->
+    {% for r in resenas %}
+    {% if r.es_mia or request.session.correo and r.correo == request.session.correo %}
+
+    <div class="modal fade rv-modal" id="modalEditarResena{{ r.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="post" action="{% url 'editar_resena_perfil' r.id %}">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-pencil-fill me-2"></i>Editar mi reseña</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="small text-muted mb-3">
+                            Cancha: <strong>{{ r.cancha }}</strong> (no se puede cambiar)
+                        </p>
+
+                        <label class="form-label fw-bold small">Tipo de jugador</label>
+                        <select name="jugador" class="form-select mb-3">
+                            <option value="Amateur" {% if r.jugador == "Amateur" %}selected{% endif %}>Amateur</option>
+                            <option value="Semi-profesional" {% if r.jugador == "Semi-profesional" %}selected{% endif %}>Semi-profesional</option>
+                            <option value="Profesional" {% if r.jugador == "Profesional" %}selected{% endif %}>Profesional</option>
+                        </select>
+
+                        <label class="form-label fw-bold small">Calificación</label>
+                        <div class="rv-edit-stars mb-3">
+                            <button type="button" class="rv-edit-star" data-v="1">★</button>
+                            <button type="button" class="rv-edit-star" data-v="2">★</button>
+                            <button type="button" class="rv-edit-star" data-v="3">★</button>
+                            <button type="button" class="rv-edit-star" data-v="4">★</button>
+                            <button type="button" class="rv-edit-star" data-v="5">★</button>
+                            <input type="hidden" name="estrellas" value="{{ r.estrellas }}">
+                        </div>
+
+                        <label class="form-label fw-bold small">Tu comentario</label>
+                        <textarea name="texto" class="form-control" rows="4" required>{{ r.texto }}</textarea>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4"
+                            data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn rounded-pill px-4 fw-bold"
+                            style="background:#62ff00;color:#03045e;">
+                            <i class="bi bi-check-lg me-1"></i>Guardar cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade rv-modal" id="modalEliminarResena{{ r.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <form method="post" action="{% url 'eliminar_resena_perfil' r.id %}">
+                    {% csrf_token %}
+                    <div class="modal-body text-center p-4">
+                        <i class="bi bi-trash3-fill" style="font-size:2.6rem;color:#dc3545;"></i>
+                        <h5 class="mt-3 fw-bold">¿Eliminar tu reseña?</h5>
+                        <p class="text-muted small mb-3">Esta acción no se puede deshacer.</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4"
+                                data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-danger rounded-pill px-4">Sí, eliminar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+    {% endfor %}
 
     <footer class="bg-dark text-light">
         <div class="container">
@@ -402,6 +624,13 @@
             document.querySelector(".rf-form-wrap form").submit();
         }
 
+        // ── Estrellas de los modales de edición ──────────────
+        function pintarEstrellasEdicion(caja, v) {
+            caja.querySelectorAll(".rv-edit-star").forEach(btn => {
+                btn.style.color = parseInt(btn.dataset.v) <= v ? "#facc15" : "#d1d5db";
+            });
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             document.querySelectorAll(".rf-star-btn").forEach(btn => {
                 btn.addEventListener("click", () => setStar(parseInt(btn.dataset.v)));
@@ -409,6 +638,20 @@
                 btn.addEventListener("mouseleave", () => highlightStars(estrellaActual));
             });
             highlightStars(0);
+
+            document.querySelectorAll(".rv-edit-stars").forEach(caja => {
+                const input = caja.querySelector("input[name='estrellas']");
+                pintarEstrellasEdicion(caja, parseInt(input.value) || 0);
+
+                caja.querySelectorAll(".rv-edit-star").forEach(btn => {
+                    btn.addEventListener("click", () => {
+                        input.value = btn.dataset.v;
+                        pintarEstrellasEdicion(caja, parseInt(btn.dataset.v));
+                    });
+                    btn.addEventListener("mouseenter", () => pintarEstrellasEdicion(caja, parseInt(btn.dataset.v)));
+                    btn.addEventListener("mouseleave", () => pintarEstrellasEdicion(caja, parseInt(input.value) || 0));
+                });
+            });
         });
     </script>
     <script src="{% static 'js/theme.js' %}"></script>

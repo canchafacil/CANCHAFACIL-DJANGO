@@ -17,6 +17,30 @@
 
 
     <style>
+        /* ── BOTONES DE HORA ───────────────────────────────
+           Libre = blanco | Seleccionada = verde
+           Ocupada = rojo | Pasada (hora ya transcurrida) = gris */
+        .hora-btn {
+            background-color: #fff;
+            border: 2px solid #ced4da;
+            color: #212529;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 8px;
+            transition: all .15s ease-in-out;
+        }
+
+        .hora-btn:not(:disabled):hover {
+            border-color: #4fd400;
+        }
+
+        .hora-btn.seleccionada {
+            background-color: #62ff00 !important;
+            border-color: #4fd400 !important;
+            color: #03045e !important;
+            font-weight: 700;
+        }
+
         .hora-btn.ocupada {
             background-color: #dc3545 !important;
             border-color: #b02a37 !important;
@@ -24,6 +48,81 @@
             text-decoration: line-through;
             cursor: not-allowed !important;
             opacity: 0.9;
+        }
+
+        .hora-btn.pasada {
+            background-color: #adb5bd !important;
+            border-color: #8f979e !important;
+            color: #f8f9fa !important;
+            cursor: not-allowed !important;
+            opacity: 0.8;
+        }
+
+        [data-bs-theme="dark"] .hora-btn {
+            background-color: #2b3035;
+            border-color: #495057;
+            color: #f8f9fa;
+        }
+
+        [data-bs-theme="dark"] .hora-btn.seleccionada {
+            background-color: #62ff00 !important;
+            border-color: #4fd400 !important;
+            color: #03045e !important;
+        }
+
+        [data-bs-theme="dark"] .hora-btn.ocupada {
+            background-color: #dc3545 !important;
+            border-color: #b02a37 !important;
+            color: #fff !important;
+        }
+
+        [data-bs-theme="dark"] .hora-btn.pasada {
+            background-color: #495057 !important;
+            border-color: #343a40 !important;
+            color: #adb5bd !important;
+        }
+
+        [data-bs-theme="dark"] #contenedorHorarios,
+        [data-bs-theme="dark"] #editContenedorHorarios {
+            background: #212529 !important;
+            border-color: #343a40 !important;
+        }
+
+        /* ── AVISO RESERVA PENDIENTE (15 min) ── */
+        .aviso-pendiente {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 16px;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-left: 4px solid #62ff00 !important;
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .aviso-pendiente i {
+            color: #62ff00;
+            font-size: 1.15rem;
+            line-height: 1.3;
+            flex-shrink: 0;
+        }
+
+        .aviso-pendiente p {
+            margin: 0;
+            font-family: inherit !important;
+            font-size: 0.8rem !important;
+            font-weight: 400 !important;
+            line-height: 1.45;
+            letter-spacing: normal !important;
+            text-transform: none !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .aviso-pendiente strong {
+            color: #62ff00 !important;
+            font-weight: 700 !important;
         }
 
         .paso-bloqueado {
@@ -92,11 +191,11 @@
         [data-bs-theme="dark"] #nombreEquipo {
             border: 2px solid #62ff00;
         }
-        
+
         [data-bs-theme="dark"] #nombreEquipo:focus {
             border-color: #62ff00;
             box-shadow: 0 0 0 0.2rem rgba(98, 255, 0, 0.15);
-        }      
+        }
 
         [data-bs-theme="dark"] .modo-btn {
             border: 2px solid #62ff00;
@@ -117,23 +216,6 @@
             background-color: #62ff00;
             color: black;
         }
-
-        [data-bs-theme="dark"].hora-btn.ocupada {
-            background-color: #dc3545 !important;
-            border-color: #b02a37 !important;
-            color: #fff !important;
-            text-decoration: line-through;
-            cursor: not-allowed !important;
-            opacity: 0.9;
-        }
-
-        [data-bs-theme="dark"] #contenedorHorarios{
-            background: #62ff00;
-            border-color: #4fd400;
-            color: black;
-            font-weight: 700;
-        }
-
     </style>
 
 
@@ -235,7 +317,7 @@
     </nav>
 
 
-    
+
 <div class="container mt-4">
 
     <!-- PASO A PASO -->
@@ -251,64 +333,39 @@
         <div class="row justify-content-center mt-4 px-3">
 
             <div class="col-12 col-md-4 paso-item">
-
                 <div class="paso-numero">1</div>
-
-                <div class="paso-titulo">
-                    Elige tu Cancha
-                </div>
-
+                <div class="paso-titulo">Elige tu Cancha</div>
                 <p class="paso-texto">
                     Explora el catálogo y selecciona la cancha que más te guste según el tipo de juego.
                 </p>
-
                 <div class="paso-linea d-none d-md-block"></div>
-
             </div>
 
-
             <div class="col-12 col-md-4 paso-item">
-
                 <div class="paso-numero">2</div>
-
-                <div class="paso-titulo">
-                    Selecciona el Horario
-                </div>
-
+                <div class="paso-titulo">Selecciona el Horario</div>
                 <p class="paso-texto">
                     Consulta la disponibilidad en tiempo real y elige el día y la hora que más te convenga.
                 </p>
-
                 <div class="paso-linea d-none d-md-block"></div>
-
             </div>
 
-
             <div class="col-12 col-md-4 paso-item">
-
                 <div class="paso-numero">3</div>
-
-                <div class="paso-titulo">
-                    Confirma y Juega
-                </div>
-
+                <div class="paso-titulo">Confirma y Juega</div>
                 <p class="paso-texto">
                     Completa tu reserva, recibe la confirmación y llega a disfrutar. ¡Así de fácil!
                 </p>
-
             </div>
 
         </div>
 
-
         <div class="text-center mt-4">
-
             <a href="#seccionReserva">
                 <button type="button" class="btn2">
                     Reservar Ahora
                 </button>
             </a>
-
         </div>
 
     </section>
@@ -352,115 +409,52 @@
 
 
                     <div class="bg-black bg-opacity-25 rounded p-3 text-center mb-4 border border-secondary border-opacity-20 d-none d-md-block">
-
-                        <i class="bi bi-calendar-check text-white d-block mb-1"
-                            style="font-size:2.5rem;"></i>
-
-                        <small class="text-white-50 text-uppercase">
-                            CanchaFácil Booking
-                        </small>
-
+                        <i class="bi bi-calendar-check text-white d-block mb-1" style="font-size:2.5rem;"></i>
+                        <small class="text-white-50 text-uppercase">CanchaFácil Booking</small>
                     </div>
 
 
                     <div class="mb-2 d-flex justify-content-between">
-
-                        <span class="text-white-50 small">
-                            Cancha:
-                        </span>
-
-                        <span id="resumenCancha"
-                            class="fw-bold text-end ms-2">
-                            No seleccionada
-                        </span>
-
+                        <span class="text-white-50 small">Cancha:</span>
+                        <span id="resumenCancha" class="fw-bold text-end ms-2">No seleccionada</span>
                     </div>
 
 
                     <div class="mb-2 d-flex justify-content-between">
-
-                        <span class="text-white-50 small">
-                            Modalidad:
-                        </span>
-
-                        <span id="resumenModo"
-                            class="fw-bold">
-                            Partido Normal
-                        </span>
-
+                        <span class="text-white-50 small">Modalidad:</span>
+                        <span id="resumenModo" class="fw-bold">Partido Normal</span>
                     </div>
 
 
                     <!-- NOMBRE DEL EQUIPO EN EL RESUMEN -->
 
-                    <div id="resumenEquipoContenedor"
-                        class="mb-2 d-flex justify-content-between d-none">
-
-                        <span class="text-white-50 small">
-                            Equipo:
-                        </span>
-
-                        <span id="resumenEquipo"
-                            class="fw-bold text-end ms-2">
-                            —
-                        </span>
-
+                    <div id="resumenEquipoContenedor" class="mb-2 d-flex justify-content-between d-none">
+                        <span class="text-white-50 small">Equipo:</span>
+                        <span id="resumenEquipo" class="fw-bold text-end ms-2">—</span>
                     </div>
 
 
                     <div class="mb-2 d-flex justify-content-between">
-
-                        <span class="text-white-50 small">
-                            Fecha:
-                        </span>
-
-                        <span id="resumenFecha"
-                            class="fw-bold text-end ms-2">
-                            -- / -- / ----
-                        </span>
-
+                        <span class="text-white-50 small">Fecha:</span>
+                        <span id="resumenFecha" class="fw-bold text-end ms-2">-- / -- / ----</span>
                     </div>
 
 
                     <div class="mb-2 d-flex justify-content-between">
-
-                        <span class="text-white-50 small">
-                            Hora:
-                        </span>
-
-                        <span id="resumenHora"
-                            class="fw-bold text-warning">
-                            Por elegir
-                        </span>
-
+                        <span class="text-white-50 small">Hora:</span>
+                        <span id="resumenHora" class="fw-bold text-warning">Por elegir</span>
                     </div>
 
 
                     <div class="mb-2 d-flex justify-content-between">
-
-                        <span class="text-white-50 small">
-                            Duración:
-                        </span>
-
-                        <span id="resumenDuracion"
-                            class="fw-bold">
-                            1 Hora
-                        </span>
-
+                        <span class="text-white-50 small">Duración:</span>
+                        <span id="resumenDuracion" class="fw-bold">1 Hora</span>
                     </div>
 
 
                     <div class="mb-4 d-flex justify-content-between">
-
-                        <span class="text-white-50 small">
-                            Nombre:
-                        </span>
-
-                        <span id="resumenNombre"
-                            class="fw-bold">
-                            —
-                        </span>
-
+                        <span class="text-white-50 small">Nombre:</span>
+                        <span id="resumenNombre" class="fw-bold">—</span>
                     </div>
 
 
@@ -468,16 +462,8 @@
 
 
                     <div class="d-flex justify-content-between align-items-center mb-4">
-
-                        <span class="fs-5 text-white-50 fw-semibold">
-                            Total:
-                        </span>
-
-                        <span id="resumenPrecio"
-                            class="fs-3 fw-bold text-white">
-                            $ 0
-                        </span>
-
+                        <span class="fs-5 text-white-50 fw-semibold">Total:</span>
+                        <span id="resumenPrecio" class="fs-3 fw-bold text-white">$ 0</span>
                     </div>
 
 
@@ -500,15 +486,21 @@
 
 
                     <div class="text-center mt-2">
-
-                        <small class="text-white-50"
-                            style="font-size:0.72rem;">
-
+                        <small class="text-white-50" style="font-size:0.72rem;">
                             <i class="bi bi-shield-lock me-1"></i>
                             Serás redirigido a nuestro módulo de pago seguro.
-
                         </small>
+                    </div>
 
+
+                    <!-- AVISO RESERVA PENDIENTE -->
+
+                    <div class="aviso-pendiente">
+                        <i class="bi bi-clock-history"></i>
+                        <p>
+                            Tu reserva queda <strong>pendiente de pago</strong>. Si no pagas en
+                            <strong>15 minutos</strong>, se cancelará automáticamente.
+                        </p>
                     </div>
 
                 </div>
@@ -528,33 +520,22 @@
             <div class="card p-4 shadow-sm mb-4 {% if not request.session.usuario_id %}paso-bloqueado{% endif %}">
 
                 <h5 class="text-uppercase fw-bold mb-3">
-
-                    <i class="bi bi-dribbble me-2"
-                        style="color:#62ff00;"></i>
-
+                    <i class="bi bi-dribbble me-2" style="color:#62ff00;"></i>
                     1. Cancha Seleccionada
-
                 </h5>
-
 
                 {% if cancha_id %}
 
                 <div id="cardCanchaFija"></div>
 
-                <a href="{% url 'gestion_canchas:canchas' %}"
-                    class="small text-muted d-inline-block mt-2">
-
+                <a href="{% url 'gestion_canchas:canchas' %}" class="small text-muted d-inline-block mt-2">
                     <i class="bi bi-arrow-left-short"></i>
                     Elegir otra cancha
-
                 </a>
 
                 {% else %}
 
-                <div class="row g-3"
-                    id="contenedorListaCanchas">
-
-                </div>
+                <div class="row g-3" id="contenedorListaCanchas"></div>
 
                 {% endif %}
 
@@ -567,12 +548,8 @@
             <div class="card p-4 shadow-sm mb-4 {% if not request.session.usuario_id %}paso-bloqueado{% endif %}">
 
                 <h5 class="text-uppercase fw-bold mb-3">
-
-                    <i class="bi bi-calendar3 me-2"
-                        style="color:#62ff00;"></i>
-
+                    <i class="bi bi-calendar3 me-2" style="color:#62ff00;"></i>
                     2. Agenda tu Encuentro
-
                 </h5>
 
 
@@ -581,35 +558,20 @@
 
                     <div class="col-md-4 border-end">
 
+                        <label class="form-label fw-bold text-secondary small">Modalidad</label>
 
-                        <label class="form-label fw-bold text-secondary small">
-                            Modalidad
-                        </label>
+                        <div class="btn-group w-100 mb-3" role="group" aria-label="Modalidad de reserva">
 
-
-                        <div class="btn-group w-100 mb-3"
-                            role="group"
-                            aria-label="Modalidad de reserva">
-
-                            <button type="button"
-                                class="btn modo-btn active"
-                                id="btnModoNormal"
+                            <button type="button" class="btn modo-btn active" id="btnModoNormal"
                                 onclick="cambiarModoReserva('normal')">
-
                                 <i class="bi bi-1-circle me-1"></i>
                                 Partido Normal
-
                             </button>
 
-
-                            <button type="button"
-                                class="btn modo-btn"
-                                id="btnModoTorneo"
+                            <button type="button" class="btn modo-btn" id="btnModoTorneo"
                                 onclick="cambiarModoReserva('torneo')">
-
                                 <i class="bi bi-trophy me-1"></i>
                                 Torneo
-
                             </button>
 
                         </div>
@@ -617,25 +579,15 @@
 
                         <!-- NOMBRE DEL EQUIPO -->
 
-                        <div id="contenedorNombreEquipo"
-                            class="mb-3">
+                        <div id="contenedorNombreEquipo" class="mb-3">
 
-                            <label for="nombreEquipo"
-                                class="form-label fw-bold text-secondary small">
-
-                                <i class="bi bi-people-fill me-1"
-                                    style="color:#03045e;"></i>
-
+                            <label for="nombreEquipo" class="form-label fw-bold text-secondary small">
+                                <i class="bi bi-people-fill me-1" style="color:#03045e;"></i>
                                 Nombre del equipo
-
                             </label>
 
-                            <input type="text"
-                                id="nombreEquipo"
-                                class="form-control"
-                                placeholder="Ej: Los Campeones"
-                                maxlength="100"
-                                oninput="actualizarResumen()">
+                            <input type="text" id="nombreEquipo" class="form-control"
+                                placeholder="Ej: Los Campeones" maxlength="100" oninput="actualizarResumen()">
 
                             <small class="text-muted">
                                 Escribe el nombre que tendrá tu equipo en el torneo.
@@ -644,24 +596,13 @@
                         </div>
 
 
-                        <label class="form-label fw-bold text-secondary small">
-                            Fecha del partido
-                        </label>
+                        <label class="form-label fw-bold text-secondary small">Fecha del partido</label>
 
+                        <input type="text" id="fechaSeleccionada" placeholder="DD/MM/AAAA" readonly
+                            class="form-control form-control-lg shadow-sm mb-2" style="background:#fff;">
 
-                        <input type="text"
-                            id="fechaSeleccionada"
-                            placeholder="DD/MM/AAAA"
-                            readonly
-                            class="form-control form-control-lg shadow-sm mb-2"
-                            style="background:#fff;">
-
-
-                        <span class="text-muted small modo-ayuda"
-                            id="ayudaModo">
-
+                        <span class="text-muted small modo-ayuda" id="ayudaModo">
                             Elige un día para tu partido.
-
                         </span>
 
                     </div>
@@ -669,60 +610,49 @@
 
                     <div class="col-md-8">
 
-
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
 
                             <h6 class="fw-bold text-secondary small text-uppercase m-0">
                                 Horarios disponibles
                             </h6>
 
+                            <div class="d-flex flex-wrap gap-2 align-items-center" style="font-size:0.75rem;">
 
-                            <div class="d-flex gap-2 align-items-center"
-                                style="font-size:0.75rem;">
+                                <span class="leyenda-dot" style="background:#fff;border:2px solid #ced4da;"></span> Libre
 
-                                <span class="leyenda-dot"
-                                    style="background:#62ff00;border:2px solid #4fd400;">
-                                </span>
+                                <span class="leyenda-dot ms-2" style="background:#62ff00;border:2px solid #4fd400;"></span> Seleccionada
 
-                                Libre
+                                <span class="leyenda-dot ms-2" style="background:#dc3545;border:2px solid #b02a37;"></span> Ocupada
 
-
-                                <span class="leyenda-dot ms-2"
-                                    style="background:#dc3545;border:2px solid #b02a37;">
-                                </span>
-
-                                Ocupada
+                                <span class="leyenda-dot ms-2" style="background:#adb5bd;border:2px solid #8f979e;"></span> No disponible
 
                             </div>
 
                         </div>
 
 
-                        <div id="contenedorHorarios"
-                            class="d-flex flex-wrap gap-2 p-3 rounded bg-light border">
-
+                        <div id="contenedorHorarios" class="d-flex flex-wrap gap-2 p-3 rounded bg-light border">
                             <span class="text-muted small">
                                 Selecciona una fecha para ver disponibilidad.
                             </span>
-
                         </div>
 
 
                         <span class="text-muted small d-block mt-2">
-
-                            Puedes seleccionar varias horas (máximo 12 por reserva).
-
+                            Puedes seleccionar varias horas (máximo 12 por reserva). Horario de Colombia.
                         </span>
 
 
-                        <div id="avisoTodoOcupado"
-                            class="alert alert-danger py-2 px-3 mt-2 mb-0 d-none"
+                        <div id="avisoTodoOcupado" class="alert alert-danger py-2 px-3 mt-2 mb-0 d-none"
                             style="font-size:0.85rem;">
-
                             <i class="bi bi-exclamation-octagon-fill me-1"></i>
-
                             Esta cancha ya está reservada por completo para la fecha seleccionada.
+                        </div>
 
+                        <div id="avisoSinHorarios" class="alert alert-secondary py-2 px-3 mt-2 mb-0 d-none"
+                            style="font-size:0.85rem;">
+                            <i class="bi bi-clock-history me-1"></i>
+                            Ya no quedan horarios disponibles para hoy. Elige otra fecha.
                         </div>
 
                     </div>
@@ -738,12 +668,8 @@
             <div class="card p-4 shadow-sm mb-4">
 
                 <h5 class="text-uppercase fw-bold mb-3">
-
-                    <i class="bi bi-person-fill me-2"
-                        style="color:#62ff00;"></i>
-
+                    <i class="bi bi-person-fill me-2" style="color:#62ff00;"></i>
                     3. Datos del Jugador
-
                 </h5>
 
 
@@ -752,18 +678,13 @@
                 <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2">
 
                     <span>
-
                         <i class="bi bi-exclamation-triangle me-2"></i>
                         Tienes que iniciar sesión para poder reservar.
-
                     </span>
 
-                    <a href="{% url 'usuarios:login' %}"
-                        class="btn btn-sm text-white"
+                    <a href="{% url 'usuarios:login' %}" class="btn btn-sm text-white"
                         style="background-color:#03045e;">
-
                         Iniciar sesión
-
                     </a>
 
                 </div>
@@ -771,13 +692,10 @@
                 {% elif tiene_reserva_activa %}
 
                 <div class="alert alert-danger d-flex align-items-center">
-
                     <i class="bi bi-exclamation-octagon-fill me-2"></i>
-
                     <span>
                         Ya tienes una reserva activa. Debes finalizarla o cancelarla antes de crear una nueva.
                     </span>
-
                 </div>
 
                 {% endif %}
@@ -785,50 +703,26 @@
 
                 <div class="row g-3">
 
-
                     <div class="col-md-6">
-
-                        <label class="form-label fw-semibold text-secondary small">
-                            Nombre completo
-                        </label>
-
-                        <input type="text"
-                            id="nombre"
-                            class="form-control"
+                        <label class="form-label fw-semibold text-secondary small">Nombre completo</label>
+                        <input type="text" id="nombre" class="form-control"
                             value="{% if usuario %}{{ usuario.first_name }} {{ usuario.last_name }}{% endif %}"
                             {% if usuario %}readonly{% else %}disabled placeholder="Inicia sesión primero"{% endif %}
                             oninput="actualizarResumen()">
-
                     </div>
 
-
                     <div class="col-md-6">
-
-                        <label class="form-label fw-semibold text-secondary small">
-                            Teléfono celular
-                        </label>
-
-                        <input type="tel"
-                            id="telefono"
-                            class="form-control"
+                        <label class="form-label fw-semibold text-secondary small">Teléfono celular</label>
+                        <input type="tel" id="telefono" class="form-control"
                             value="{% if usuario %}{{ usuario.phone }}{% endif %}"
                             {% if usuario %}readonly{% else %}disabled{% endif %}>
-
                     </div>
 
-
                     <div class="col-md-6">
-
-                        <label class="form-label fw-semibold text-secondary small">
-                            Correo electrónico
-                        </label>
-
-                        <input type="email"
-                            id="correo"
-                            class="form-control"
+                        <label class="form-label fw-semibold text-secondary small">Correo electrónico</label>
+                        <input type="email" id="correo" class="form-control"
                             value="{% if usuario %}{{ usuario.email }}{% endif %}"
                             {% if usuario %}readonly{% else %}disabled{% endif %}>
-
                     </div>
 
                 </div>
@@ -843,66 +737,35 @@
 
 
 
-<footer class="mt-5"
-    style="background:linear-gradient(to right,#1f252b,#2b333b);color:white;padding:30px 0;">
+<footer class="mt-5" style="background:linear-gradient(to right,#1f252b,#2b333b);color:white;padding:30px 0;">
 
     <div class="container">
 
         <div class="row mb-2">
 
             <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
-
-                Teléfono:
-                <span style="color:#62ff00;">
-                    +57 300 000 0000
-                </span>
-
+                Teléfono: <span style="color:#62ff00;">+57 300 000 0000</span>
             </div>
 
-
             <div class="col-md-6 text-center text-md-end">
-
-                Correo:
-                <span style="color:#62ff00;">
-                    canchafacil@gmail.com
-                </span>
-
+                Correo: <span style="color:#62ff00;">canchafacil@gmail.com</span>
             </div>
 
         </div>
 
-
         <hr style="border-color:rgba(255,255,255,0.15);">
-
 
         <div class="row align-items-center">
 
             <div class="col-md-6 text-center text-md-start mb-2 mb-md-0 small">
-
-                Copyright © 2026 CanchaFácil.
-                Todos los derechos reservados.
-
+                Copyright © 2026 CanchaFácil. Todos los derechos reservados.
             </div>
 
-
             <div class="col-md-6 text-center text-md-end">
-
-                <a href="#" style="color:#62ff00;">
-                    <i class="bi bi-youtube ms-2"></i>
-                </a>
-
-                <a href="#" style="color:#62ff00;">
-                    <i class="bi bi-facebook ms-2"></i>
-                </a>
-
-                <a href="#" style="color:#62ff00;">
-                    <i class="bi bi-instagram ms-2"></i>
-                </a>
-
-                <a href="#" style="color:#62ff00;">
-                    <i class="bi bi-tiktok ms-2"></i>
-                </a>
-
+                <a href="#" style="color:#62ff00;"><i class="bi bi-youtube ms-2"></i></a>
+                <a href="#" style="color:#62ff00;"><i class="bi bi-facebook ms-2"></i></a>
+                <a href="#" style="color:#62ff00;"><i class="bi bi-instagram ms-2"></i></a>
+                <a href="#" style="color:#62ff00;"><i class="bi bi-tiktok ms-2"></i></a>
             </div>
 
         </div>
@@ -915,107 +778,53 @@
 
 <!-- MODAL EDITAR -->
 
-<div class="modal fade"
-    id="modalEditarReserva"
-    tabindex="-1">
+<div class="modal fade" id="modalEditarReserva" tabindex="-1">
 
     <div class="modal-dialog modal-lg">
 
         <div class="modal-content">
 
             <div class="modal-header">
-
-                <h5 class="modal-title fw-bold">
-                    Editar Reserva
-                </h5>
-
-                <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal">
-                </button>
-
+                <h5 class="modal-title fw-bold">Editar Reserva</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
 
             <div class="modal-body">
 
-                <input type="hidden"
-                    id="editId">
-
+                <input type="hidden" id="editId">
 
                 <div class="row g-3 mb-3">
 
                     <div class="col-md-6">
-
-                        <label class="form-label small fw-bold text-secondary">
-                            Nombre
-                        </label>
-
-                        <input class="form-control"
-                            id="editNombre"
-                            placeholder="Nombre">
-
+                        <label class="form-label small fw-bold text-secondary">Nombre</label>
+                        <input class="form-control" id="editNombre" placeholder="Nombre">
                     </div>
-
 
                     <div class="col-md-6">
-
-                        <label class="form-label small fw-bold text-secondary">
-                            Teléfono
-                        </label>
-
-                        <input class="form-control"
-                            id="editTelefono"
-                            placeholder="Teléfono">
-
+                        <label class="form-label small fw-bold text-secondary">Teléfono</label>
+                        <input class="form-control" id="editTelefono" placeholder="Teléfono">
                     </div>
 
-
                     <div class="col-md-12">
-
-                        <label class="form-label small fw-bold text-secondary">
-                            Correo
-                        </label>
-
-                        <input class="form-control"
-                            id="editCorreo"
-                            placeholder="Correo">
-
+                        <label class="form-label small fw-bold text-secondary">Correo</label>
+                        <input class="form-control" id="editCorreo" placeholder="Correo">
                     </div>
 
                 </div>
 
-
                 <hr>
-
 
                 <div class="row g-3">
 
                     <div class="col-md-6">
-
-                        <label class="form-label small fw-bold text-secondary">
-                            Cancha
-                        </label>
-
-                        <select class="form-select"
-                            id="editCancha"
-                            onchange="onCambioCanchaEdit()">
-                        </select>
-
+                        <label class="form-label small fw-bold text-secondary">Cancha</label>
+                        <select class="form-select" id="editCancha" onchange="onCambioCanchaEdit()"></select>
                     </div>
 
-
                     <div class="col-md-6">
-
-                        <label class="form-label small fw-bold text-secondary">
-                            Fecha del partido
-                        </label>
-
-                        <input type="date"
-                            class="form-control"
-                            id="editFecha"
-                            onchange="onCambioFechaEdit()">
-
+                        <label class="form-label small fw-bold text-secondary">Fecha del partido</label>
+                        <input type="date" class="form-control" id="editFecha" onchange="onCambioFechaEdit()">
                     </div>
 
                 </div>
@@ -1023,26 +832,21 @@
 
                 <div class="mt-3">
 
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
 
                         <label class="form-label small fw-bold text-secondary text-uppercase m-0">
                             Horarios disponibles
                         </label>
 
-                        <div class="d-flex gap-2 align-items-center"
-                            style="font-size:0.72rem;">
+                        <div class="d-flex flex-wrap gap-2 align-items-center" style="font-size:0.72rem;">
 
-                            <span class="leyenda-dot"
-                                style="background:#62ff00;border:2px solid #4fd400;">
-                            </span>
+                            <span class="leyenda-dot" style="background:#fff;border:2px solid #ced4da;"></span> Libre
 
-                            Libre
+                            <span class="leyenda-dot ms-2" style="background:#62ff00;border:2px solid #4fd400;"></span> Seleccionada
 
-                            <span class="leyenda-dot ms-2"
-                                style="background:#dc3545;border:2px solid #b02a37;">
-                            </span>
+                            <span class="leyenda-dot ms-2" style="background:#dc3545;border:2px solid #b02a37;"></span> Ocupada
 
-                            Ocupada
+                            <span class="leyenda-dot ms-2" style="background:#adb5bd;border:2px solid #8f979e;"></span> No disponible
 
                         </div>
 
@@ -1052,11 +856,7 @@
                     <div id="editContenedorHorarios"
                         class="d-flex flex-wrap gap-2 p-3 rounded bg-light border"
                         style="max-height:190px;overflow-y:auto;">
-
-                        <span class="text-muted small">
-                            Selecciona cancha y fecha.
-                        </span>
-
+                        <span class="text-muted small">Selecciona cancha y fecha.</span>
                     </div>
 
 
@@ -1067,26 +867,14 @@
                 </div>
 
 
-                <div class="rounded p-3 mt-3 border"
-                    style="background-color:#f4f6fb;"
-                    id="editContenedorPrecio">
-                </div>
+                <div class="rounded p-3 mt-3 border" style="background-color:#f4f6fb;" id="editContenedorPrecio"></div>
 
             </div>
 
 
             <div class="modal-footer">
-
-                <button class="btn btn-secondary"
-                    data-bs-dismiss="modal">
-                    Cancelar
-                </button>
-
-                <button class="btn btn-success"
-                    onclick="guardarEdicion()">
-                    Guardar cambios
-                </button>
-
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-success" onclick="guardarEdicion()">Guardar cambios</button>
             </div>
 
         </div>
@@ -1099,33 +887,19 @@
 
 <!-- MODAL NOTIFICACIÓN -->
 
-<div class="modal fade"
-    id="modalNotificacion"
-    tabindex="-1">
+<div class="modal fade" id="modalNotificacion" tabindex="-1">
 
     <div class="modal-dialog modal-dialog-centered">
 
         <div class="modal-content">
 
             <div class="modal-header border-0">
-
-                <h5 class="modal-title fw-bold"
-                    id="modalNotiTitulo">
-                    Estatus
-                </h5>
-
-                <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal">
-                </button>
-
+                <h5 class="modal-title fw-bold" id="modalNotiTitulo">Estatus</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
-            <div class="modal-body py-3 text-dark"
-                id="modalNotiCuerpo">
-
+            <div class="modal-body py-3 text-dark" id="modalNotiCuerpo">
                 Operación efectuada.
-
             </div>
 
         </div>
@@ -1138,23 +912,17 @@
 
 <!-- MODAL LOGOUT -->
 
-<div class="modal fade"
-    id="modalLogout"
-    tabindex="-1"
-    aria-hidden="true">
+<div class="modal fade" id="modalLogout" tabindex="-1" aria-hidden="true">
 
     <div class="modal-dialog modal-dialog-centered">
 
-        <div class="modal-content"
-            style="border-radius:16px;border:none;">
+        <div class="modal-content" style="border-radius:16px;border:none;">
 
             <div class="modal-body text-center p-4">
 
                 <i class="bi bi-box-arrow-right"></i>
 
-                <h5 class="mt-3 fw-bold">
-                    ¿Cerrar sesión?
-                </h5>
+                <h5 class="mt-3 fw-bold">¿Cerrar sesión?</h5>
 
                 <p class="text-muted">
                     Vas a tener que volver a iniciar sesión para acceder a tu perfil.
@@ -1162,14 +930,12 @@
 
                 <div class="d-flex justify-content-center gap-2 mt-3">
 
-                    <button type="button"
-                        class="btn btn-outline-secondary rounded-pill px-4"
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4"
                         data-bs-dismiss="modal">
                         Cancelar
                     </button>
 
-                    <a href="{% url 'usuarios:logout' %}"
-                        class="btn rounded-pill px-4 text-white"
+                    <a href="{% url 'usuarios:logout' %}" class="btn rounded-pill px-4 text-white"
                         style="background-color:#03045e;">
                         Sí, cerrar sesión
                     </a>
@@ -1285,6 +1051,48 @@
     ];
 
 
+    // ── HORA DE COLOMBIA ──────────────────────────────────
+    // Usa la zona horaria America/Bogota sin importar la hora del dispositivo.
+
+    function ahoraColombia() {
+
+        const partes = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'America/Bogota',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            hour12: false
+        }).formatToParts(new Date());
+
+        const get = t => partes.find(p => p.type === t).value;
+
+        let hora = parseInt(get('hour'), 10);
+
+        if (hora === 24) hora = 0;
+
+        return {
+            fecha: `${get('year')}-${get('month')}-${get('day')}`,
+            hora: hora
+        };
+
+    }
+
+
+    // Una hora ya pasó si alguna de las fechas es hoy (Colombia)
+    // y la hora del botón ya empezó o terminó.
+
+    function horaPasada(fechas, h) {
+
+        const ahora = ahoraColombia();
+
+        if (!fechas || !fechas.includes(ahora.fecha)) return false;
+
+        return parseInt(h.substring(0, 2), 10) <= ahora.hora;
+
+    }
+
+
     // ── ESTADO PRINCIPAL ─────────────────────────────────
     let canchaSeleccionada = null;
     let horasSeleccionadas = [];
@@ -1354,6 +1162,8 @@
                     <div class="fw-bold mt-1">
                         $${c.precio.toLocaleString('es-CO')}/h
                     </div>
+                    <div class="fw-bold mt-1">$${c.precio.toLocaleString('es-CO')}/h</div>
+
                 </div>
             </div>
 
@@ -1361,11 +1171,18 @@
 
         if (PRESELECCIONAR_ID && LOGUEADO) {
             const idx = CANCHAS_DATA.findIndex(c => c.id === PRESELECCIONAR_ID);
+
+            const idx = CANCHAS_DATA.findIndex(c => c.id === PRESELECCIONAR_ID);
+
             if (idx !== -1) {
                 seleccionarCancha(idx);
                 document
                     .getElementById('seccionReserva')
                     .scrollIntoView({ behavior: 'smooth' });
+
+                document.getElementById('seccionReserva')
+                    .scrollIntoView({ behavior: 'smooth' });
+
             }
         }
     }
@@ -1375,6 +1192,7 @@
     function renderCanchaFija() {
 
         const cont = document.getElementById('cardCanchaFija');
+
         if (!cont) return;
 
         if (!PRESELECCIONAR_ID) {
@@ -1401,6 +1219,11 @@
                 <div>
                     <div class="fw-bold">${c.nombre}</div>
                     <div class="text-muted small">${c.tipo}</div>
+
+                    <div class="fw-bold">${c.nombre}</div>
+
+                    <div class="text-muted small">${c.tipo}</div>
+
                     <div class="fw-bold" style="color:#03045e;">
                         $${c.precio.toLocaleString('es-CO')}/h
                     </div>
@@ -1434,6 +1257,12 @@
             .forEach(el => el.classList.remove('seleccionada'));
 
         const el = document.getElementById(`cancha-${i}`);
+
+        document.querySelectorAll('.cancha-card')
+            .forEach(el => el.classList.remove('seleccionada'));
+
+        const el = document.getElementById(`cancha-${i}`);
+
         if (el) el.classList.add('seleccionada');
 
         horasSeleccionadas = [];
@@ -1471,6 +1300,15 @@
 
         const resumenEquipoContenedor =
             document.getElementById('resumenEquipoContenedor');
+        document.getElementById('btnModoNormal')
+            .classList.toggle('active', modo === 'normal');
+
+        document.getElementById('btnModoTorneo')
+            .classList.toggle('active', modo === 'torneo');
+
+        const contenedorEquipo = document.getElementById('contenedorNombreEquipo');
+
+        const resumenEquipoContenedor = document.getElementById('resumenEquipoContenedor');
 
         if (modo === 'torneo') {
 
@@ -1524,6 +1362,8 @@
 
             // usa la fecha del servidor (Bogotá), no la del reloj del usuario
             minDate: hoyBogotaStr(),
+            // "hoy" según Colombia, no según el dispositivo
+            minDate: ahoraColombia().fecha,
 
             onChange: function (selectedDates, dateStr, instance) {
 
@@ -1544,6 +1384,33 @@
 
                 horasSeleccionadas = [];
 
+                    mostrarModal(
+                        'Inicia sesión',
+                        'Debes iniciar sesión para poder reservar una cancha.'
+                    );
+
+                    instance.clear();
+
+                    fechasSeleccionadas = [];
+
+                    return;
+
+                }
+
+                fechasSeleccionadas = selectedDates
+                    .map(d => instance.formatDate(d, 'Y-m-d'))
+                    .sort();
+
+                horasSeleccionadas = [];
+
+                renderHorarios();
+
+                actualizarResumen();
+
+            }
+
+        });
+
                 renderHorarios();
                 actualizarResumen();
             }
@@ -1552,6 +1419,8 @@
 
 
     // ── HORARIOS OCUPADOS ─────────────────────────────────
+    function getOcupadas(cancha, fechas, idExcluir = null) {
+
     function getOcupadas(cancha, fechas, idExcluir = null) {
 
         if (!cancha || !fechas || fechas.length === 0) return [];
@@ -1565,6 +1434,10 @@
                     r.cancha === cancha.nombre &&
                     fechas.includes(r.fecha) &&
                     r.id !== idExcluir
+            .filter(r =>
+                r.cancha === cancha.nombre &&
+                fechas.includes(r.fecha) &&
+                r.id !== idExcluir
             )
             .forEach(r => set.add(r.hora.substring(0, 5)));
 
@@ -1579,6 +1452,20 @@
         const avisoTodoOcupado = document.getElementById('avisoTodoOcupado');
 
         avisoTodoOcupado.classList.add('d-none');
+
+    // Gris = pasada | Rojo = ocupada | Verde = seleccionada
+
+    function renderHorarios() {
+
+        const cont = document.getElementById('contenedorHorarios');
+
+        const avisoTodoOcupado = document.getElementById('avisoTodoOcupado');
+
+        const avisoSinHorarios = document.getElementById('avisoSinHorarios');
+
+        avisoTodoOcupado.classList.add('d-none');
+
+        avisoSinHorarios.classList.add('d-none');
 
         if (fechasSeleccionadas.length === 0) {
 
@@ -1635,6 +1522,76 @@
                 !ocupadas.includes(h) &&
                 !fechasSeleccionadas.some(f => horaPasada(f, h))
         );
+        // Si una hora seleccionada ya pasó (la página siguió abierta), se quita
+        const antes = horasSeleccionadas.length;
+
+        horasSeleccionadas = horasSeleccionadas
+            .filter(h => !horaPasada(fechasSeleccionadas, h));
+
+        if (horasSeleccionadas.length !== antes) actualizarResumen();
+
+        const ocupadas = getOcupadas(canchaSeleccionada, fechasSeleccionadas);
+
+        let deshabilitadas = 0;
+
+        cont.innerHTML = HORAS.map(h => {
+
+            const pasada = horaPasada(fechasSeleccionadas, h);
+
+            const estaOcupada = ocupadas.includes(h);
+
+            const seleccionada = horasSeleccionadas.includes(h);
+
+            let cls = 'hora-btn';
+
+            let titulo = `Seleccionar ${h}`;
+
+            if (pasada) {
+
+                cls += ' pasada';
+
+                titulo = 'Esta hora ya pasó';
+
+            } else if (estaOcupada) {
+
+                cls += ' ocupada';
+
+                titulo = 'Hora ya reservada en una de las fechas elegidas';
+
+            } else if (seleccionada) {
+
+                cls += ' seleccionada';
+
+            }
+
+            const bloqueada = pasada || estaOcupada;
+
+            if (bloqueada) deshabilitadas++;
+
+            return `
+
+                <button
+                    type="button"
+                    class="${cls}"
+                    ${bloqueada ? 'disabled' : ''}
+                    title="${titulo}"
+                    onclick="seleccionarHora('${h}')">
+
+                    ${h}
+
+                </button>
+
+            `;
+
+        }).join('');
+
+        if (ocupadas.length >= HORAS.length) {
+
+            avisoTodoOcupado.classList.remove('d-none');
+
+        } else if (deshabilitadas >= HORAS.length) {
+
+            avisoSinHorarios.classList.remove('d-none');
 
         if (disponibles.length === 0) {
             avisoTodoOcupado.classList.remove('d-none');
@@ -1659,11 +1616,20 @@
             return;
         }
 
+        if (horaPasada(fechasSeleccionadas, h)) {
+
+            renderHorarios();
+
+            return;
+
+        }
+
         const idx = horasSeleccionadas.indexOf(h);
 
         if (idx === -1) {
 
             if (horasSeleccionadas.length >= MAX_HORAS_POR_RESERVA) {
+
                 mostrarModal(
                     'Límite de horas',
                     `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`
@@ -1700,6 +1666,7 @@
             modoReserva === 'torneo' ? 'Torneo' : 'Partido Normal';
 
         if (modoReserva === 'torneo') {
+
             document.getElementById('resumenEquipo').textContent =
                 nombreEquipo || 'Por ingresar';
         }
@@ -1738,11 +1705,14 @@
         } else {
 
             document.getElementById('resumenPrecio').textContent = '$ 0';
+
         }
     }
 
 
     // ── DURACIÓN ──────────────────────────────────────────
+    function calcularDuracionTexto(nHoras, nDias = 1) {
+
     function calcularDuracionTexto(nHoras, nDias = 1) {
 
         if (nHoras === 0) return '—';
@@ -1752,6 +1722,7 @@
         if (nDias > 1) {
             return `${horasTxt} x ${nDias} días`;
         }
+        if (nDias > 1) return `${horasTxt} x ${nDias} días`;
 
         return horasTxt;
     }
@@ -1760,6 +1731,9 @@
     // ── FORMATEAR FECHA ───────────────────────────────────
     function formatearFecha(f) {
         const [y, m, d] = f.split('-');
+
+        const [y, m, d] = f.split('-');
+
         return `${d} / ${m} / ${y}`;
     }
 
@@ -1769,6 +1743,9 @@
 
         if (!LOGUEADO) {
             window.location.href = "{% url 'usuarios:login' %}";
+
+            window.location.href = "{% url 'usuarios:login' %}";
+
             return;
         }
 
@@ -1787,10 +1764,23 @@
 
         if (!canchaSeleccionada) {
             mostrarModal('Falta información', 'Selecciona una cancha.');
+
+        const correo = document.getElementById('correo').value.trim();
+
+        const telefono = document.getElementById('telefono').value.trim();
+
+        const nombreEquipo = document.getElementById('nombreEquipo').value.trim();
+
+
+        if (!canchaSeleccionada) {
+
+            mostrarModal('Falta información', 'Selecciona una cancha.');
+
             return;
         }
 
         if (fechasSeleccionadas.length === 0) {
+
             mostrarModal(
                 'Falta información',
                 modoReserva === 'torneo'
@@ -1801,6 +1791,7 @@
         }
 
         if (modoReserva === 'torneo' && nombreEquipo === '') {
+
             mostrarModal(
                 'Falta el nombre del equipo',
                 'Escribe el nombre de tu equipo para poder registrar el torneo.'
@@ -1810,10 +1801,30 @@
 
         if (horasSeleccionadas.length === 0) {
             mostrarModal('Falta información', 'Selecciona al menos una hora.');
+
+            mostrarModal('Falta información', 'Selecciona al menos una hora.');
+
             return;
         }
 
         if (horasSeleccionadas.length > MAX_HORAS_POR_RESERVA) {
+        if (horasSeleccionadas.some(h => horaPasada(fechasSeleccionadas, h))) {
+
+            mostrarModal(
+                'Hora no disponible',
+                'Alguna de las horas seleccionadas ya pasó. Elige otras horas.'
+            );
+
+            renderHorarios();
+
+            actualizarResumen();
+
+            return;
+
+        }
+
+        if (horasSeleccionadas.length > MAX_HORAS_POR_RESERVA) {
+
             mostrarModal(
                 'Límite de horas',
                 `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`
@@ -1878,10 +1889,60 @@
 
                 if (r.status === 401) {
                     window.location.href = "{% url 'usuarios:login' %}";
+
+        const fechasOrdenadas = [...fechasSeleccionadas].sort();
+
+        fetch("{% url 'crear_reserva' %}", {
+
+            method: 'POST',
+
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRF(),
+            },
+
+            body: JSON.stringify({
+
+                nombre,
+
+                correo,
+
+                telefono,
+
+                modo: modoReserva,
+
+                equipo_nombre: modoReserva === 'torneo' ? nombreEquipo : '',
+
+                fecha: fechasOrdenadas[0],
+
+                fechas: fechasOrdenadas,
+
+                hora: horasOrdenadas[0],
+
+                horas: horasOrdenadas,
+
+                cancha: canchaSeleccionada.nombre,
+
+                duracion: calcularDuracionTexto(
+                    horasSeleccionadas.length,
+                    fechasSeleccionadas.length
+                ),
+
+            })
+
+        })
+
+            .then(r => {
+
+                if (r.status === 401) {
+
+                    window.location.href = "{% url 'usuarios:login' %}";
+
                     return null;
                 }
 
                 return r.json().then(data => ({ status: r.status, data }));
+
             })
 
             .then(res => {
@@ -1903,6 +1964,7 @@
                     );
 
                     btn.disabled = false;
+
                     btn.innerHTML =
                         '<i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar';
 
@@ -1916,6 +1978,7 @@
                     );
 
                     btn.disabled = false;
+
                     btn.innerHTML =
                         '<i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar';
                 }
@@ -1929,6 +1992,7 @@
                 );
 
                 btn.disabled = false;
+
                 btn.innerHTML =
                     '<i class="bi bi-credit-card me-2"></i>Confirmar e Ir a Pagar';
             });
@@ -1940,16 +2004,26 @@
 
         const sel = document.getElementById('editCancha');
 
+ HEAD
         sel.innerHTML =
             CANCHAS_DATA.map(c =>
                 `<option value="${c.nombre}">
                     ${c.nombre} ($${c.precio.toLocaleString('es-CO')}/h)
                 </option>`
             ).join('');
+
+        sel.innerHTML = CANCHAS_DATA.map(c =>
+            `<option value="${c.nombre}">
+                ${c.nombre} ($${c.precio.toLocaleString('es-CO')}/h)
+            </option>`
+        ).join('');
+
+ 5c667d0 (arreglon tiempo de reservas y reseñas)
     }
 
 
     function obtenerPrecioCancha(nombre) {
+ HEAD
         const c = CANCHAS_DATA.find(x => x.nombre === nombre);
         return c ? c.precio : 0;
     }
@@ -1966,6 +2040,100 @@
                     r.id !== idExcluir
             )
             .map(r => r.hora.substring(0, 5));
+
+
+        const c = CANCHAS_DATA.find(x => x.nombre === nombre);
+
+        return c ? c.precio : 0;
+
+    }
+
+
+
+    function renderHorariosEdicion() {
+
+        const cont = document.getElementById('editContenedorHorarios');
+
+        const fecha = document.getElementById('editFecha').value;
+
+        const canchaNombre = document.getElementById('editCancha').value;
+
+        if (!fecha || !canchaNombre) {
+
+            cont.innerHTML =
+                '<span class="text-muted small">Selecciona cancha y fecha.</span>';
+
+            return;
+
+        }
+
+        const ocupadas = getOcupadasParaEdicion(canchaNombre, fecha, editIdActual);
+
+        cont.innerHTML = HORAS.map(h => {
+
+            const estaOcupada = ocupadas.includes(h);
+
+            const seleccionada = editHorasSeleccionadas.includes(h);
+
+            // una hora ya elegida en la reserva se deja quitar aunque ya haya pasado
+            const pasada = horaPasada([fecha], h) && !seleccionada;
+
+            let cls = 'hora-btn';
+
+            let titulo = `Seleccionar ${h}`;
+
+            if (pasada) {
+
+                cls += ' pasada';
+
+                titulo = 'Esta hora ya pasó';
+
+            } else if (estaOcupada) {
+
+                cls += ' ocupada';
+
+                titulo = 'Hora ya reservada';
+
+            } else if (seleccionada) {
+
+                cls += ' seleccionada';
+
+            }
+
+            return `
+
+                <button
+                    type="button"
+                    class="${cls}"
+                    ${(pasada || estaOcupada) ? 'disabled' : ''}
+                    title="${titulo}"
+                    onclick="toggleHoraEdicion('${h}')">
+
+                    ${h}
+
+                </button>
+
+            `;
+
+        }).join('');
+
+        actualizarResumenPrecioEdicion();
+
+    }
+
+
+
+    function getOcupadasParaEdicion(canchaNombre, fecha, idExcluir) {
+
+        return RESERVAS_BD
+            .filter(r =>
+                r.cancha === canchaNombre &&
+                r.fecha === fecha &&
+                r.id !== idExcluir
+            )
+            .map(r => r.hora.substring(0, 5));
+
+ 5c667d0 (arreglon tiempo de reservas y reseñas)
     }
 
 
@@ -2024,6 +2192,7 @@
 
     function toggleHoraEdicion(h) {
 
+ HEAD
         const fecha = document.getElementById('editFecha').value;
 
         if (horaPasada(fecha, h)) {
@@ -2032,11 +2201,16 @@
             return;
         }
 
+
+ 5c667d0 (arreglon tiempo de reservas y reseñas)
         const idx = editHorasSeleccionadas.indexOf(h);
 
         if (idx === -1) {
 
             if (editHorasSeleccionadas.length >= MAX_HORAS_POR_RESERVA) {
+ HEAD
+
+ 5c667d0 (arreglon tiempo de reservas y reseñas)
                 mostrarModal(
                     'Límite de horas',
                     `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`
@@ -2048,7 +2222,8 @@
 
         } else {
 
-            editHorasSeleccionadas.splice(idx, 1);
+            editHorasSeleccionadas.splice(idx, 1); HEAD
+             5c667d0 (arreglon tiempo de reservas y reseñas)
         }
 
         renderHorariosEdicion();
@@ -2079,6 +2254,9 @@
 
         let mensaje = 'Sin cambios en el valor de la reserva.';
         let colorClass = 'text-muted';
+
+        let colorClass = 'text-muted';
+
         let icono = 'bi-check-circle';
 
         if (diferencia > 0) {
@@ -2088,18 +2266,30 @@
             colorClass = 'text-danger';
             icono = 'bi-exclamation-triangle-fill';
 
+            colorClass = 'text-danger';
+
+            icono = 'bi-exclamation-triangle-fill';
+
         } else if (diferencia < 0) {
 
             mensaje =
                 `Al quitar horas, se devolverá $${Math.abs(diferencia).toLocaleString('es-CO')} a tu cuenta registrada.`;
             colorClass = 'text-success';
             icono = 'bi-arrow-return-left';
+
+            colorClass = 'text-success';
+
+            icono = 'bi-arrow-return-left';
+
         }
 
         document.getElementById('editContenedorPrecio').innerHTML = `
 
             <div class="d-flex justify-content-between small mb-1">
                 <span class="text-muted">Precio actual de la reserva:</span>
+
+                <span class="text-muted">Precio actual de la reserva:</span>
+
                 <span class="fw-bold">
                     $${editPrecioOriginalTotal.toLocaleString('es-CO')}
                 </span>
@@ -2117,6 +2307,9 @@
             <div class="${colorClass} small fw-semibold d-flex align-items-start gap-1">
                 <i class="bi ${icono} mt-1"></i>
                 <span>${mensaje}</span>
+
+                <span>${mensaje}</span>
+
             </div>
 
         `;
@@ -2146,6 +2339,20 @@
                 ? fecha.substring(0, 10)
                 : hoyBogotaStr();
 
+        document.getElementById('editNombre').value = nombre;
+
+        document.getElementById('editCorreo').value = correo;
+
+        document.getElementById('editTelefono').value = telefono;
+
+        document.getElementById('editFecha').value =
+            (fecha && fecha !== "None")
+                ? fecha.substring(0, 10)
+                : ahoraColombia().fecha;
+
+        // no permitir fechas pasadas (según Colombia)
+        document.getElementById('editFecha').min = ahoraColombia().fecha;
+
         poblarSelectCanchasEdit();
 
         document.getElementById('editCancha').value = cancha;
@@ -2156,6 +2363,7 @@
                 : [horasReserva];
 
         editHorasOriginales = [...editHorasSeleccionadas];
+            Array.isArray(horasReserva) ? [...horasReserva] : [horasReserva];
 
         const precioHoraOriginal = obtenerPrecioCancha(cancha);
 
@@ -2167,6 +2375,8 @@
         new bootstrap.Modal(
             document.getElementById('modalEditarReserva')
         ).show();
+        new bootstrap.Modal(document.getElementById('modalEditarReserva')).show();
+
     }
 
 
@@ -2178,15 +2388,28 @@
 
         if (!id || !fecha) {
             mostrarModal('Falta información', 'Completa los campos requeridos.');
+
+        const fecha = document.getElementById('editFecha').value;
+
+        const cancha = document.getElementById('editCancha').value;
+
+        if (!id || !fecha) {
+
+            mostrarModal('Falta información', 'Completa los campos requeridos.');
+
             return;
         }
 
         if (editHorasSeleccionadas.length === 0) {
             mostrarModal('Falta información', 'Selecciona al menos una hora.');
+
+            mostrarModal('Falta información', 'Selecciona al menos una hora.');
+
             return;
         }
 
         if (editHorasSeleccionadas.length > MAX_HORAS_POR_RESERVA) {
+
             mostrarModal(
                 'Límite de horas',
                 `No puedes reservar más de ${MAX_HORAS_POR_RESERVA} horas en una sola reserva.`
@@ -2209,6 +2432,8 @@
             renderHorariosEdicion();
             return;
         }
+
+        const horasOrdenadas = [...editHorasSeleccionadas].sort();
 
         const horasOrdenadas = [...editHorasSeleccionadas].sort();
 
@@ -2257,11 +2482,48 @@
             }
         )
 
+        fetch(`/reservas/editar/${id}/`, {
+
+            method: 'POST',
+
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRF()
+            },
+
+            body: JSON.stringify({
+
+                nombre: document.getElementById('editNombre').value,
+
+                correo: document.getElementById('editCorreo').value,
+
+                telefono: document.getElementById('editTelefono').value,
+
+                fecha,
+
+                hora: horasOrdenadas[0],
+
+                horas: horasOrdenadas,
+
+                cancha,
+
+                duracion: calcularDuracionTexto(horasOrdenadas.length),
+
+                diferencia_pago: diferencia
+
+            })
+
+        })
+
             .then(r => r.json())
 
             .then(data => {
 
                 if (data.status === 'ok') {
+
+                    if (diferencia > 0) {
+
+                        window.location.href = "{% url 'pago' %}";
 
                     if (diferencia > 0) {
                         window.location.href = "{% url 'pago' %}";
@@ -2287,6 +2549,11 @@
             document.cookie
                 .split(';')
                 .find(c => c.trim().startsWith('csrftoken='));
+        const c = document.cookie
+            .split(';')
+            .find(c => c.trim().startsWith('csrftoken='));
+
+        return c ? decodeURIComponent(c.split('=')[1]) : '';
 
         return c ? decodeURIComponent(c.split('=')[1]) : '';
     }
@@ -2300,6 +2567,14 @@
         new bootstrap.Modal(
             document.getElementById('modalNotificacion')
         ).show();
+    function mostrarModal(titulo, cuerpo) {
+
+        document.getElementById('modalNotiTitulo').textContent = titulo;
+
+        document.getElementById('modalNotiCuerpo').textContent = cuerpo;
+
+        new bootstrap.Modal(document.getElementById('modalNotificacion')).show();
+
     }
 
 
@@ -2356,7 +2631,24 @@
 
     actualizarResumen();
 
+
+    // Cada minuto se refrescan las horas para que se vayan bloqueando solas
+    setInterval(function () {
+
+        renderHorarios();
+
+        if (document.getElementById('modalEditarReserva').classList.contains('show')) {
+
+            renderHorariosEdicion();
+
+        }
+
+    }, 60000);
+
 </script>
+
+
+<script src="{% static 'js/theme.js' %}"></script>
 
 </body>
 

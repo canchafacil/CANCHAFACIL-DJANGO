@@ -119,6 +119,22 @@
 
         .badge-mp { background: #00aaff; color: #fff; font-size: 0.65rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; letter-spacing: 0.5px; }
         .oculto { display: none; }
+
+        /* ── CONTADOR DE 15 MINUTOS ── */
+        .contador-pago {
+            display: flex; align-items: center; gap: 14px;
+            background: #fff8e6; border: 1px solid #f4dfa0; color: #7a5c00;
+            border-radius: 14px; padding: 12px 18px; margin-bottom: 22px;
+            transition: background-color .3s ease, border-color .3s ease, color .3s ease;
+        }
+        .contador-pago i { font-size: 1.5rem; }
+        .contador-pago .tiempo {
+            font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 1.6rem;
+            min-width: 76px; letter-spacing: .02em;
+        }
+        .contador-pago .texto { font-size: 0.85rem; line-height: 1.3; }
+        .contador-pago.urgente { background: #ffe9ea; border-color: #f2b8bc; color: #a1121c; }
+        .contador-pago.agotado { background: #f1f1f1; border-color: #d4d4d4; color: #666; }
     </style>
 </head>
 
@@ -161,6 +177,17 @@
         <h2 class="mb-4" style="color:var(--navy); font-weight:800;">
             {% if es_diferencia %}Paga la diferencia de tu reserva{% else %}Confirma y paga tu reserva{% endif %}
         </h2>
+
+        {% if segundos_restantes is not None %}
+        <!-- CONTADOR: la reserva pendiente se cancela a los 15 minutos si no se paga -->
+        <div class="contador-pago" id="contadorPago">
+            <i class="bi bi-clock-history"></i>
+            <div class="tiempo" id="contadorTiempo">--:--</div>
+            <div class="texto" id="contadorTexto">
+                Tienes este tiempo para pagar. Si no pagas, tu reserva se cancelará automáticamente y las horas quedarán libres.
+            </div>
+        </div>
+        {% endif %}
 
         <div class="grid-pago">
             <!-- Panel Izquierdo -->
@@ -405,5 +432,54 @@
         }
         {% endif %}
     </script>
+
+    {% if segundos_restantes is not None %}
+    <script>
+        // ── CONTADOR DE 15 MINUTOS ─────────────────────────────
+        // Los segundos restantes los calcula el servidor; el cancelado real también es del servidor.
+        (function () {
+            let restante = {{ segundos_restantes }};
+            const caja = document.getElementById('contadorPago');
+            const tiempo = document.getElementById('contadorTiempo');
+            const texto = document.getElementById('contadorTexto');
+            const btnPagar = document.getElementById('btnPagarMP');
+
+            function pintar() {
+                const m = String(Math.floor(restante / 60)).padStart(2, '0');
+                const s = String(restante % 60).padStart(2, '0');
+                tiempo.textContent = `${m}:${s}`;
+                caja.classList.toggle('urgente', restante <= 180);
+            }
+
+            function agotar() {
+                caja.classList.remove('urgente');
+                caja.classList.add('agotado');
+                tiempo.textContent = '00:00';
+                texto.textContent = 'Se acabó el tiempo. Tu reserva se está cancelando...';
+                if (btnPagar) btnPagar.disabled = true;
+                // Pequeño margen para que el servidor ya la haya cancelado; al recargar,
+                // la vista de pago redirige con el mensaje de reserva cancelada.
+                setTimeout(() => window.location.reload(), 2500);
+            }
+
+            pintar();
+
+            if (restante <= 0) {
+                agotar();
+                return;
+            }
+
+            const timer = setInterval(() => {
+                restante--;
+                if (restante <= 0) {
+                    clearInterval(timer);
+                    agotar();
+                    return;
+                }
+                pintar();
+            }, 1000);
+        })();
+    </script>
+    {% endif %}
 </body>
 </html>

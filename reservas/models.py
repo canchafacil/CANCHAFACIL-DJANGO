@@ -4,6 +4,10 @@ from decimal import Decimal
 from datetime import datetime, timedelta
 
 
+# Minutos que tiene el cliente para pagar antes de que la reserva pendiente se cancele
+MINUTOS_PARA_PAGAR = 15
+
+
 class Reserva(models.Model):
     ESTADO_PENDIENTE = 'pendiente'
     ESTADO_CONFIRMADA = 'confirmada'
@@ -17,6 +21,8 @@ class Reserva(models.Model):
         (ESTADO_CANCELADA, 'Cancelada'),
     ]
 
+    MOTIVO_VENCIDA = 'vencida'
+
     MOTIVOS_CANCELACION = [
         ('clima',   'Mal clima / cancha en mal estado'),
         ('equipo',  'No se completó el equipo'),
@@ -25,11 +31,13 @@ class Reserva(models.Model):
         ('salud',   'Motivos de salud o lesión'),
         ('precio',  'Encontré otra opción / tema de precio'),
         ('otro',    'Otro motivo'),
+        (MOTIVO_VENCIDA, 'No se realizó el pago en 15 minutos'),
     ]
 
     CANCELADA_POR_CHOICES = [
         ('usuario', 'Usuario'),
         ('admin', 'Administrador'),
+        ('sistema', 'Sistema (pago no realizado a tiempo)'),
     ]
 
     nombre = models.CharField(max_length=100)
@@ -44,6 +52,10 @@ class Reserva(models.Model):
     metodo_pago = models.CharField(max_length=50, blank=True, null=True)
     precio_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     numero_factura = models.CharField(max_length=20, blank=True, null=True)
+
+    # Momento en que se creó la reserva (para el límite de 15 min de pago).
+    # null=True: las reservas anteriores a este cambio quedan sin fecha y NUNCA se cancelan solas.
+    creada_en = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     # ── ABONO / PAGO PARCIAL ──────────────────────────────────────
     TIPO_PAGO_COMPLETO = 'completo'
@@ -70,7 +82,7 @@ class Reserva(models.Model):
         max_length=20, choices=CANCELADA_POR_CHOICES, blank=True, null=True
     )
 
-    def _str_(self):
+    def __str__(self):
         return f"{self.nombre} - {self.cancha} - {self.fecha}"
 
     def duracion_minutos(self):
@@ -158,6 +170,26 @@ class Reserva(models.Model):
             self.save(update_fields=['estado'])
             return True
         return False
+
+    # ── LÍMITE DE PAGO (15 min) ───────────────────────────────────
+    @property
+    def expira_en(self):
+        """Momento en que vence el pago. None si la reserva no corre contra reloj."""
+        if (
+            self.estado != self.ESTADO_PENDIENTE
+            or not self.creada_en
+            or (self.monto_pagado or Decimal('0')) > 0
+        ):
+            return None
+        return self.creada_en + timedelta(minutes=MINUTOS_PARA_PAGAR)
+
+    @property
+    def segundos_para_pagar(self):
+        """Segundos que le quedan al cliente para pagar (None si no aplica)."""
+        limite = self.expira_en
+        if not limite:
+            return None
+        return max(0, int((limite - timezone.now()).total_seconds()))
 
     @property
     def puede_editarse(self):
